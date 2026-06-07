@@ -6,17 +6,17 @@ module.exports = {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
       },
       colors: {
-        ink: "#07111f",
+        ink: "#050816",
         panel: "#0f172a",
-        paper: "#f7fbff",
-        gold: "#22d3ee",
-        plum: "#6366f1",
-        teal: "#10b981",
+        paper: "#f8fbff",
+        gold: "#38bdf8",
+        plum: "#7c3aed",
+        teal: "#14b8a6",
         rose: "#fb7185"
       },
       boxShadow: {
-        glow: "0 24px 80px rgba(34, 211, 238, 0.18)",
-        violet: "0 20px 70px rgba(99, 102, 241, 0.22)"
+        glow: "0 24px 78px rgba(56, 189, 248, 0.22)",
+        violet: "0 22px 70px rgba(124, 58, 237, 0.2)"
       }
     }
   },

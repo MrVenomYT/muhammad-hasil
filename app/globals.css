@@ -5,12 +5,12 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(34, 211, 238, 0.55) rgba(247, 251, 255, 0.08);
+    scrollbar-color: rgba(56, 189, 248, 0.7) rgba(248, 251, 255, 0.08);
   }
 
   ::selection {
-    background: rgba(34, 211, 238, 0.35);
-    color: #f7fbff;
+    background: rgba(56, 189, 248, 0.38);
+    color: #f8fbff;
   }
 
   html {
@@ -28,34 +28,82 @@
 
 @layer components {
   .aurora-shell {
-    background:
-      radial-gradient(circle at 12% 18%, rgba(34, 211, 238, 0.2), transparent 32%),
-      radial-gradient(circle at 84% 16%, rgba(99, 102, 241, 0.22), transparent 28%),
-      radial-gradient(circle at 58% 82%, rgba(16, 185, 129, 0.12), transparent 32%),
-      linear-gradient(135deg, #07111f 0%, #0f172a 48%, #111827 100%);
+    background: #050816;
   }
 
   .precision-grid {
-    background-image:
-      linear-gradient(rgba(247, 251, 255, 0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(247, 251, 255, 0.045) 1px, transparent 1px);
-    background-size: 44px 44px;
-    mask-image: linear-gradient(to bottom, black, transparent 86%);
+    background-image: none;
+    background-color: rgba(248, 251, 255, 0.018);
   }
 
   .glass-panel {
-    border: 1px solid rgba(247, 251, 255, 0.1);
-    background: linear-gradient(145deg, rgba(247, 251, 255, 0.11), rgba(247, 251, 255, 0.035));
-    box-shadow: 0 24px 80px rgba(2, 6, 23, 0.24);
-    backdrop-filter: blur(22px);
+    border: 1px solid rgba(248, 251, 255, 0.13);
+    background: rgba(15, 23, 42, 0.86);
+    box-shadow: 0 22px 70px rgba(2, 6, 23, 0.28);
+    backdrop-filter: blur(18px);
   }
 
   .elite-card {
-    border: 1px solid rgba(247, 251, 255, 0.1);
-    background:
-      linear-gradient(145deg, rgba(247, 251, 255, 0.095), rgba(247, 251, 255, 0.035)),
-      radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 34%);
-    box-shadow: 0 18px 64px rgba(2, 6, 23, 0.2);
+    border: 1px solid rgba(248, 251, 255, 0.13);
+    background: #0f172a;
+    box-shadow: 0 18px 54px rgba(2, 6, 23, 0.24);
+  }
+
+  .hero-intro-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(248, 251, 255, 0.16);
+    background: #0f172a;
+    box-shadow:
+      0 28px 90px rgba(2, 6, 23, 0.42),
+      inset 0 1px 0 rgba(248, 251, 255, 0.08);
+  }
+
+  .hero-intro-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-left: 8px solid #38bdf8;
+    border-top: 8px solid #38bdf8;
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .hero-intro-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .professional-hover {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(2, 6, 23, 0.18);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease,
+      color 180ms ease;
+  }
+
+  .professional-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 42px rgba(56, 189, 248, 0.2);
+  }
+
+  .professional-hover:active {
+    transform: translateY(0);
+  }
+
+  .typing-caret {
+    display: inline-block;
+    height: 1em;
+    margin-left: 0.16em;
+    width: 3px;
+    transform: translateY(0.14em);
+    border-radius: 999px;
+    background: #38bdf8;
+    animation: caretBlink 900ms steps(1) infinite;
   }
 
   .scroll-reveal {
@@ -86,25 +134,14 @@
   }
 
   .magnetic-hover::before {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    background: linear-gradient(120deg, transparent, rgba(34, 211, 238, 0.22), transparent);
-    opacity: 0;
-    transform: translateX(-55%);
-    transition: opacity 240ms ease, transform 650ms ease;
-    pointer-events: none;
+    content: none;
   }
 
   .magnetic-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 24px 70px rgba(34, 211, 238, 0.14);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 48px rgba(56, 189, 248, 0.17);
   }
 
-  .magnetic-hover:hover::before {
-    opacity: 1;
-    transform: translateX(55%);
-  }
 
   .shine-text {
     background-size: 220% auto;
@@ -134,17 +171,23 @@
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 24px 80px rgba(34, 211, 238, 0.16);
+    box-shadow: 0 24px 80px rgba(56, 189, 248, 0.17);
   }
 
   50% {
-    box-shadow: 0 28px 95px rgba(99, 102, 241, 0.28);
+    box-shadow: 0 28px 95px rgba(251, 113, 133, 0.18);
   }
 }
 
 @keyframes shineText {
   to {
     background-position: 220% center;
+  }
+}
+
+@keyframes caretBlink {
+  50% {
+    opacity: 0;
   }
 }
 

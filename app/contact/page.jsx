@@ -20,7 +20,8 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="bg-[linear-gradient(180deg,#121018_0%,#1b1724_100%)] px-4 pb-24 pt-32 sm:px-6 lg:px-8">
+    <div className="aurora-shell px-4 pb-24 pt-32 sm:px-6 lg:px-8">
+      <div className="precision-grid fixed inset-0 pointer-events-none" />
       <div className="mx-auto max-w-5xl">
         <SectionHeading eyebrow="Contact" title="Tell me about the next build" copy="Messages are captured into the hidden admin dashboard through a mock local submission flow." />
         <div className="grid gap-8 lg:grid-cols-[1fr_.8fr]">

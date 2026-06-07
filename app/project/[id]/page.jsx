@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowUpRight, Layers3, ListChecks, Wrench } from "lucide-rea
 import { motion } from "@/components/Motion";
 import { usePortfolioData } from "@/components/DataProvider";
 import { generateProjectThumbnail } from "@/lib/thumbnailGenerator";
-import { projectDetails } from "@/lib/projectUtils";
+import { projectDetails, projectTagPath } from "@/lib/projectUtils";
 
 export default function ProjectDetailPage({ params }) {
   const { projects, ready } = usePortfolioData();
@@ -18,7 +18,7 @@ export default function ProjectDetailPage({ params }) {
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#07111f_0%,#0f172a_100%)] px-4 pt-32 text-paper">
+      <div className="min-h-screen bg-ink px-4 pt-32 text-paper">
         <div className="mx-auto max-w-7xl">
           <div className="h-[32rem] animate-pulse rounded-[2rem] bg-paper/10" />
         </div>
@@ -28,7 +28,7 @@ export default function ProjectDetailPage({ params }) {
 
   if (!project) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[linear-gradient(180deg,#07111f_0%,#0f172a_100%)] px-4 text-paper">
+      <div className="grid min-h-screen place-items-center bg-ink px-4 text-paper">
         <div className="max-w-xl text-center">
           <p className="text-sm font-black uppercase tracking-[0.28em] text-gold">Project not found</p>
           <h1 className="mt-4 text-4xl font-black">This project is not available</h1>
@@ -59,7 +59,7 @@ export default function ProjectDetailPage({ params }) {
                 Live version
                 <ArrowUpRight className="h-5 w-5" />
               </a>
-              <Link href={`/projects/${encodeURIComponent(project.tag)}`} className="inline-flex items-center justify-center rounded-full border border-paper/10 bg-paper/5 px-6 py-3 font-black text-paper/75 transition hover:border-gold/50 hover:text-paper">
+              <Link href={projectTagPath(project.tag)} className="inline-flex items-center justify-center rounded-full border border-paper/10 bg-paper/5 px-6 py-3 font-black text-paper/75 transition hover:border-gold/50 hover:text-paper">
                 More {project.tag} projects
               </Link>
             </div>

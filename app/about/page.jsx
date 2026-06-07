@@ -2,7 +2,6 @@
 
 import { motion } from "@/components/Motion";
 import { ArrowUpRight, Award, BookOpen, BriefcaseBusiness, CheckCircle2, Code2, ExternalLink, Layers3, MonitorSmartphone } from "lucide-react";
-import ParallaxLayer from "@/components/ParallaxLayer";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import { usePortfolioData } from "@/components/DataProvider";
@@ -13,10 +12,10 @@ export default function AboutPage() {
   const info = profileInfo || defaultProfileInfo;
 
   return (
-    <div className="bg-[linear-gradient(180deg,#121018_0%,#1b1724_45%,#121018_100%)] px-4 pb-24 pt-32 sm:px-6 lg:px-8">
+    <div className="aurora-shell px-4 pb-24 pt-32 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <section className="grid items-center gap-12 lg:grid-cols-[.92fr_1.08fr]">
-          <ParallaxLayer>
+          <div>
             <div className="relative overflow-hidden rounded-[2rem] border border-paper/10 bg-paper/8 p-3 shadow-glow">
               <div className="absolute left-6 top-6 z-10 rounded-full border border-gold/25 bg-ink/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-gold backdrop-blur">Coding Mode</div>
               <img src="/assets/hooded-coder.gif" alt="Animated hooded developer coding on a laptop" width="800" height="1000" className="aspect-[4/5] h-full w-full rounded-[1.4rem] object-cover" />
@@ -29,7 +28,7 @@ export default function AboutPage() {
                 <VisualBadge icon={MonitorSmartphone} label="Responsive" />
               </div>
             </div>
-          </ParallaxLayer>
+          </div>
           <Reveal>
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-gold">About Muhammad</p>
             <h1 className="text-4xl font-black tracking-tight text-paper sm:text-6xl">Clean web experiences with personality and purpose.</h1>
@@ -66,7 +65,7 @@ export default function AboutPage() {
                     <span className="text-gold">{skill.level}%</span>
                   </div>
                   <div className="h-3 overflow-hidden rounded-full bg-paper/10">
-                    <motion.div className="h-full rounded-full bg-gradient-to-r from-gold via-rose to-teal" initial={{ width: 0 }} whileInView={{ width: `${skill.level}%` }} viewport={{ once: true }} transition={{ duration: 1, ease: "easeOut" }} />
+                    <motion.div className="h-full rounded-full bg-gold" initial={{ width: 0 }} whileInView={{ width: `${skill.level}%` }} viewport={{ once: true }} transition={{ duration: 1, ease: "easeOut" }} />
                   </div>
                 </div>
               </Reveal>

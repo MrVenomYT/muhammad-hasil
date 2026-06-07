@@ -66,6 +66,7 @@ function getSidebarGroups(data, profileDraft) {
 export default function DashboardPage() {
   const router = useRouter();
   const data = usePortfolioData();
+  const [checkedAuth, setCheckedAuth] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
   const [project, setProject] = useState(initialProject);
   const [review, setReview] = useState(initialReview);
@@ -81,7 +82,11 @@ export default function DashboardPage() {
   ), [project]);
 
   useEffect(() => {
-    if (!isAdminAuthed()) router.replace("/admin");
+    if (!isAdminAuthed()) {
+      router.replace("/admin");
+      return;
+    }
+    setCheckedAuth(true);
   }, [router]);
 
   useEffect(() => {
@@ -159,14 +164,25 @@ export default function DashboardPage() {
     updateProfile({ ...profileDraft, [section]: profileDraft[section].filter((item) => item.id !== id) });
   }
 
+  if (!checkedAuth) {
+    return (
+      <div className="aurora-shell grid min-h-screen place-items-center px-4 text-paper">
+        <div className="glass-panel rounded-[2rem] p-8 text-center">
+          <div className="mx-auto mb-5 h-12 w-12 animate-pulse rounded-2xl bg-gold" />
+          <p className="text-sm font-black uppercase tracking-[0.24em] text-gold">Checking access</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#eef2f6] text-ink">
+    <div className="min-h-screen bg-[#eef6ff] text-ink">
       <div className="flex min-h-screen">
-        <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-white/10 bg-[#101827] text-paper shadow-[20px_0_70px_rgba(15,23,42,.22)] lg:block">
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-80 border-r border-white/10 bg-ink text-paper shadow-[20px_0_70px_rgba(15,23,42,.22)] lg:block">
           <Sidebar groups={sidebarGroups} activeSection={activeSection} onJump={jumpTo} onLogout={logout} />
         </aside>
 
-        <div className="min-w-0 flex-1 lg:pl-72">
+        <div className="min-w-0 flex-1 lg:pl-80">
           <MobileNav groups={sidebarGroups} activeSection={activeSection} onJump={jumpTo} onLogout={logout} />
 
           <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -310,12 +326,13 @@ export default function DashboardPage() {
 function Sidebar({ groups, activeSection, onJump, onLogout }) {
   return (
     <div className="flex h-full flex-col p-5">
-      <div className="rounded-[1.6rem] border border-white/10 bg-white/8 p-5 shadow-[0_18px_55px_rgba(0,0,0,.18)]">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gold text-ink shadow-glow">
+      <div className="relative overflow-hidden rounded-[1.8rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_18px_55px_rgba(0,0,0,.18)]">
+        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gold/20 blur-3xl" />
+        <div className="relative grid h-12 w-12 place-items-center rounded-2xl bg-gold text-ink shadow-glow">
           <Sparkles className="h-6 w-6" />
         </div>
-        <h2 className="mt-4 text-2xl font-black">Hasil Studio</h2>
-        <p className="mt-2 text-sm leading-6 text-paper/58">Portfolio content, proof, inbox, and analytics in one workspace.</p>
+        <h2 className="relative mt-4 text-2xl font-black">Hasil Studio</h2>
+        <p className="relative mt-2 text-sm leading-6 text-paper/58">A clean portfolio CMS for projects, profile proof, reviews, and inbox.</p>
       </div>
       <nav className="mt-6 space-y-5 overflow-auto pr-1">
         {groups.map((group) => (
@@ -326,7 +343,7 @@ function Sidebar({ groups, activeSection, onJump, onLogout }) {
                 const Icon = item.icon;
                 const active = activeSection === item.id;
                 return (
-                  <button key={item.id} onClick={() => onJump(item.target, item.id)} className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition ${active ? "bg-gold text-ink shadow-glow" : "text-paper/68 hover:bg-white/8 hover:text-paper"}`}>
+                  <button key={item.id} onClick={() => onJump(item.target, item.id)} className={`group flex w-full items-center gap-3 rounded-[1.3rem] px-3 py-3 text-left transition ${active ? "bg-gold text-ink shadow-glow" : "text-paper/68 hover:bg-white/8 hover:text-paper"}`}>
                     <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${active ? "bg-ink/10" : "bg-paper/8 group-hover:bg-paper/12"}`}>
                       <Icon className="h-5 w-5" />
                     </span>
@@ -354,7 +371,7 @@ function MobileNav({ groups, activeSection, onJump, onLogout }) {
   const items = groups.flatMap((group) => group.items);
 
   return (
-    <div className="sticky top-0 z-30 border-b border-ink/10 bg-[#eef2f6]/90 px-4 py-3 backdrop-blur-xl lg:hidden">
+    <div className="sticky top-0 z-30 border-b border-ink/10 bg-[#eef6ff]/90 px-4 py-3 backdrop-blur-xl lg:hidden">
       <div className="mb-3 flex items-center justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.22em] text-plum">Dashboard</p>
@@ -382,7 +399,9 @@ function MobileNav({ groups, activeSection, onJump, onLogout }) {
 
 function HeroHeader() {
   return (
-    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#101827_0%,#1b2537_55%,#3d2a31_100%)] p-6 text-paper shadow-[0_24px_80px_rgba(15,23,42,.22)] sm:p-8">
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-[2rem] bg-ink p-6 text-paper shadow-[0_24px_80px_rgba(15,23,42,.22)] sm:p-8">
+      <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gold/20 blur-3xl" />
+      <div className="absolute -bottom-24 left-20 h-72 w-72 rounded-full bg-plum/20 blur-3xl" />
       <div className="relative z-10 flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
         <div>
           <p className="inline-flex rounded-full bg-gold/15 px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-gold">Private dashboard</p>
@@ -407,7 +426,7 @@ function Stat({ icon: Icon, label, value, tone }) {
   };
 
   return (
-    <motion.div whileHover={{ y: -4 }} className="rounded-[1.6rem] border border-ink/8 bg-white p-5 shadow-[0_18px_55px_rgba(18,16,24,.08)]">
+    <motion.div whileHover={{ y: -4 }} className="rounded-[1.6rem] border border-white bg-white/90 p-5 shadow-[0_18px_55px_rgba(18,16,24,.08)] backdrop-blur">
       <div className={`mb-5 grid h-12 w-12 place-items-center rounded-2xl ${tones[tone]}`}>
         <Icon className="h-6 w-6" />
       </div>
@@ -431,7 +450,7 @@ function SectionTitle({ icon: Icon, title, copy }) {
 
 function Panel({ title, eyebrow, icon: Icon, children, className = "" }) {
   return (
-    <motion.section initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={`rounded-[1.8rem] border border-ink/8 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,.08)] sm:p-6 ${className}`}>
+    <motion.section initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className={`rounded-[1.8rem] border border-white bg-white/90 p-5 shadow-[0_18px_55px_rgba(15,23,42,.08)] backdrop-blur sm:p-6 ${className}`}>
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           {eyebrow && <p className="text-xs font-black uppercase tracking-[0.22em] text-plum/70">{eyebrow}</p>}

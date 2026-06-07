@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown, Code2, FolderKanban, Home, Mail, Menu, User, X } from "lucide-react";
 import { projectTags } from "@/lib/defaultData";
+import { projectTagPath } from "@/lib/projectUtils";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -23,7 +24,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3">
-      <div className="glass-panel mx-auto max-w-7xl rounded-[1.4rem]">
+      <div className="mx-auto max-w-7xl rounded-[1.4rem] border border-paper/10 bg-ink/78 shadow-[0_18px_55px_rgba(0,0,0,.22)] backdrop-blur-2xl">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <span className="grid h-11 w-11 place-items-center rounded-2xl border border-gold/25 bg-gold shadow-glow">
@@ -55,7 +56,7 @@ export default function Navbar() {
               <div className="glass-panel absolute right-0 top-12 w-60 rounded-2xl p-2">
                 <Link href="/projects" className="block rounded-xl px-3 py-2 text-sm text-paper/70 hover:bg-paper/10 hover:text-paper">All Projects</Link>
                 {projectTags.map((tag) => (
-                  <Link key={tag} href={`/projects/${encodeURIComponent(tag)}`} className="block rounded-xl px-3 py-2 text-sm text-paper/70 hover:bg-paper/10 hover:text-paper">
+                  <Link key={tag} href={projectTagPath(tag)} className="block rounded-xl px-3 py-2 text-sm text-paper/70 hover:bg-paper/10 hover:text-paper">
                     {tag}
                   </Link>
                 ))}
@@ -82,7 +83,7 @@ export default function Navbar() {
           })}
           <div className="grid grid-cols-2 gap-2 pt-2">
             {projectTags.map((tag) => (
-              <Link key={tag} href={`/projects/${encodeURIComponent(tag)}`} onClick={() => setOpen(false)} className="rounded-xl bg-paper/5 px-3 py-2 text-center text-xs text-paper/65">
+              <Link key={tag} href={projectTagPath(tag)} onClick={() => setOpen(false)} className="rounded-xl bg-paper/5 px-3 py-2 text-center text-xs text-paper/65">
                 {tag}
               </Link>
             ))}

@@ -10,10 +10,10 @@ export default function ReviewCards() {
   const stars = useMemo(() => Array.from({ length: 5 }), []);
 
   return (
-    <div className="grid gap-6 md:grid-cols-3">
+    <div className="grid gap-5 md:grid-cols-3 lg:gap-6">
       {reviews.map((review, index) => (
         <Reveal key={review.id} delay={index * 0.07}>
-          <article className="elite-card magnetic-hover h-full rounded-3xl p-6 backdrop-blur-xl transition hover:-translate-y-1 hover:border-gold/35">
+          <article className="elite-card professional-hover h-full rounded-[1.6rem] p-5 backdrop-blur-xl sm:p-6">
             <div className="mb-5 flex gap-1 text-gold">
               {stars.map((_, item) => (
                 <Star key={item} className={`h-4 w-4 ${item < review.rating ? "fill-current" : "opacity-25"}`} />
