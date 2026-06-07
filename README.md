@@ -1,76 +1,57 @@
-<h2 align="center">
-  Portfolio Website - v2.0<br/>
-  <a href="https://portfolio1-gules-ten.vercel.app/" target="_blank">Muhammad Hasil</a>
-</h2>
-<div align="center">
-  <img alt="Demo" src="./Images/readme-img1.png" />
-</div>
+# Muhammad Hasil Portfolio
 
-<br/>
+Modern JavaScript-only Next.js portfolio with a hidden local admin dashboard, dynamic projects, reviews, contact submissions, and visit analytics.
 
-<center>
+## Routes
 
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com) &nbsp;
-[![forthebadge](https://forthebadge.com/images/badges/made-with-javascript.svg)](https://forthebadge.com) &nbsp;
-[![forthebadge](https://forthebadge.com/images/badges/open-source.svg)](https://forthebadge.com) &nbsp;
-![GitHub Repo stars](https://img.shields.io/github/stars/MrVenomYT/Portfolio1?color=red&logo=github&style=for-the-badge) &nbsp;
-![GitHub forks](https://img.shields.io/github/forks/MrVenomYT/Portfolio1?color=red&logo=github&style=for-the-badge)
+- `/` home with parallax sections, animated hero, featured projects, testimonials, and visits counter
+- `/about` biography, animated skills, and experience timeline
+- `/projects` all dynamic projects
+- `/projects/[tag]` filtered projects for `Node.js`, `Vanilla`, `React.js`, `Next.js`, and `TypeScript`
+- `/contact` animated contact form with local dashboard submissions
+- `/admin` hidden login
+- `/admin/dashboard` protected local CMS dashboard
 
-</center>
+## Admin Login
 
-<h3 align="center">
-    🔹
-    <a href="https://github.com/MrVenomYT/Portfolio1/issues">Report Bug</a> &nbsp; &nbsp;
-    🔹
-    <a href="https://github.com/MrVenomYT/Portfolio1/issues">Request Feature</a>
-</h3>
+- Username: `Muhammad Hasil`
+- Password: `H03214981005a`
 
-## TLDR
+## Run
 
-You can fork this repo to modify and make changes of your own. Please give me proper credit by linking back to [Muhammad Hasil](https://github.com/MrVenomYT/Portfolio1). Thanks!
+```bash
+npm install
+npm run dev
+```
 
-## Built With
+Open `http://localhost:3000`.
 
-My personal portfolio <a href="https://portfolio1-gules-ten.vercel.app/" target="_blank">Muhammad Hasil</a> which features some of my github projects as well as my resume and technical skills.<br/>
+`npm run dev` uses Next.js Turbopack for faster local startup. If a local machine has Turbopack issues, use:
 
-This project was built using these technologies.
+```bash
+npm run dev:webpack
+```
 
-- React.js
-- Node.js
-- Express.js
-- CSS3
-- VsCode
-- Vercel
+If you ever see a stale missing chunk error from `.next`, stop the running dev server and run:
 
-## Features
+```bash
+npm run clean
+npm run dev
+```
 
-**📖 Multi-Page Layout**
+## Build
 
-**🎨 Styled with React-Bootstrap and Css with easy to customize colors**
+```bash
+npm run build
+npm run start
+```
 
-**📱 Fully Responsive**
+## Deploy To Vercel
 
-## Getting Started
+1. Push this project to GitHub.
+2. Import the GitHub repository in Vercel.
+3. Vercel will detect Next.js automatically.
+4. Build command: `npm run build`
+5. Install command: `npm install`
 
-Clone down this repository. You will need `node.js` and `git` installed globally on your machine.
-
-## 🛠 Installation and Setup Instructions
-
-1. Installation: `npm install`
-
-2. In the project directory, you can run: `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-The page will reload if you make edits.
-
-## Usage Instructions
-
-Open the project folder and Navigate to `/src/components/`. <br/>
-You will find all the components used and you can edit your information accordingly.
-
-### Show your support
-
-Give a ⭐ if you like this website!
-
-<a href="https://www.buymeacoffee.com/soumyajit4419" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="Buy Me A Coffee" height= "60px" width= "217px" ></a>
+The dashboard uses browser localStorage as a simple CMS simulation, so content is stored per browser/device.
