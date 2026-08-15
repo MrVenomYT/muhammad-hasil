@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muhammad Hasil — Full Stack Developer & UI/UX Designer</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <!-- Fixed Fullscreen Background Canvas -->
+  <canvas id="animation-canvas"></canvas>
+  <div class="bg-vignette-overlay"></div>
+
+  <!-- Portfolio Container -->
+  <div class="portfolio-container">
+
+    <!-- Header / Navbar -->
+    <header class="navbar">
+      <div class="nav-logo">HASIL.WEB</div>
+      <nav class="nav-menu">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#services" class="nav-link">Services</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+      <a href="#contact" class="btn-primary btn-nav">
+        Start a Project <span class="arrow">↗</span>
+      </a>
+    </header>
+
+    <!-- Page Views Wrapper -->
+    <main id="pages-wrapper">
+
+      <!-- Page 1: Home -->
+      <div id="page-home" class="page-view active">
+        <!-- Hero Section / Homepage -->
+        <section class="hero-section">
+          <div class="hero-bg-text-wrapper">
+            <span class="hero-tagline">Hi, I am</span>
+            <h1 class="hero-giant-title">Muhammad Hasil</h1>
+          </div>
+
+          <!-- Hero Floating Cards -->
+          <div class="hero-cards-container">
+            <!-- Left Hero Card -->
+            <div class="hero-card hero-card-left">
+              <div class="card-tag">
+                <span class="orange-dot"></span>
+                <span>Trusted by 200+ clients</span>
+              </div>
+              <h2 class="card-heading">Websites that turn visitors into clients</h2>
+              <div class="card-buttons">
+                <a href="#contact" class="btn-primary">Start a Project <span class="arrow">↗</span></a>
+                <a href="#projects" class="btn-secondary">View My Work <span class="arrow">↘</span></a>
+              </div>
+            </div>
+
+            <!-- Right Hero Card -->
+            <div class="hero-card hero-card-right">
+              <div class="avatars-row">
+                <div class="avatar-circle">MH</div>
+                <div class="avatar-circle">A1</div>
+                <div class="avatar-circle">B2</div>
+                <div class="avatar-circle">C3</div>
+              </div>
+              <p class="satisfaction-text">
+                <strong>99.6%</strong> Of My Clients Are Satisfied — Be One Of Them Today.
+              </p>
+              <div class="social-links-pills">
+                <a href="https://www.linkedin.com/in/muhammad-hasil/" target="_blank" rel="noopener noreferrer" class="social-link-pill">LinkedIn ↗</a>
+                <a href="https://www.patreon.com/MrVenomYT" target="_blank" rel="noopener noreferrer" class="social-link-pill">Patreon ↗</a>
+                <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" class="social-link-pill">Fiverr ↗</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Marquee Banner -->
+        <section class="marquee-section">
+          <div class="marquee-track">
+            <div class="marquee-content">
+              <span>YEARS EXPERIENCE</span> <span class="star">✦</span>
+              <span>299+ DELIVERIES</span> <span class="star">✦</span>
+              <span>99% POSITIVE REVIEWS</span> <span class="star">✦</span>
+              <span>6 YEARS EXPERIENCE</span> <span class="star">✦</span>
+              <span>299+ DELIVERIES</span> <span class="star">✦</span>
+              <span>99% POSITIVE REVIEWS</span> <span class="star">✦</span>
+            </div>
+            <div class="marquee-content" aria-hidden="true">
+              <span>YEARS EXPERIENCE</span> <span class="star">✦</span>
+              <span>299+ DELIVERIES</span> <span class="star">✦</span>
+              <span>99% POSITIVE REVIEWS</span> <span class="star">✦</span>
+              <span>6 YEARS EXPERIENCE</span> <span class="star">✦</span>
+              <span>299+ DELIVERIES</span> <span class="star">✦</span>
+              <span>99% POSITIVE REVIEWS</span> <span class="star">✦</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Client Reviews Section (Inside Home Page) Slider Carousel -->
+        <section id="reviews" class="reviews-section-footer">
+          <div class="section-tag-center">
+            <span class="orange-dot"></span>
+            <span>CLIENT REVIEWS & FEEDBACK</span>
+          </div>
+          <h2 class="reviews-title-center">What Clients Say About Working With Me</h2>
+
+          <!-- Reviews Slider Wrapper -->
+          <div class="reviews-slider-wrapper">
+            <button class="slider-btn prev-btn" id="reviews-prev-btn" aria-label="Previous Review">‹</button>
+
+            <div class="reviews-slider-viewport">
+              <div class="reviews-slider-track" id="reviews-slider-track">
+
+                <!-- Review 1 -->
+                <div class="review-slide">
+                  <div class="review-card-pro">
+                    <div class="review-card-top">
+                      <div class="stars-row">★★★★★</div>
+                      <span class="verified-badge">✓ Verified Client</span>
+                    </div>
+                    <p class="review-quote-text">
+                      "Muhammad delivered our web application faster than expected with incredible attention to detail, clean full-stack code, and smooth animations."
+                    </p>
+                    <div class="review-author-box">
+                      <div class="author-avatar-initials">SK</div>
+                      <div class="author-info">
+                        <strong class="author-name">Sarah K.</strong>
+                        <span class="author-role">Digital Marketing Director</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="review-slide">
+                  <div class="review-card-pro">
+                    <div class="review-card-top">
+                      <div class="stars-row">★★★★★</div>
+                      <span class="verified-badge">✓ Verified Client</span>
+                    </div>
+                    <p class="review-quote-text">
+                      "The interactive dashboard systems he built transformed how our client operations work. Highly recommended for any serious web project!"
+                    </p>
+                    <div class="review-author-box">
+                      <div class="author-avatar-initials">DM</div>
+                      <div class="author-info">
+                        <strong class="author-name">David M.</strong>
+                        <span class="author-role">SaaS Founder</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Review 3 -->
+                <div class="review-slide">
+                  <div class="review-card-pro">
+                    <div class="review-card-top">
+                      <div class="stars-row">★★★★★</div>
+                      <span class="verified-badge">✓ Verified Client</span>
+                    </div>
+                    <p class="review-quote-text">
+                      "Outstanding full-stack engineering precision and flawless responsiveness across all desktop and mobile devices. A true professional."
+                    </p>
+                    <div class="review-author-box">
+                      <div class="author-avatar-initials">AR</div>
+                      <div class="author-info">
+                        <strong class="author-name">Alex R.</strong>
+                        <span class="author-role">E-Commerce Lead</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Review 4: Discord & Minecraft -->
+                <div class="review-slide">
+                  <div class="review-card-pro">
+                    <div class="review-card-top">
+                      <div class="stars-row">★★★★★</div>
+                      <span class="verified-badge">✓ Verified Client</span>
+                    </div>
+                    <p class="review-quote-text">
+                      "Built custom Discord bot integrations and web dashboard systems for our Minecraft server network seamlessly. Flawless execution!"
+                    </p>
+                    <div class="review-author-box">
+                      <div class="author-avatar-initials">MV</div>
+                      <div class="author-info">
+                        <strong class="author-name">Marcus V.</strong>
+                        <span class="author-role">Minecraft Server & Discord Owner</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Review 5: Roblox Studio -->
+                <div class="review-slide">
+                  <div class="review-card-pro">
+                    <div class="review-card-top">
+                      <div class="stars-row">★★★★★</div>
+                      <span class="verified-badge">✓ Verified Client</span>
+                    </div>
+                    <p class="review-quote-text">
+                      "Created custom web APIs, leaderboards, and sleek UI interfaces for our Roblox game platform. Incredible code quality and fast delivery."
+                    </p>
+                    <div class="review-author-box">
+                      <div class="author-avatar-initials">ER</div>
+                      <div class="author-info">
+                        <strong class="author-name">Elena R.</strong>
+                        <span class="author-role">Roblox Studio Lead</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Review 6: Lunar Client -->
+                <div class="review-slide">
+                  <div class="review-card-pro">
+                    <div class="review-card-top">
+                      <div class="stars-row">★★★★★</div>
+                      <span class="verified-badge">✓ Verified Client</span>
+                    </div>
+                    <p class="review-quote-text">
+                      "Superb web portal and custom API services integration for our Lunar Client modding community. Exceeded all expectations!"
+                    </p>
+                    <div class="review-author-box">
+                      <div class="author-avatar-initials">JT</div>
+                      <div class="author-info">
+                        <strong class="author-name">Jordan T.</strong>
+                        <span class="author-role">Lunar Client Community Admin</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <button class="slider-btn next-btn" id="reviews-next-btn" aria-label="Next Review">›</button>
+          </div>
+
+          <!-- Slider Pagination Dots -->
+          <div class="slider-dots-container" id="reviews-dots-container"></div>
+        </section>
+      </div>
+
+      <!-- Page 2: About -->
+      <div id="page-about" class="page-view">
+        <section class="about-section">
+          <!-- Main Intro Block (Screenshot 1) -->
+          <div class="about-hero">
+            <div class="about-tag">
+              <span class="orange-dot"></span>
+              <span>ABOUT MUHAMMAD</span>
+            </div>
+            <h2 class="about-headline">
+              Clean web experiences with personality and purpose.
+            </h2>
+            <p class="about-subtext">
+              I am Muhammad Hasil, a full-stack developer who builds clean portfolio websites, interactive dashboards,
+              scalable backend APIs, and responsive project experiences. I care about simple layouts, strong visual
+              hierarchy, and interfaces that feel professional on every screen.
+            </p>
+            <div class="about-cta-row">
+              <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" class="btn-primary">
+                Hire me on Fiverr <span class="arrow">↗</span>
+              </a>
+            </div>
+
+            <!-- 4 Core Offerings Cards (2x2 Grid) -->
+            <div class="about-features-grid">
+              <div class="feature-card">
+                <div class="check-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span>Responsive full-stack development</span>
+              </div>
+              <div class="feature-card">
+                <div class="check-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span>Admin dashboard systems</span>
+              </div>
+              <div class="feature-card">
+                <div class="check-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span>Discord, Minecraft & Roblox APIs</span>
+              </div>
+              <div class="feature-card">
+                <div class="check-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span>Clean portfolio presentation</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills Sub-section ("What I work with") -->
+          <div class="skills-block">
+            <div class="section-badge-center">
+              <span class="badge-pill">SKILLS & TECHNOLOGIES</span>
+            </div>
+            <h2 class="skills-title">What I work with</h2>
+            <p class="skills-subtitle">Specialized in modern full-stack web engineering, custom APIs, and gaming platforms.</p>
+
+            <div class="skills-grid">
+              <!-- Web Engineering -->
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+                    <span class="skill-name">React.js</span>
+                  </div>
+                  <span class="skill-percentage">94%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 94%;"></div>
+                </div>
+              </div>
+
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    <span class="skill-name">Next.js</span>
+                  </div>
+                  <span class="skill-percentage">91%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 91%;"></div>
+                </div>
+              </div>
+
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path><line x1="8" y1="16" x2="8.01" y2="16"></line></svg>
+                    <span class="skill-name">Node.js</span>
+                  </div>
+                  <span class="skill-percentage">88%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 88%;"></div>
+                </div>
+              </div>
+
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                    <span class="skill-name">Tailwind CSS</span>
+                  </div>
+                  <span class="skill-percentage">96%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 96%;"></div>
+                </div>
+              </div>
+
+              <!-- Platforms & Gaming Tech -->
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                    <span class="skill-name">Discord API & Bots</span>
+                  </div>
+                  <span class="skill-percentage">95%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 95%;"></div>
+                </div>
+              </div>
+
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span class="skill-name">Minecraft Development</span>
+                  </div>
+                  <span class="skill-percentage">90%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 90%;"></div>
+                </div>
+              </div>
+
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.165 0L0 18.835 18.835 24 24 5.165 5.165 0zm10.74 13.916l-5.82 1.56-1.56-5.82 5.82-1.56 1.56 5.82z"/></svg>
+                    <span class="skill-name">Roblox Development</span>
+                  </div>
+                  <span class="skill-percentage">92%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 92%;"></div>
+                </div>
+              </div>
+
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <span class="skill-name">Lunar Client</span>
+                  </div>
+                  <span class="skill-percentage">89%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 89%;"></div>
+                </div>
+              </div>
+
+              <!-- Pterodactyl Panel -->
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    <span class="skill-name">Pterodactyl Panel</span>
+                  </div>
+                  <span class="skill-percentage">95%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 95%;"></div>
+                </div>
+              </div>
+
+              <!-- Crowdin Localization -->
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <span class="skill-name">Crowdin Localization</span>
+                  </div>
+                  <span class="skill-percentage">91%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 91%;"></div>
+                </div>
+              </div>
+
+              <!-- Tebex & XenForo Platforms -->
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                    <span class="skill-name">Tebex & XenForo Themes</span>
+                  </div>
+                  <span class="skill-percentage">93%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 93%;"></div>
+                </div>
+              </div>
+
+              <!-- WordPress & Blogger Platforms -->
+              <div class="skill-card">
+                <div class="skill-header">
+                  <div class="skill-title-row">
+                    <svg class="tech-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <span class="skill-name">WordPress & Blogger</span>
+                  </div>
+                  <span class="skill-percentage">96%</span>
+                </div>
+                <div class="skill-bar-track">
+                  <div class="skill-bar-fill" style="width: 96%;"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Education, Certificates & Experience Sub-sections -->
+          <div class="info-blocks-container">
+
+            <!-- Education -->
+            <div class="info-block">
+              <div class="info-header-row">
+                <span class="badge-pill">INFORMATION</span>
+                <h2 class="info-block-title">Education</h2>
+              </div>
+              <div class="info-card">
+                <div class="info-card-corner-shape"></div>
+                <div class="info-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                  </svg>
+                </div>
+                <div class="info-badge-year">2025 - Present</div>
+                <h3 class="info-card-heading">BS Business & Information Technology (BBIT)</h3>
+                <p class="info-card-subheading">Virtual University of Pakistan</p>
+                <p class="info-card-desc">
+                  Currently pursuing BBIT, combining Information Technology and enterprise software systems. Focused on full-stack web engineering, database architecture, software development, and modern web application deployment.
+                </p>
+              </div>
+            </div>
+
+            <!-- Certificates -->
+            <div class="info-block">
+              <div class="info-header-row">
+                <span class="badge-pill">INFORMATION</span>
+                <h2 class="info-block-title">Certificates</h2>
+              </div>
+              <div class="info-card">
+                <div class="info-card-corner-shape"></div>
+                <div class="info-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="6"></circle>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"></path>
+                  </svg>
+                </div>
+                <div class="info-badges-row">
+                  <span class="info-badge-year">2025</span>
+                  <span class="info-badge-source">LinkedIn</span>
+                </div>
+                <h3 class="info-card-heading">Practice Exam 1 for PMI: Project Management Professional (PMP)®</h3>
+                <p class="info-card-subheading">Total Seminars</p>
+                <p class="info-card-meta">Skills covered Project Management Project Management Training</p>
+                <a href="#" class="btn-info-link">View certificate ↗</a>
+              </div>
+            </div>
+
+            <!-- Current & Past Experience -->
+            <div class="info-block">
+              <div class="info-header-row">
+                <span class="badge-pill">EXPERIENCE TIMELINE</span>
+                <h2 class="info-block-title">Current & Past Experience</h2>
+              </div>
+
+              <!-- Experience Cards Stack -->
+              <div class="experience-cards-stack">
+                <!-- Experience 1: Full Stack Developer (2024 - Present) -->
+                <div class="info-card">
+                  <div class="info-card-corner-shape"></div>
+                  <div class="info-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                  </div>
+                  <div class="info-badge-year">2024 - Present</div>
+                  <h3 class="info-card-heading">Full Stack Developer</h3>
+                  <p class="info-card-subheading">Freelance & Client Systems</p>
+                  <p class="info-card-desc">
+                    Built responsive web apps, full-stack portfolio systems, interactive dashboards, custom APIs, Discord bots, Minecraft/Roblox integrations, and high-performance UI flows.
+                  </p>
+                </div>
+
+                <!-- Experience 2: Multimedia & Web Design (2016 - 2018) -->
+                <div class="info-card">
+                  <div class="info-card-corner-shape"></div>
+                  <div class="info-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                  </div>
+                  <div class="info-badge-year">2016 - 2018</div>
+                  <h3 class="info-card-heading">Multimedia & Web Design</h3>
+                  <p class="info-card-subheading">Digital Media & UI Templates</p>
+                  <p class="info-card-desc">
+                    Created custom visual media assets, responsive UI/UX designs, front-end web graphics, brand identity, and interactive web templates for diverse online clients.
+                  </p>
+                </div>
+
+                <!-- Experience 3: Blogger, Tebex & WordPress Websites (2014 - 2016) -->
+                <div class="info-card">
+                  <div class="info-card-corner-shape"></div>
+                  <div class="info-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                  </div>
+                  <div class="info-badge-year">2014 - 2016</div>
+                  <h3 class="info-card-heading">Web Platform Developer</h3>
+                  <p class="info-card-subheading">Blogger, Tebex & WordPress Websites</p>
+                  <p class="info-card-desc">
+                    Started web development building custom Blogger themes, Tebex gaming webstores, WordPress portals, custom e-commerce integrations, and content management systems.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      </div>
+
+      <!-- Page 3: Projects -->
+      <div id="page-projects" class="page-view">
+        <section class="projects-section">
+          <div class="projects-header">
+            <div class="section-tag">
+              <span class="orange-dot"></span>
+              <span>Some Recent Projects</span>
+            </div>
+            <h2 class="section-title">Selected Work That Delivers Results</h2>
+
+            <!-- Technology Filter Tabs -->
+            <div class="projects-tabs-row" id="projects-tabs">
+              <button class="project-tab-btn active" data-filter="all">All Projects</button>
+              <button class="project-tab-btn" data-filter="fullstack">Full Stack</button>
+              <button class="project-tab-btn" data-filter="react">React & Next.js</button>
+              <button class="project-tab-btn" data-filter="design">UI/UX & Web Design</button>
+            </div>
+          </div>
+
+          <div class="projects-grid" id="projects-grid">
+            <!-- Project 1: StayPilot -->
+            <article class="project-card" data-category="fullstack react">
+              <div class="project-image-box">
+                <img src="/assets/StayPilot.png" alt="StayPilot Property & Hospitality Management Platform" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://stay-pilot-liard.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">StayPilot</h3>
+                  <span class="project-pill">Full Stack Web App</span>
+                </div>
+                <p class="project-desc">All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.</p>
+                <div class="project-card-actions">
+                  <a href="https://stay-pilot-liard.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 2: VScheduler -->
+            <article class="project-card" data-category="fullstack react">
+              <div class="project-image-box">
+                <img src="/assets/VScheduler.png" alt="VScheduler Intelligent Scheduling Portal" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://vscheduler-five.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">VScheduler</h3>
+                  <span class="project-pill">React / Web App</span>
+                </div>
+                <p class="project-desc">Interactive appointment booking and automated scheduling system built for seamless workflow management.</p>
+                <div class="project-card-actions">
+                  <a href="https://vscheduler-five.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 3: Sushiman -->
+            <article class="project-card" data-category="design">
+              <div class="project-image-box">
+                <img src="/assets/shushiman.png" alt="Sushiman Modern Japanese Culinary Website" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://vanilla-food-website.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Sushiman</h3>
+                  <span class="project-pill">Web Design & UI</span>
+                </div>
+                <p class="project-desc">High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.</p>
+                <div class="project-card-actions">
+                  <a href="https://vanilla-food-website.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 4: Coffee -->
+            <article class="project-card" data-category="design">
+              <div class="project-image-box">
+                <img src="/assets/coffee.png" alt="Coffee Theme Artisanal Cafe Website" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://coffee-theme.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Coffee Theme</h3>
+                  <span class="project-pill">Artisanal Cafe Shop</span>
+                </div>
+                <p class="project-desc">Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.</p>
+                <div class="project-card-actions">
+                  <a href="https://coffee-theme.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 5: Study Hub -->
+            <article class="project-card" data-category="fullstack react">
+              <div class="project-image-box">
+                <img src="/assets/Study-hub.png" alt="Study Hub Interactive Learning Portal" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://study-app-steel.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Study Hub</h3>
+                  <span class="project-pill">Learning Portal</span>
+                </div>
+                <p class="project-desc">Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.</p>
+                <div class="project-card-actions">
+                  <a href="https://study-app-steel.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 6: Venomous Studio -->
+            <article class="project-card" data-category="design react">
+              <div class="project-image-box">
+                <img src="/assets/Venomous Studio.png" alt="Venomous Studio Creative Digital Agency" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://venomous-studio.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Venomous Studio</h3>
+                  <span class="project-pill">Digital Agency Showcase</span>
+                </div>
+                <p class="project-desc">Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.</p>
+                <div class="project-card-actions">
+                  <a href="https://venomous-studio.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Brand Logos Section -->
+        <section class="brands-section">
+          <div class="brands-grid">
+            <div class="brand-item">listex</div>
+            <div class="brand-item">DIXIE DOWNS</div>
+            <div class="brand-item brand-bold">rogue</div>
+            <div class="brand-item">Perfect</div>
+            <div class="brand-item">CD.PET</div>
+            <div class="brand-item">Trava</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Page 4: Services -->
+      <div id="page-services" class="page-view">
+        <section class="services-section">
+          <div class="section-tag">
+            <span class="orange-dot"></span>
+            <span>EXPERTISE & SERVICES</span>
+          </div>
+          <h2 class="section-title">Solutions Built For Growth & Scale</h2>
+          <p class="section-subtitle-desc">Comprehensive web development, digital platform customization, bot development, and server infrastructure solutions.</p>
+
+          <div class="services-grid">
+            <!-- Service 1: Full Stack Web Development -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+              </div>
+              <h3 class="service-title">Full Stack Web Development</h3>
+              <p class="service-desc">End-to-end, high-performance web applications built using React, Next.js, Node.js, databases, custom REST APIs, and modern CSS.</p>
+              <span class="service-pill">Web Apps & APIs</span>
+            </div>
+
+            <!-- Service 2: Multimedia & Web Design -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                  <path d="M2 12h20"></path>
+                </svg>
+              </div>
+              <h3 class="service-title">Multimedia & Web Design</h3>
+              <p class="service-desc">Clean visual hierarchy, responsive UI/UX design, custom visual media assets, brand graphics, and interactive web templates.</p>
+              <span class="service-pill">UI/UX & Branding</span>
+            </div>
+
+            <!-- Service 3: Website Audit & Optimization -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <h3 class="service-title">Website Audit & Optimization</h3>
+              <p class="service-desc">In-depth technical code audits, Core Web Vitals performance tuning, accessibility compliance, and SEO optimization.</p>
+              <span class="service-pill">SEO & Speed</span>
+            </div>
+
+            <!-- Service 4: Lead Generation & CRO -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="20" x2="12" y2="10"></line>
+                  <line x1="18" y1="20" x2="18" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="16"></line>
+                </svg>
+              </div>
+              <h3 class="service-title">Lead Generation & CRO</h3>
+              <p class="service-desc">Conversion Rate Optimization (CRO) landing pages, user behavior analysis, and lead capture funnels engineered to convert visitors into clients.</p>
+              <span class="service-pill">Growth & Sales</span>
+            </div>
+
+            <!-- Service 5: Crowdin & Localization Translation -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 8l6 6"></path>
+                  <path d="M4 14e1 9 0 0 1 0-2.5V3h3.5A2.5 2.5 0 0 1 10 5.5v12.5"></path>
+                  <path d="M2 5h12"></path>
+                  <path d="M7 2h1"></path>
+                  <path d="M22 22l-5-10-5 10"></path>
+                  <path d="M14 18h6"></path>
+                </svg>
+              </div>
+              <h3 class="service-title">Crowdin & Localization Translation</h3>
+              <p class="service-desc">Multi-language platform translation, Crowdin integration, internationalization (i18n), and global content localization setup.</p>
+              <span class="service-pill">i18n & Global</span>
+            </div>
+
+            <!-- Service 6: Custom System Integration -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="2" width="8" height="8" rx="2"></rect>
+                  <rect x="14" y="2" width="8" height="8" rx="2"></rect>
+                  <rect x="14" y="14" width="8" height="8" rx="2"></rect>
+                  <rect x="2" y="14" width="8" height="8" rx="2"></rect>
+                </svg>
+              </div>
+              <h3 class="service-title">Custom System Integration</h3>
+              <p class="service-desc">Seamless third-party API integrations, webhook pipelines, payment gateway setups, and automated backend data synchronizations.</p>
+              <span class="service-pill">APIs & Webhooks</span>
+            </div>
+
+            <!-- Service 7: Discord Bot Development -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                  <circle cx="12" cy="5" r="2"></circle>
+                  <path d="M12 7v4"></path>
+                  <line x1="8" y1="16" x2="8" y2="16.01"></line>
+                  <line x1="16" y1="16" x2="16" y2="16.01"></line>
+                </svg>
+              </div>
+              <h3 class="service-title">Discord Bot Development</h3>
+              <p class="service-desc">Custom Discord bots built with Node.js / Python featuring automated moderation, ticketing, verification, custom commands, and database integration.</p>
+              <span class="service-pill">Bot Automation</span>
+            </div>
+
+            <!-- Service 8: Discord Server Setup & Customization -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+              </div>
+              <h3 class="service-title">Discord Server Customization</h3>
+              <p class="service-desc">Professional Discord community architecture, role permission hierarchies, security anti-raid features, customized rich embeds, and auto-roles.</p>
+              <span class="service-pill">Community Design</span>
+            </div>
+
+            <!-- Service 9: Minecraft Server Installation & Customization -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                  <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                  <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                </svg>
+              </div>
+              <h3 class="service-title">Minecraft Server Installation</h3>
+              <p class="service-desc">High-performance Minecraft server setups (Paper, Spigot, Velocity), server optimization, PufferPanel management, and network proxy architecture.</p>
+              <span class="service-pill">Gaming Servers</span>
+            </div>
+
+            <!-- Service 10: Custom Minecraft Mods & Plugins -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 19 21 12 17 5 21 12 2"></polygon>
+                </svg>
+              </div>
+              <h3 class="service-title">Custom Minecraft Mods & Plugins</h3>
+              <p class="service-desc">Custom Java plugin development, modpack configurations, gameplay mechanics, custom items, economy systems, and bug fixes.</p>
+              <span class="service-pill">Java & Plugins</span>
+            </div>
+
+            <!-- Service 11: Tebex / Blogger / XenForo / PufferPanel / Pterodactyl / WordPress Custom Themes -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+              </div>
+              <h3 class="service-title">Custom Platform Themes</h3>
+              <p class="service-desc">Tailored webstore themes for Tebex, custom Blogger templates, XenForo forum designs, PufferPanel & Pterodactyl game dashboards, and custom WordPress portals.</p>
+              <span class="service-pill">Tebex & Platforms</span>
+            </div>
+
+            <!-- Service 12: Pterodactyl Panel Setup & Discord Integration -->
+            <div class="service-card">
+              <div class="service-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+              </div>
+              <h3 class="service-title">Pterodactyl Panel & Discord Integration</h3>
+              <p class="service-desc">Complete Pterodactyl game server panel installation, Wings node configuration, custom panel themes, SSL certificates, and automated Discord bot management integrations.</p>
+              <span class="service-pill">Pterodactyl & Discord</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Page 5: Contact -->
+      <div id="page-contact" class="page-view">
+        <section class="contact-section">
+          <div class="section-tag">
+            <span class="orange-dot"></span>
+            <span>GET IN TOUCH</span>
+          </div>
+          <h2 class="section-title">Let's Build Something Great Together</h2>
+
+          <div class="contact-container-grid">
+            <div class="contact-info-box">
+              <h3 class="contact-box-title">Have a project in mind?</h3>
+              <p class="contact-box-desc">I am available for freelance work, custom web projects, Patreon membership support, and full-stack engineering roles.</p>
+              <div class="contact-links-stack">
+                <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" class="contact-social-btn btn-fiverr">
+                  <span class="btn-label-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    Hire me on Fiverr Pro
+                  </span>
+                  <span class="arrow">↗</span>
+                </a>
+                <a href="https://www.linkedin.com/in/muhammad-hasil/" target="_blank" rel="noopener noreferrer" class="contact-social-btn btn-linkedin">
+                  <span class="btn-label-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.74a1.64 1.64 0 1 0 0 3.28 1.64 1.64 0 0 0 0-3.28z"/></svg>
+                    Connect on LinkedIn
+                  </span>
+                  <span class="arrow">↗</span>
+                </a>
+                <a href="https://www.patreon.com/MrVenomYT" target="_blank" rel="noopener noreferrer" class="contact-social-btn btn-patreon">
+                  <span class="btn-label-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M0 .5v23h4.12v-23zm15.38 0a8.62 8.62 0 1 0 8.62 8.62 8.62 8.62 0 0 0-8.62-8.62z"/></svg>
+                    Support on Patreon
+                  </span>
+                  <span class="arrow">↗</span>
+                </a>
+              </div>
+            </div>
+
+            <form id="contact-form" class="contact-form">
+              <div class="form-group">
+                <label for="from_name">Your Name</label>
+                <input type="text" id="from_name" name="from_name" placeholder="John Doe" required class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="from_email">Your Email</label>
+                <input type="email" id="from_email" name="from_email" placeholder="john@example.com" required class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" placeholder="Project Inquiry / Job Opportunity" required class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" placeholder="Tell me about your project..." rows="4" required class="form-input"></textarea>
+              </div>
+              <button type="submit" id="contact-submit-btn" class="btn-primary btn-submit">
+                <span class="btn-submit-text">Send Message</span> <span class="arrow">↗</span>
+              </button>
+              <div id="contact-status-msg" class="contact-status-msg" aria-live="polite"></div>
+            </form>
+          </div>
+        </section>
+      </div>
+
+    </main>
+
+    <!-- Closing Callout Section & Footer -->
+    <section class="closing-section">
+      <h2 class="closing-quote">I strive to pay attention to the smallest details</h2>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-brand">HASIL.WEB</div>
+        <div class="footer-socials">
+          <a href="https://www.linkedin.com/in/muhammad-hasil/" target="_blank" rel="noopener noreferrer" class="footer-social-link">LinkedIn ↗</a>
+          <a href="https://www.patreon.com/MrVenomYT" target="_blank" rel="noopener noreferrer" class="footer-social-link">Patreon ↗</a>
+          <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" class="footer-social-link">Fiverr Pro ↗</a>
+        </div>
+        <p class="footer-copy">© 2026 Muhammad Hasil. All rights reserved.</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+
+</html>
