@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects - Muhammad Hasil | Selected Work & Case Studies</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Syne:wght@700;800;900&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+  <!-- Fixed Fullscreen Background Canvas -->
+  <canvas id="animation-canvas"></canvas>
+  <div class="bg-vignette-overlay"></div>
+
+  <!-- Portfolio Container -->
+  <div class="portfolio-container">
+
+    <!-- Header / Navbar -->
+    <header class="navbar">
+      <a href="index.html" class="nav-logo">
+        <img src="/assets/muhammad-hasil.png" alt="iHasil Logo" class="brand-logo-img">
+        <span class="brand-logo-text">iHasil</span>
+      </a>
+      <nav class="nav-menu">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="projects.html" class="nav-link active">Projects</a>
+        <a href="services.html" class="nav-link">Services</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+      </nav>
+      <a href="contact.html" class="btn-primary btn-nav">
+        Start a Project <span class="arrow">↗</span>
+      </a>
+    </header>
+
+    <!-- Main Content: Projects Page -->
+    <main id="pages-wrapper">
+      <div id="page-projects" class="page-view active">
+        <section class="projects-section">
+          <div class="projects-header">
+            <div class="section-tag">
+              <span class="orange-dot"></span>
+              <span>Some Recent Projects</span>
+            </div>
+            <h2 class="section-title">Selected Work That Delivers Results</h2>
+
+            <!-- Technology Filter Tabs -->
+            <div class="projects-tabs-row" id="projects-tabs">
+              <button class="project-tab-btn active" data-filter="all">All Projects</button>
+              <button class="project-tab-btn" data-filter="fullstack">Full Stack</button>
+              <button class="project-tab-btn" data-filter="react">React & Next.js</button>
+              <button class="project-tab-btn" data-filter="design">UI/UX & Web Design</button>
+            </div>
+          </div>
+
+          <div class="projects-grid" id="projects-grid">
+            <!-- Project 1: StayPilot -->
+            <article class="project-card" data-category="fullstack react">
+              <div class="project-image-box">
+                <img src="/assets/StayPilot.png" alt="StayPilot Property & Hospitality Management Platform" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://stay-pilot-liard.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">StayPilot</h3>
+                  <span class="project-pill">Full Stack Web App</span>
+                </div>
+                <p class="project-desc">All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.</p>
+                <div class="project-card-actions">
+                  <a href="https://stay-pilot-liard.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 2: VScheduler -->
+            <article class="project-card" data-category="fullstack react">
+              <div class="project-image-box">
+                <img src="/assets/VScheduler.png" alt="VScheduler Intelligent Scheduling Portal" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://vscheduler-five.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">VScheduler</h3>
+                  <span class="project-pill">React / Web App</span>
+                </div>
+                <p class="project-desc">Interactive appointment booking and automated scheduling system built for seamless workflow management.</p>
+                <div class="project-card-actions">
+                  <a href="https://vscheduler-five.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 3: Sushiman -->
+            <article class="project-card" data-category="design">
+              <div class="project-image-box">
+                <img src="/assets/shushiman.png" alt="Sushiman Modern Japanese Culinary Website" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://vanilla-food-website.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Sushiman</h3>
+                  <span class="project-pill">Web Design & UI</span>
+                </div>
+                <p class="project-desc">High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.</p>
+                <div class="project-card-actions">
+                  <a href="https://vanilla-food-website.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 4: Coffee -->
+            <article class="project-card" data-category="design">
+              <div class="project-image-box">
+                <img src="/assets/coffee.png" alt="Coffee Theme Artisanal Cafe Website" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://coffee-theme.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Coffee Theme</h3>
+                  <span class="project-pill">Artisanal Cafe Shop</span>
+                </div>
+                <p class="project-desc">Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.</p>
+                <div class="project-card-actions">
+                  <a href="https://coffee-theme.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 5: Study Hub -->
+            <article class="project-card" data-category="fullstack react">
+              <div class="project-image-box">
+                <img src="/assets/Study-hub.png" alt="Study Hub Interactive Learning Portal" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://study-app-steel.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Study Hub</h3>
+                  <span class="project-pill">Learning Portal</span>
+                </div>
+                <p class="project-desc">Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.</p>
+                <div class="project-card-actions">
+                  <a href="https://study-app-steel.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 6: Venomous Studio -->
+            <article class="project-card" data-category="design react">
+              <div class="project-image-box">
+                <img src="/assets/Venomous Studio.png" alt="Venomous Studio Creative Digital Agency" class="project-img">
+                <div class="project-overlay-link">
+                  <a href="https://venomous-studio.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+              <div class="project-info">
+                <div class="project-info-header">
+                  <h3 class="project-title">Venomous Studio</h3>
+                  <span class="project-pill">Digital Agency Showcase</span>
+                </div>
+                <p class="project-desc">Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.</p>
+                <div class="project-card-actions">
+                  <a href="https://venomous-studio.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn-live-demo-text">
+                    Live Demo <span class="arrow">↗</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Brand Logos Section -->
+        <section class="brands-section">
+          <div class="brands-grid">
+            <div class="brand-item">listex</div>
+            <div class="brand-item">DIXIE DOWNS</div>
+            <div class="brand-item brand-bold">rogue</div>
+            <div class="brand-item">Perfect</div>
+            <div class="brand-item">CD.PET</div>
+            <div class="brand-item">Trava</div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <a href="index.html" class="footer-brand">
+          <img src="/assets/muhammad-hasil.png" alt="iHasil Logo" class="brand-logo-img">
+          <span class="brand-logo-text">iHasil</span>
+        </a>
+        <div class="footer-socials">
+          <a href="https://www.linkedin.com/in/muhammad-hasil/" target="_blank" rel="noopener noreferrer" class="footer-social-link">LinkedIn ↗</a>
+          <a href="https://www.patreon.com/MrVenomYT" target="_blank" rel="noopener noreferrer" class="footer-social-link">Patreon ↗</a>
+          <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" class="footer-social-link">Fiverr Pro ↗</a>
+        </div>
+        <p class="footer-copy">© 2026 Muhammad Hasil. All rights reserved.</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+
+</html>

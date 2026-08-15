@@ -14,9 +14,6 @@ const ctx = canvas ? canvas.getContext('2d', { alpha: false }) : null;
 
 const images = [];
 let loadedCount = 0;
-let currentFrame = 1;
-let targetFrame = 1;
-
 // Target Keyframe Mapping for Each Page View
 const pageFrameTargets = {
   home: 1,
@@ -26,7 +23,18 @@ const pageFrameTargets = {
   contact: 180
 };
 
-let activePageId = 'home';
+function getActivePageIdFromLocation() {
+  const path = window.location.pathname.toLowerCase();
+  if (path.includes('about')) return 'about';
+  if (path.includes('projects')) return 'projects';
+  if (path.includes('services')) return 'services';
+  if (path.includes('contact')) return 'contact';
+  return 'home';
+}
+
+let activePageId = getActivePageIdFromLocation();
+let targetFrame = pageFrameTargets[activePageId] || 1;
+let currentFrame = targetFrame;
 
 /**
  * Format frame index with 4-digit zero padding (e.g. frame_0001.png)
