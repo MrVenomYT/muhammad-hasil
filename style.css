@@ -1778,3 +1778,91 @@ body {
 .delay-2 { transition-delay: 0.2s; }
 .delay-3 { transition-delay: 0.3s; }
 .delay-4 { transition-delay: 0.4s; }
+
+/* Tech Stack Autoplay Slider Section */
+.tech-marquee-section {
+  width: 100%;
+  margin: 40px 0 20px;
+  overflow: hidden;
+  position: relative;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-card);
+  border-bottom: 1px solid var(--border-card);
+  padding: 24px 0;
+  border-radius: 20px;
+}
+
+.tech-marquee-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--accent-orange);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.tech-marquee-track {
+  display: flex;
+  width: 200%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.tech-marquee-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 16px;
+  width: 100%;
+  animation: techMarqueeScroll 28s linear infinite;
+}
+
+.tech-marquee-track:hover .tech-marquee-content {
+  animation-play-state: paused;
+}
+
+@keyframes techMarqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.tech-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-card);
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-family: 'Space Grotesk', var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-white);
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.tech-pill-badge:hover {
+  background: rgba(249, 115, 22, 0.14);
+  border-color: rgba(249, 115, 22, 0.45);
+  transform: translateY(-2px);
+  color: #ffffff;
+  box-shadow: 0 6px 20px var(--accent-orange-glow);
+}
+
+.tech-dot {
+  font-size: 0.95rem;
+}
