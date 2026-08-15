@@ -445,12 +445,50 @@ function setupContactForm() {
   });
 }
 
+/**
+ * Cool Typewriter Animation Engine - Types ONLY MUHAMMAD HASIL
+ */
+function initTypewriterAnimation() {
+  const target = document.getElementById('typewriter-text');
+  if (!target) return;
+
+  const textToType = "MUHAMMAD HASIL";
+  let charIndex = 0;
+  let isDeleting = false;
+  let typingSpeed = 120;
+
+  function type() {
+    if (isDeleting) {
+      target.textContent = textToType.substring(0, charIndex - 1);
+      charIndex--;
+      typingSpeed = 55;
+    } else {
+      target.textContent = textToType.substring(0, charIndex + 1);
+      charIndex++;
+      typingSpeed = 125;
+    }
+
+    if (!isDeleting && charIndex === textToType.length) {
+      typingSpeed = 4500; // Pause for 4.5s on full name
+      isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+      isDeleting = false;
+      typingSpeed = 500;
+    }
+
+    setTimeout(type, typingSpeed);
+  }
+
+  type();
+}
+
 // Initialize Router, Slider, Tabs, Contact Form & Animation Engine
 setupNavigationRouter();
 setupReviewsSlider();
 setupProjectTabs();
 setupScrollRevealAnimations();
 setupContactForm();
+initTypewriterAnimation();
 preloadFrames();
 resizeCanvas();
 updateScrollTarget();
