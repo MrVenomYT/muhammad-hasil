@@ -1779,33 +1779,15 @@ body {
 .delay-3 { transition-delay: 0.3s; }
 .delay-4 { transition-delay: 0.4s; }
 
-/* Tech Stack Autoplay Slider Section */
+/* Tech Stack Autoplay Slider - Replicating Old Brand Typography & Spacing */
 .tech-marquee-section {
   width: 100%;
-  margin: 40px 0 20px;
+  margin: 60px 0 20px;
   overflow: hidden;
   position: relative;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border-card);
-  border-bottom: 1px solid var(--border-card);
-  padding: 24px 0;
-  border-radius: 20px;
-}
-
-.tech-marquee-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--accent-orange);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 36px 0;
 }
 
 .tech-marquee-track {
@@ -1819,7 +1801,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  gap: 16px;
+  gap: clamp(36px, 5vw, 68px); /* Equal spacing matching old brand text layout */
   width: 100%;
   animation: techMarqueeScroll 28s linear infinite;
 }
@@ -1837,32 +1819,30 @@ body {
   }
 }
 
-.tech-pill-badge {
+.tech-brand-item {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: 0.7;
+  transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-card);
-  border-radius: 999px;
-  padding: 10px 22px;
-  font-family: 'Space Grotesk', var(--font-sans);
-  font-size: 0.875rem;
-  font-weight: 700;
+  gap: 12px;
+}
+
+.tech-brand-item:hover {
+  opacity: 1;
   color: var(--text-white);
-  white-space: nowrap;
-  letter-spacing: 0.05em;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
-}
-
-.tech-pill-badge:hover {
-  background: rgba(249, 115, 22, 0.14);
-  border-color: rgba(249, 115, 22, 0.45);
+  text-shadow: 0 0 16px var(--accent-orange-glow);
   transform: translateY(-2px);
-  color: #ffffff;
-  box-shadow: 0 6px 20px var(--accent-orange-glow);
 }
 
-.tech-dot {
-  font-size: 0.95rem;
+.tech-brand-item .tech-star {
+  color: var(--accent-orange);
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
