@@ -1,0 +1,8 @@
+{
+  "source": "video.mp4",
+  "source_fps": 24.0,
+  "frames_extracted": 192,
+  "resolution": "1280x720",
+  "duration_seconds": 8.0,
+  "format": "PNG (lossless)"
+}
