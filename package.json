@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "@emailjs/browser": "^4.4.1",
+  "devDependencies": {
     "vite": "^5.4.1"
+  },
+  "dependencies": {
+    "@emailjs/browser": "^4.4.1"
   }
 }
