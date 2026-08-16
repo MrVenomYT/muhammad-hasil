@@ -80,8 +80,8 @@ export default function ProjectsSection() {
   const [activeVideoModal, setActiveVideoModal] = useState(null);
 
   useEffect(() => {
-    let unsubProjects = () => {};
-    let unsubVideos = () => {};
+    let unsubProjects = () => { };
+    let unsubVideos = () => { };
 
     try {
       const refProjects = collection(db, 'projects');
@@ -136,32 +136,32 @@ export default function ProjectsSection() {
 
           {/* Filter Tabs */}
           <div className="projects-tabs-row" id="projects-tabs">
-            <button 
-              className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`} 
+            <button
+              className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
             >
               All Projects ({mergedProjects.length})
             </button>
-            <button 
-              className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`} 
+            <button
+              className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`}
               onClick={() => setFilter('fullstack')}
             >
               Full Stack
             </button>
-            <button 
-              className={`project-tab-btn ${filter === 'react' ? 'active' : ''}`} 
+            <button
+              className={`project-tab-btn ${filter === 'react' ? 'active' : ''}`}
               onClick={() => setFilter('react')}
             >
               React & Next.js
             </button>
-            <button 
-              className={`project-tab-btn ${filter === 'design' ? 'active' : ''}`} 
+            <button
+              className={`project-tab-btn ${filter === 'design' ? 'active' : ''}`}
               onClick={() => setFilter('design')}
             >
               UI/UX & Web Design
             </button>
-            <button 
-              className={`project-tab-btn ${filter === 'youtube' ? 'active' : ''}`} 
+            <button
+              className={`project-tab-btn ${filter === 'youtube' ? 'active' : ''}`}
               onClick={() => setFilter('youtube')}
               style={{ color: '#ff4444', borderColor: filter === 'youtube' ? '#ff4444' : 'rgba(255,68,68,0.3)' }}
             >
@@ -184,11 +184,11 @@ export default function ProjectsSection() {
                 return (
                   <article key={vid.id} className="project-card" style={{ border: '1px solid rgba(255, 68, 68, 0.3)' }}>
                     <div className="project-image-box" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setActiveVideoModal(yId)}>
-                      <img 
-                        src={formatImageUrl(thumbUrl)} 
-                        alt={vid.title} 
-                        className="project-img" 
-                        loading="lazy" 
+                      <img
+                        src={formatImageUrl(thumbUrl)}
+                        alt={vid.title}
+                        className="project-img"
+                        loading="lazy"
                         onError={(e) => {
                           e.target.onerror = null;
                           e.target.src = '/assets/muhammad-hasil.png';
@@ -209,9 +209,9 @@ export default function ProjectsSection() {
                       </div>
                       <p className="project-desc">{vid.description}</p>
                       <div className="project-card-actions">
-                        <button 
-                          onClick={() => setActiveVideoModal(yId)} 
-                          className="btn-live-demo-text" 
+                        <button
+                          onClick={() => setActiveVideoModal(yId)}
+                          className="btn-live-demo-text"
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff7700', padding: 0 }}
                         >
                           Watch Video ▶
@@ -231,11 +231,11 @@ export default function ProjectsSection() {
             {filteredProjects.map((proj) => (
               <article key={proj.id} className="project-card" data-category={proj.category}>
                 <div className="project-image-box">
-                  <img 
-                    src={formatImageUrl(proj.imageUrl)} 
-                    alt={proj.title} 
-                    className="project-img" 
-                    loading="lazy" 
+                  <img
+                    src={formatImageUrl(proj.imageUrl)}
+                    alt={proj.title}
+                    className="project-img"
+                    loading="lazy"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = '/assets/muhammad-hasil.png';
@@ -262,9 +262,9 @@ export default function ProjectsSection() {
                       </a>
                     )}
                     {proj.youtubeUrl && (
-                      <button 
-                        onClick={() => setActiveVideoModal(getYouTubeId(proj.youtubeUrl))} 
-                        className="btn-live-demo-text" 
+                      <button
+                        onClick={() => setActiveVideoModal(getYouTubeId(proj.youtubeUrl))}
+                        className="btn-live-demo-text"
                         style={{ marginLeft: '15px', background: 'none', border: 'none', cursor: 'pointer', color: '#ff4444' }}
                       >
                         Watch Video ▶
@@ -279,7 +279,7 @@ export default function ProjectsSection() {
 
         {/* Video Player Modal */}
         {activeVideoModal && (
-          <div 
+          <div
             style={{
               position: 'fixed',
               top: 0,
@@ -296,7 +296,7 @@ export default function ProjectsSection() {
             }}
             onClick={() => setActiveVideoModal(null)}
           >
-            <div 
+            <div
               style={{
                 position: 'relative',
                 width: '100%',
@@ -310,7 +310,7 @@ export default function ProjectsSection() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <button 
+              <button
                 onClick={() => setActiveVideoModal(null)}
                 style={{
                   position: 'absolute',
