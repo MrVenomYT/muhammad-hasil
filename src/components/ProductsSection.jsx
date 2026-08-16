@@ -154,9 +154,13 @@ export default function ProductsSection() {
                 {/* Image & Price Badge */}
                 <div className="project-card-image-wrap" style={{ borderRadius: '14px', overflow: 'hidden', marginBottom: '20px', position: 'relative' }}>
                   <img 
-                    src={prod.imageUrl || '/assets/muhammad-hasil.png'} 
+                    src={prod.imageUrl ? (prod.imageUrl.startsWith('/') || prod.imageUrl.startsWith('http') ? encodeURI(prod.imageUrl) : encodeURI('/' + prod.imageUrl)) : '/assets/muhammad-hasil.png'} 
                     alt={prod.title} 
                     style={{ width: '100%', height: '210px', objectFit: 'cover' }} 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/assets/muhammad-hasil.png';
+                    }}
                   />
                   <div style={{ position: 'absolute', top: '12px', right: '12px', backgroundColor: '#ff7700', color: '#000', fontWeight: '800', fontSize: '13px', padding: '4px 12px', borderRadius: '20px', boxShadow: '0 4px 12px rgba(255,119,0,0.4)' }}>
                     {prod.price || 'Free'}

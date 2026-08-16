@@ -66,6 +66,13 @@ export function getYouTubeId(url) {
   return (match && match[2].length === 11) ? match[2] : url;
 }
 
+export function formatImageUrl(url) {
+  if (!url) return '/assets/muhammad-hasil.png';
+  if (url.startsWith('/')) return encodeURI(url);
+  if (url.startsWith('http://') || url.startsWith('https://')) return encodeURI(url);
+  return encodeURI('/' + url);
+}
+
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
   const [firestoreProjects, setFirestoreProjects] = useState([]);
@@ -77,7 +84,6 @@ export default function ProjectsSection() {
     let unsubVideos = () => {};
 
     try {
-      // Unordered query ensures documents without createdAt fields are retrieved
       const refProjects = collection(db, 'projects');
       unsubProjects = onSnapshot(refProjects, (snapshot) => {
         const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -103,7 +109,6 @@ export default function ProjectsSection() {
     };
   }, []);
 
-  // Merge Firestore items with default portfolio items so no items are lost
   const mergedProjects = [...firestoreProjects];
   initialSeedProjects.forEach(seed => {
     if (!mergedProjects.some(p => p.id === seed.id || (p.title && p.title.toLowerCase() === seed.title.toLowerCase()))) {
@@ -179,7 +184,16 @@ export default function ProjectsSection() {
                 return (
                   <article key={vid.id} className="project-card" style={{ border: '1px solid rgba(255, 68, 68, 0.3)' }}>
                     <div className="project-image-box" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setActiveVideoModal(yId)}>
-                      <img src={thumbUrl} alt={vid.title} className="project-img" loading="lazy" />
+                      <img 
+                        src={formatImageUrl(thumbUrl)} 
+                        alt={vid.title} 
+                        className="project-img" 
+                        loading="lazy" 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/assets/muhammad-hasil.png';
+                        }}
+                      />
                       <div className="project-overlay-link" style={{ background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#ff0000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '24px', boxShadow: '0 0 20px rgba(255,0,0,0.6)' }}>
                           ▶
@@ -217,7 +231,16 @@ export default function ProjectsSection() {
             {filteredProjects.map((proj) => (
               <article key={proj.id} className="project-card" data-category={proj.category}>
                 <div className="project-image-box">
-                  <img src={proj.imageUrl || '/assets/muhammad-hasil.png'} alt={proj.title} className="project-img" loading="lazy" />
+                  <img 
+                    src={formatImageUrl(proj.imageUrl)} 
+                    alt={proj.title} 
+                    className="project-img" 
+                    loading="lazy" 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/assets/muhammad-hasil.png';
+                    }}
+                  />
                   {proj.liveDemoUrl && (
                     <div className="project-overlay-link">
                       <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo">
