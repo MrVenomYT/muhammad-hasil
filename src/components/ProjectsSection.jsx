@@ -1,63 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
-
-const initialSeedProjects = [
-  {
-    id: 'staypilot',
-    title: 'StayPilot',
-    category: 'fullstack react',
-    pill: 'Full Stack Web App',
-    description: 'All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.',
-    liveDemoUrl: 'https://stay-pilot-liard.vercel.app/',
-    imageUrl: '/assets/StayPilot.png'
-  },
-  {
-    id: 'vscheduler',
-    title: 'VScheduler',
-    category: 'fullstack react',
-    pill: 'React / Web App',
-    description: 'Interactive appointment booking and automated scheduling system built for seamless workflow management.',
-    liveDemoUrl: 'https://vscheduler-five.vercel.app/',
-    imageUrl: '/assets/VScheduler.png'
-  },
-  {
-    id: 'sushiman',
-    title: 'Sushiman',
-    category: 'design',
-    pill: 'Web Design & UI',
-    description: 'High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.',
-    liveDemoUrl: 'https://vanilla-food-website.vercel.app/',
-    imageUrl: '/assets/shushiman.png'
-  },
-  {
-    id: 'coffee',
-    title: 'Coffee Theme',
-    category: 'design',
-    pill: 'Artisanal Cafe Shop',
-    description: 'Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.',
-    liveDemoUrl: 'https://coffee-theme.vercel.app/',
-    imageUrl: '/assets/coffee.png'
-  },
-  {
-    id: 'studyhub',
-    title: 'Study Hub',
-    category: 'fullstack react',
-    pill: 'Learning Portal',
-    description: 'Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.',
-    liveDemoUrl: 'https://study-app-steel.vercel.app/',
-    imageUrl: '/assets/Study-hub.png'
-  },
-  {
-    id: 'venomousstudio',
-    title: 'Venomous Studio',
-    category: 'design react',
-    pill: 'Digital Agency Showcase',
-    description: 'Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.',
-    liveDemoUrl: 'https://venomous-studio.vercel.app/',
-    imageUrl: '/assets/Venomous Studio.png'
-  }
-];
+import { getCombinedProjects, getCombinedVideos } from '../lib/storage';
 
 export function getYouTubeId(url) {
   if (!url) return null;
@@ -76,7 +20,7 @@ export function formatImageUrl(url) {
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
   const [firestoreProjects, setFirestoreProjects] = useState([]);
-  const [youtubeVideos, setYoutubeVideos] = useState([]);
+  const [rawVideos, setRawVideos] = useState([]);
   const [activeVideoModal, setActiveVideoModal] = useState(null);
 
   useEffect(() => {
@@ -95,7 +39,7 @@ export default function ProjectsSection() {
       const refVideos = collection(db, 'youtube_videos');
       unsubVideos = onSnapshot(refVideos, (snapshot) => {
         const vids = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setYoutubeVideos(vids);
+        setRawVideos(vids);
       }, (err) => {
         console.warn("Firestore youtube_videos snapshot notice:", err);
       });
@@ -109,12 +53,8 @@ export default function ProjectsSection() {
     };
   }, []);
 
-  const mergedProjects = [...firestoreProjects];
-  initialSeedProjects.forEach(seed => {
-    if (!mergedProjects.some(p => p.id === seed.id || (p.title && p.title.toLowerCase() === seed.title.toLowerCase()))) {
-      mergedProjects.push(seed);
-    }
-  });
+  const mergedProjects = getCombinedProjects(firestoreProjects);
+  const youtubeVideos = getCombinedVideos(rawVideos);
 
   const filteredProjects = mergedProjects.filter(p => {
     if (filter === 'all') return true;

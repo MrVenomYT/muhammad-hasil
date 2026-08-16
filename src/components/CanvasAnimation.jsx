@@ -7,10 +7,10 @@ const FRAME_DIR = '/frames';
 // Route base frame targets for page transitions
 const pageFrameTargets = {
   '/': 0,
-  '/about': 44,
-  '/projects': 94,
-  '/services': 134,
-  '/contact': 159,
+  '/about': 40,
+  '/projects': 80,
+  '/services': 120,
+  '/contact': 160,
   '/admin/login': 0,
   '/admin/dashboard': 0
 };
@@ -19,48 +19,19 @@ const pageFrameTargets = {
 const frameImagesCache = new Array(TOTAL_FRAMES);
 let isPreloadStarted = false;
 
-// Preload all 192 keyframes in parallel streams for instantaneous access
-function initializeFramePreloader(activeStart = 0) {
+// Preload ALL 192 keyframes eagerly into browser cache
+function initializeFramePreloader() {
   if (isPreloadStarted || typeof window === 'undefined') return;
   isPreloadStarted = true;
 
-  // Build loading order starting from active page frame outward
-  const indices = [];
-  for (let f = activeStart; f < TOTAL_FRAMES; f++) indices.push(f);
-  for (let f = 0; f < activeStart; f++) indices.push(f);
-
-  const loadFrame = (index) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const paddedStr = String(index + 1).padStart(4, '0');
-      img.onload = () => {
-        frameImagesCache[index] = img;
-        resolve(img);
-      };
-      img.onerror = () => {
-        resolve(null);
-      };
-      img.src = `${FRAME_DIR}/frame_${paddedStr}.png`;
-    });
-  };
-
-  // High-throughput parallel batches of 16
-  const batchSize = 16;
-  let offset = 0;
-
-  const processBatches = () => {
-    if (offset >= indices.length) return;
-    const currentBatch = indices.slice(offset, offset + batchSize);
-    offset += batchSize;
-
-    Promise.all(currentBatch.map(loadFrame)).then(() => {
-      if (typeof window !== 'undefined') {
-        setTimeout(processBatches, 10);
-      }
-    });
-  };
-
-  processBatches();
+  for (let i = 0; i < TOTAL_FRAMES; i++) {
+    const img = new Image();
+    const paddedStr = String(i + 1).padStart(4, '0');
+    img.src = `${FRAME_DIR}/frame_${paddedStr}.png`;
+    img.onload = () => {
+      frameImagesCache[i] = img;
+    };
+  }
 }
 
 export default function CanvasAnimation({ currentPath }) {
@@ -79,8 +50,8 @@ export default function CanvasAnimation({ currentPath }) {
   });
 
   useEffect(() => {
-    initializeFramePreloader(startFrame);
-  }, [startFrame]);
+    initializeFramePreloader();
+  }, []);
 
   useEffect(() => {
     const baseTarget = pageFrameTargets[activePath] !== undefined ? pageFrameTargets[activePath] : 0;
@@ -101,12 +72,12 @@ export default function CanvasAnimation({ currentPath }) {
       canvas.width = vw * dpr;
       canvas.height = vh * dpr;
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'medium';
+      ctx.imageSmoothingQuality = 'high';
     };
 
     resizeCanvas();
 
-    // Find nearest loaded frame to guarantee zero black flashes
+    // Get best available image (exact frame or nearest loaded frame)
     const getBestAvailableImage = (targetIndex) => {
       const idx = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(targetIndex)));
       if (frameImagesCache[idx] && frameImagesCache[idx].complete && frameImagesCache[idx].naturalWidth > 0) {
@@ -132,10 +103,7 @@ export default function CanvasAnimation({ currentPath }) {
       if (!canvas || !ctx) return;
 
       const img = getBestAvailableImage(frameVal);
-
-      if (!img || !img.complete || img.naturalWidth === 0) {
-        return;
-      }
+      if (!img || !img.complete || img.naturalWidth === 0) return;
 
       lastDrawnImgRef.current = img;
 
@@ -165,16 +133,17 @@ export default function CanvasAnimation({ currentPath }) {
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
     };
 
-    // Native requestAnimationFrame smooth lerp loop
+    // Ultra-smooth 60fps frame tick loop ensuring no frame is skipped
     const tick = () => {
       const { targetFrame, currentFrame } = animState.current;
       const diff = targetFrame - currentFrame;
 
-      if (Math.abs(diff) > 0.001) {
-        // Fluid lerp dampening for 60fps/120fps screens
-        animState.current.currentFrame += diff * 0.14;
+      if (Math.abs(diff) > 0.01) {
+        // Limit max step per frame tick to 0.85 so every single frame is smoothly rendered in order
+        const step = Math.sign(diff) * Math.min(Math.abs(diff) * 0.18, 0.85);
+        animState.current.currentFrame += step;
+
         const integerFrame = Math.round(animState.current.currentFrame);
-        
         if (integerFrame !== animState.current.renderedFrame) {
           animState.current.renderedFrame = integerFrame;
           renderCanvas(animState.current.currentFrame);

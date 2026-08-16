@@ -14,63 +14,28 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getYouTubeId } from './ProjectsSection';
-
-const seedProjectsList = [
-  {
-    title: 'StayPilot',
-    category: 'fullstack react',
-    pill: 'Full Stack Web App',
-    description: 'All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.',
-    liveDemoUrl: 'https://stay-pilot-liard.vercel.app/',
-    imageUrl: '/assets/StayPilot.png'
-  },
-  {
-    title: 'VScheduler',
-    category: 'fullstack react',
-    pill: 'React / Web App',
-    description: 'Interactive appointment booking and automated scheduling system built for seamless workflow management.',
-    liveDemoUrl: 'https://vscheduler-five.vercel.app/',
-    imageUrl: '/assets/VScheduler.png'
-  },
-  {
-    title: 'Sushiman',
-    category: 'design',
-    pill: 'Web Design & UI',
-    description: 'High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.',
-    liveDemoUrl: 'https://vanilla-food-website.vercel.app/',
-    imageUrl: '/assets/shushiman.png'
-  },
-  {
-    title: 'Coffee Theme',
-    category: 'design',
-    pill: 'Artisanal Cafe Shop',
-    description: 'Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.',
-    liveDemoUrl: 'https://coffee-theme.vercel.app/',
-    imageUrl: '/assets/coffee.png'
-  },
-  {
-    title: 'Study Hub',
-    category: 'fullstack react',
-    pill: 'Learning Portal',
-    description: 'Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.',
-    liveDemoUrl: 'https://study-app-steel.vercel.app/',
-    imageUrl: '/assets/Study-hub.png'
-  },
-  {
-    title: 'Venomous Studio',
-    category: 'design react',
-    pill: 'Digital Agency Showcase',
-    description: 'Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.',
-    liveDemoUrl: 'https://venomous-studio.vercel.app/',
-    imageUrl: '/assets/Venomous Studio.png'
-  }
-];
+import { 
+  getCombinedProjects, 
+  getCombinedProducts, 
+  getCombinedVideos, 
+  saveLocalProject, 
+  deleteLocalProject, 
+  saveLocalProduct, 
+  deleteLocalProduct, 
+  saveLocalVideo, 
+  deleteLocalVideo, 
+  initialSeedProjects 
+} from '../lib/storage';
 
 export default function AdminDashboardSection() {
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState('products');
+  const [rawFirestoreProjects, setRawFirestoreProjects] = useState([]);
+  const [rawFirestoreVideos, setRawFirestoreVideos] = useState([]);
+  const [rawApiProducts, setRawApiProducts] = useState([]);
+
   const [projects, setProjects] = useState([]);
   const [videos, setVideos] = useState([]);
   const [products, setProducts] = useState([]);
@@ -116,18 +81,29 @@ export default function AdminDashboardSection() {
     }
   }, [user, authLoading, router]);
 
+  // Initial load from storage helpers
+  useEffect(() => {
+    setProjects(getCombinedProjects([]));
+    setVideos(getCombinedVideos([]));
+    setProducts(getCombinedProducts([]));
+  }, []);
+
   // Real-time Firestore sync for projects & videos
   useEffect(() => {
     if (!user) return;
 
     const qProjects = collection(db, 'projects');
     const unsubProjects = onSnapshot(qProjects, (snapshot) => {
-      setProjects(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      const projs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setRawFirestoreProjects(projs);
+      setProjects(getCombinedProjects(projs));
     }, (err) => console.error("Projects snapshot error:", err));
 
     const qVideos = query(collection(db, 'youtube_videos'), orderBy('createdAt', 'desc'));
     const unsubVideos = onSnapshot(qVideos, (snapshot) => {
-      setVideos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      const vids = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setRawFirestoreVideos(vids);
+      setVideos(getCombinedVideos(vids));
     }, (err) => console.error("Videos snapshot error:", err));
 
     fetchProducts();
@@ -140,28 +116,18 @@ export default function AdminDashboardSection() {
 
   // Fetch Products from MongoDB API + LocalStorage fallback
   const fetchProducts = async () => {
+    let apiData = [];
     try {
       const res = await fetch('/api/products');
       const data = await res.json();
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        setProducts(data.data);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('app_products_cache', JSON.stringify(data.data));
-        }
-        return;
+        apiData = data.data;
+        setRawApiProducts(apiData);
       }
     } catch (e) {
       console.warn('MongoDB API fetch warning:', e);
     }
-
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem('app_products_cache');
-      if (cached) {
-        try {
-          setProducts(JSON.parse(cached));
-        } catch (e) {}
-      }
-    }
+    setProducts(getCombinedProducts(apiData));
   };
 
   if (authLoading || !user) {
@@ -181,7 +147,7 @@ export default function AdminDashboardSection() {
     }
 
     setIsSubmitting(true);
-    setStatusMsg({ type: 'info', text: 'Saving product to MongoDB & local store...' });
+    setStatusMsg({ type: 'info', text: 'Saving product to storage...' });
 
     const productPayload = {
       ...productForm,
@@ -190,34 +156,37 @@ export default function AdminDashboardSection() {
         : productForm.features
     };
 
-    let updatedList = [];
-
     try {
       if (editingProductId) {
-        await fetch(`/api/products/${editingProductId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productPayload)
-        });
+        try {
+          await fetch(`/api/products/${editingProductId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productPayload)
+          });
+        } catch (err) {}
 
-        updatedList = products.map(p => (p._id === editingProductId || p.id === editingProductId) ? { ...p, ...productPayload } : p);
+        saveLocalProduct({ _id: editingProductId, ...productPayload });
         setStatusMsg({ type: 'success', text: '✓ Product updated successfully!' });
       } else {
-        const res = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productPayload)
-        });
-        const resData = await res.json();
-        const newProd = resData.data || { ...productPayload, id: Date.now().toString() };
-        updatedList = [newProd, ...products];
+        let newProdId = Date.now().toString();
+        try {
+          const res = await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productPayload)
+          });
+          const resData = await res.json();
+          if (resData.data && (resData.data._id || resData.data.id)) {
+            newProdId = resData.data._id || resData.data.id;
+          }
+        } catch (err) {}
+
+        saveLocalProduct({ _id: newProdId, id: newProdId, ...productPayload });
         setStatusMsg({ type: 'success', text: '✓ New Product added successfully!' });
       }
 
-      setProducts(updatedList);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('app_products_cache', JSON.stringify(updatedList));
-      }
+      setProducts(getCombinedProducts(rawApiProducts));
 
       setProductForm({
         title: '',
@@ -242,12 +211,13 @@ export default function AdminDashboardSection() {
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      const updatedList = products.filter(p => p._id !== id && p.id !== id);
-      setProducts(updatedList);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('app_products_cache', JSON.stringify(updatedList));
-      }
+      try {
+        await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      } catch (err) {}
+      
+      const prodToDelete = products.find(p => p._id === id || p.id === id);
+      deleteLocalProduct(id, prodToDelete?.title);
+      setProducts(getCombinedProducts(rawApiProducts));
       setStatusMsg({ type: 'success', text: '✓ Product deleted successfully.' });
     } catch (err) {
       setStatusMsg({ type: 'error', text: 'Failed to delete: ' + err.message });
@@ -263,22 +233,34 @@ export default function AdminDashboardSection() {
     }
 
     setIsSubmitting(true);
-    setStatusMsg({ type: 'info', text: 'Saving project to Firestore...' });
+    setStatusMsg({ type: 'info', text: 'Saving project...' });
 
     try {
       if (editingProjectId) {
-        await updateDoc(doc(db, 'projects', editingProjectId), {
-          ...projectForm,
-          updatedAt: serverTimestamp()
-        });
+        try {
+          await updateDoc(doc(db, 'projects', editingProjectId), {
+            ...projectForm,
+            updatedAt: serverTimestamp()
+          });
+        } catch (e) {}
+
+        saveLocalProject({ id: editingProjectId, ...projectForm });
         setStatusMsg({ type: 'success', text: '✓ Project updated successfully!' });
       } else {
-        await addDoc(collection(db, 'projects'), {
-          ...projectForm,
-          createdAt: serverTimestamp()
-        });
+        let newProjId = Date.now().toString();
+        try {
+          const docRef = await addDoc(collection(db, 'projects'), {
+            ...projectForm,
+            createdAt: serverTimestamp()
+          });
+          if (docRef?.id) newProjId = docRef.id;
+        } catch (e) {}
+
+        saveLocalProject({ id: newProjId, ...projectForm });
         setStatusMsg({ type: 'success', text: '✓ New project added successfully!' });
       }
+
+      setProjects(getCombinedProjects(rawFirestoreProjects));
 
       setProjectForm({
         title: '',
@@ -301,7 +283,13 @@ export default function AdminDashboardSection() {
   const handleDeleteProject = async (id) => {
     if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
-      await deleteDoc(doc(db, 'projects', id));
+      try {
+        await deleteDoc(doc(db, 'projects', id));
+      } catch (e) {}
+
+      const projToDelete = projects.find(p => p.id === id || p._id === id);
+      deleteLocalProject(id, projToDelete?.title);
+      setProjects(getCombinedProjects(rawFirestoreProjects));
       setStatusMsg({ type: 'success', text: '✓ Project deleted successfully.' });
     } catch (err) {
       setStatusMsg({ type: 'error', text: 'Failed to delete: ' + err.message });
@@ -309,16 +297,20 @@ export default function AdminDashboardSection() {
   };
 
   const handleSeedProjects = async () => {
-    if (!window.confirm('This will seed the default 6 portfolio projects into Firestore. Continue?')) return;
+    if (!window.confirm('This will seed default portfolio projects. Continue?')) return;
     setIsSubmitting(true);
     setStatusMsg({ type: 'info', text: 'Seeding portfolio projects...' });
     try {
-      for (const p of seedProjectsList) {
-        await addDoc(collection(db, 'projects'), {
-          ...p,
-          createdAt: serverTimestamp()
-        });
+      for (const p of initialSeedProjects) {
+        saveLocalProject(p);
+        try {
+          await addDoc(collection(db, 'projects'), {
+            ...p,
+            createdAt: serverTimestamp()
+          });
+        } catch (e) {}
       }
+      setProjects(getCombinedProjects(rawFirestoreProjects));
       setStatusMsg({ type: 'success', text: '✓ Portfolio projects seeded successfully!' });
     } catch (err) {
       setStatusMsg({ type: 'error', text: 'Seeding failed: ' + err.message });
@@ -345,15 +337,26 @@ export default function AdminDashboardSection() {
     setStatusMsg({ type: 'info', text: 'Adding YouTube video...' });
 
     try {
-      await addDoc(collection(db, 'youtube_videos'), {
+      let newVidId = Date.now().toString();
+      const videoData = {
         title: videoForm.title,
         youtubeUrl: videoForm.youtubeUrl,
         youtubeId: yId,
         description: videoForm.description || '',
         category: videoForm.category || 'YouTube Video',
-        imageUrl: `https://img.youtube.com/vi/${yId}/hqdefault.jpg`,
-        createdAt: serverTimestamp()
-      });
+        imageUrl: `https://img.youtube.com/vi/${yId}/hqdefault.jpg`
+      };
+
+      try {
+        const docRef = await addDoc(collection(db, 'youtube_videos'), {
+          ...videoData,
+          createdAt: serverTimestamp()
+        });
+        if (docRef?.id) newVidId = docRef.id;
+      } catch (e) {}
+
+      saveLocalVideo({ id: newVidId, ...videoData });
+      setVideos(getCombinedVideos(rawFirestoreVideos));
 
       setStatusMsg({ type: 'success', text: '✓ YouTube video added successfully!' });
       setVideoForm({ title: '', youtubeUrl: '', description: '', category: 'YouTube Showcase' });
@@ -367,7 +370,12 @@ export default function AdminDashboardSection() {
   const handleDeleteVideo = async (id) => {
     if (!window.confirm('Are you sure you want to delete this YouTube video link?')) return;
     try {
-      await deleteDoc(doc(db, 'youtube_videos', id));
+      try {
+        await deleteDoc(doc(db, 'youtube_videos', id));
+      } catch (e) {}
+
+      deleteLocalVideo(id);
+      setVideos(getCombinedVideos(rawFirestoreVideos));
       setStatusMsg({ type: 'success', text: '✓ YouTube video deleted successfully.' });
     } catch (err) {
       setStatusMsg({ type: 'error', text: 'Failed to delete video: ' + err.message });

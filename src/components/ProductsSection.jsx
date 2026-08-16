@@ -1,56 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-
-const seedProductsList = [
-  {
-    id: 'prod-1',
-    title: 'StayPilot Pro SaaS Starter',
-    category: 'Web Apps',
-    price: '$49',
-    badge: 'Best Seller',
-    description: 'Production-ready full-stack hotel & property management SaaS template built with React, Next.js, Firebase Auth & Stripe.',
-    imageUrl: '/assets/StayPilot.png',
-    buyUrl: 'https://pro.fiverr.com/users/venomdesigne613/',
-    demoUrl: 'https://stay-pilot-liard.vercel.app/',
-    features: ['Next.js Pages Router', 'Firebase Realtime DB', 'Stripe Billing Integration', 'Responsive Dark UI']
-  },
-  {
-    id: 'prod-2',
-    title: 'VScheduler Booking Engine',
-    category: 'Source Code',
-    price: '$29',
-    badge: 'Popular',
-    description: 'Interactive appointment scheduling component with calendar synchronization, drag-drop slots, and automated email reminders.',
-    imageUrl: '/assets/VScheduler.png',
-    buyUrl: 'https://pro.fiverr.com/users/venomdesigne613/',
-    demoUrl: 'https://vscheduler-five.vercel.app/',
-    features: ['Calendar Sync', 'EmailJS Reminders', 'Clean React Code', 'Full Customizability']
-  },
-  {
-    id: 'prod-3',
-    title: 'Sushiman Artisanal UI Kit',
-    category: 'UI Kits',
-    price: '$19',
-    badge: 'New Release',
-    description: 'High-converting Japanese restaurant UI template with glassmorphism design, smooth frame animations, and online menu ordering.',
-    imageUrl: '/assets/shushiman.png',
-    buyUrl: 'https://pro.fiverr.com/users/venomdesigne613/',
-    demoUrl: 'https://vanilla-food-website.vercel.app/',
-    features: ['HTML5 Canvas Animations', 'Dark Mode Palette', 'Mobile First Layout', '6 Prebuilt Pages']
-  },
-  {
-    id: 'prod-4',
-    title: 'Venomous Dark Studio Theme',
-    category: 'Templates',
-    price: '$39',
-    badge: 'Featured',
-    description: 'Sleek portfolio & agency showcase template featuring 192-frame background animation canvas, reviews slider, and contact forms.',
-    imageUrl: '/assets/Venomous Studio.png',
-    buyUrl: 'https://pro.fiverr.com/users/venomdesigne613/',
-    demoUrl: 'https://venomous-studio.vercel.app/',
-    features: ['Frame Animation Engine', 'Firebase & MongoDB Ready', 'SEO Optimized', 'Tailored CSS System']
-  }
-];
+import { getCombinedProducts } from '../lib/storage';
 
 export default function ProductsSection() {
   const [products, setProducts] = useState([]);
@@ -64,39 +14,20 @@ export default function ProductsSection() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    let loadedProducts = [];
+    let apiProducts = [];
 
     try {
       const res = await fetch('/api/products');
       const data = await res.json();
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        loadedProducts = data.data;
+        apiProducts = data.data;
       }
     } catch (err) {
-      console.warn('API fetch warning, loading local storage cache:', err);
+      console.warn('API fetch warning:', err);
     }
 
-    // Fallback to localStorage or default seed list if API returns empty
-    if (loadedProducts.length === 0) {
-      const local = typeof window !== 'undefined' ? localStorage.getItem('app_products_cache') : null;
-      if (local) {
-        try {
-          loadedProducts = JSON.parse(local);
-        } catch (e) {}
-      }
-      if (!loadedProducts || loadedProducts.length === 0) {
-        loadedProducts = seedProductsList;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('app_products_cache', JSON.stringify(seedProductsList));
-        }
-      }
-    } else {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('app_products_cache', JSON.stringify(loadedProducts));
-      }
-    }
-
-    setProducts(loadedProducts);
+    const combined = getCombinedProducts(apiProducts);
+    setProducts(combined);
     setLoading(false);
   };
 
