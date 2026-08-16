@@ -120,7 +120,7 @@ export default function AdminDashboardSection() {
   useEffect(() => {
     if (!user) return;
 
-    const qProjects = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
+    const qProjects = collection(db, 'projects');
     const unsubProjects = onSnapshot(qProjects, (snapshot) => {
       setProjects(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     }, (err) => console.error("Projects snapshot error:", err));

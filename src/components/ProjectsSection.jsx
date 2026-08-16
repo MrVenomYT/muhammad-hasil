@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 const initialSeedProjects = [
@@ -77,23 +77,24 @@ export default function ProjectsSection() {
     let unsubVideos = () => {};
 
     try {
-      const qProjects = query(collection(db, 'projects'), orderBy('createdAt', 'desc'));
-      unsubProjects = onSnapshot(qProjects, (snapshot) => {
+      // Unordered query ensures documents without createdAt fields are retrieved
+      const refProjects = collection(db, 'projects');
+      unsubProjects = onSnapshot(refProjects, (snapshot) => {
         const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setFirestoreProjects(projs);
       }, (err) => {
-        console.warn("Firestore projects snapshot fallback:", err);
+        console.warn("Firestore projects snapshot notice:", err);
       });
 
-      const qVideos = query(collection(db, 'youtube_videos'), orderBy('createdAt', 'desc'));
-      unsubVideos = onSnapshot(qVideos, (snapshot) => {
+      const refVideos = collection(db, 'youtube_videos');
+      unsubVideos = onSnapshot(refVideos, (snapshot) => {
         const vids = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setYoutubeVideos(vids);
       }, (err) => {
-        console.warn("Firestore youtube_videos snapshot error:", err);
+        console.warn("Firestore youtube_videos snapshot notice:", err);
       });
     } catch (e) {
-      console.warn("Firestore connection error:", e);
+      console.warn("Firestore connection notice:", e);
     }
 
     return () => {
@@ -102,9 +103,15 @@ export default function ProjectsSection() {
     };
   }, []);
 
-  const displayProjects = firestoreProjects.length > 0 ? firestoreProjects : initialSeedProjects;
+  // Merge Firestore items with default portfolio items so no items are lost
+  const mergedProjects = [...firestoreProjects];
+  initialSeedProjects.forEach(seed => {
+    if (!mergedProjects.some(p => p.id === seed.id || (p.title && p.title.toLowerCase() === seed.title.toLowerCase()))) {
+      mergedProjects.push(seed);
+    }
+  });
 
-  const filteredProjects = displayProjects.filter(p => {
+  const filteredProjects = mergedProjects.filter(p => {
     if (filter === 'all') return true;
     if (filter === 'youtube') return false;
     return (p.category || '').includes(filter);
@@ -128,7 +135,7 @@ export default function ProjectsSection() {
               className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`} 
               onClick={() => setFilter('all')}
             >
-              All Projects
+              All Projects ({mergedProjects.length})
             </button>
             <button 
               className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`} 

@@ -9,6 +9,7 @@ const ProductSchema = new mongoose.Schema({
   category: {
     type: String,
     default: 'Digital Product',
+    index: true,
   },
   price: {
     type: String,
@@ -41,7 +42,10 @@ const ProductSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+    index: true,
   },
 });
+
+ProductSchema.index({ createdAt: -1 });
 
 export default mongoose.models.Product || mongoose.model('Product', ProductSchema);
