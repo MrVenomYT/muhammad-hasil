@@ -3,6 +3,10 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   build: {
+    target: 'esnext',
+    cssMinify: 'esbuild',
+    minify: 'esbuild',
+    assetsInlineLimit: 4096,
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
@@ -11,6 +15,16 @@ export default defineConfig({
         services: resolve(__dirname, 'services.html'),
         contact: resolve(__dirname, 'contact.html'),
       },
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/@emailjs')) {
+            return 'emailjs-vendor';
+          }
+        },
+      },
     },
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
   },
 });

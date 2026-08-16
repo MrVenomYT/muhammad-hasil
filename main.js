@@ -45,21 +45,49 @@ function getFramePath(index) {
 }
 
 /**
- * Preload all 192 frames into memory
+ * Optimized Frame Preloader:
+ * Priority loads active keyframes first for instant render, then preloads remaining frames during browser idle time.
  */
 function preloadFrames() {
+  const priorityFrames = [1, 45, 95, 135, 180, targetFrame];
+
+  // Pre-fill image objects
   for (let i = 1; i <= TOTAL_FRAMES; i++) {
-    const img = new Image();
-    img.src = getFramePath(i);
+    images[i - 1] = new Image();
+  }
 
-    img.onload = () => {
-      loadedCount++;
-      if (i === 1 || loadedCount === 1) {
-        renderFrame(1);
+  // Phase 1: Priority load keyframes
+  priorityFrames.forEach(frameIndex => {
+    if (frameIndex >= 1 && frameIndex <= TOTAL_FRAMES) {
+      const img = images[frameIndex - 1];
+      if (!img.src) {
+        img.src = getFramePath(frameIndex);
+        img.onload = () => {
+          if (frameIndex === targetFrame) {
+            renderFrame(targetFrame);
+          }
+        };
       }
-    };
+    }
+  });
 
-    images.push(img);
+  // Render target frame immediately
+  renderFrame(targetFrame);
+
+  // Phase 2: Deferred background loading for remaining frames
+  const loadRemaining = () => {
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = images[i - 1];
+      if (!img.src) {
+        img.src = getFramePath(i);
+      }
+    }
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(loadRemaining, { timeout: 1500 });
+  } else {
+    setTimeout(loadRemaining, 300);
   }
 }
 
