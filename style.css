@@ -31,6 +31,26 @@ body {
   font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* High-Performance GPU Acceleration & Rendering Rules */
+.hero-card,
+.project-card,
+.service-card,
+.review-card-pro,
+.navbar,
+.feature-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.reviews-section-footer,
+.projects-section,
+.marquee-section,
+.tech-marquee-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
 }
 
 /* Background Canvas & Vignette */
