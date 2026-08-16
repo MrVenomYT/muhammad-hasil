@@ -103,7 +103,7 @@ export default function HomeSection() {
 
         {/* Featured Portrait Cutout Layer */}
         <div className="hero-portrait-showcase-layer">
-          <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" className="hero-portrait-showcase-img" fetchPriority="high" />
+          <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" className="hero-portrait-showcase-img" fetchpriority="high" />
         </div>
 
         {/* Hero Cards Container */}

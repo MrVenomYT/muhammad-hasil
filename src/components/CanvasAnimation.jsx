@@ -4,32 +4,30 @@ import { useRouter } from 'next/router';
 const TOTAL_FRAMES = 192;
 const FRAME_DIRECTORY = '/frames';
 
-const pageFrameTargets = {
+const pageStartFrames = {
   '/': 1,
   '/about': 45,
   '/projects': 95,
   '/services': 135,
-  '/contact': 180,
+  '/contact': 160,
   '/admin/login': 1,
   '/admin/dashboard': 1
 };
 
-// Global in-memory image cache
+// Global in-memory image cache for all 192 keyframes
 const globalImageCache = {};
-const loadedPaddedSet = new Set();
+let isGlobalPreloadInitiated = false;
 
-function fetchFrame(index) {
-  const i = Math.max(1, Math.min(TOTAL_FRAMES, index));
+function fetchSingleFrame(i) {
   const paddedIndex = String(i).padStart(4, '0');
-  if (loadedPaddedSet.has(paddedIndex)) {
-    return Promise.resolve(globalImageCache[paddedIndex]);
+  if (globalImageCache[i] && globalImageCache[i].complete) {
+    return Promise.resolve(globalImageCache[i]);
   }
 
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      globalImageCache[paddedIndex] = img;
-      loadedPaddedSet.add(paddedIndex);
+      globalImageCache[i] = img;
       resolve(img);
     };
     img.onerror = () => {
@@ -39,45 +37,35 @@ function fetchFrame(index) {
   });
 }
 
-// Parallel background stream around target frame
-function preloadFramesAround(centerFrame) {
+// Rapid parallel stream for all 192 frames
+function preloadAllFrames(startFrame = 1) {
   if (typeof window === 'undefined') return;
 
-  const targetQueue = [];
-  const radius = 40;
-  
-  // 1. Queue surrounding scroll range first
-  for (let d = 0; d <= radius; d++) {
-    const nextF = centerFrame + d;
-    const prevF = centerFrame - d;
-    if (nextF <= TOTAL_FRAMES) targetQueue.push(nextF);
-    if (prevF >= 1 && prevF !== nextF) targetQueue.push(prevF);
+  const frameOrder = [];
+  // Prioritize active page target first
+  for (let f = startFrame; f <= TOTAL_FRAMES; f++) {
+    frameOrder.push(f);
+  }
+  for (let f = 1; f < startFrame; f++) {
+    frameOrder.push(f);
   }
 
-  // 2. Add remaining frames
-  for (let f = 1; f <= TOTAL_FRAMES; f++) {
-    if (!targetQueue.includes(f)) targetQueue.push(f);
-  }
+  const batchSize = 16;
+  let offset = 0;
 
-  // Stream in parallel batches of 8 for ultra-fast response
-  const batchSize = 8;
-  let queueIndex = 0;
+  const processBatch = () => {
+    if (offset >= frameOrder.length) return;
+    const batch = frameOrder.slice(offset, offset + batchSize);
+    offset += batchSize;
 
-  const processQueue = () => {
-    if (queueIndex >= targetQueue.length) return;
-    const batch = targetQueue.slice(queueIndex, queueIndex + batchSize);
-    queueIndex += batchSize;
-
-    Promise.all(batch.map(f => fetchFrame(f))).then(() => {
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        window.requestIdleCallback(processQueue);
-      } else {
-        setTimeout(processQueue, 15);
+    Promise.all(batch.map(f => fetchSingleFrame(f))).then(() => {
+      if (typeof window !== 'undefined') {
+        setTimeout(processBatch, 10);
       }
     });
   };
 
-  processQueue();
+  processBatch();
 }
 
 export default function CanvasAnimation({ currentPath }) {
@@ -86,19 +74,26 @@ export default function CanvasAnimation({ currentPath }) {
   const canvasRef = useRef(null);
   const lastDrawnImgRef = useRef(null);
 
+  const startFrameForPath = pageStartFrames[activePath] || 1;
+
   const stateRef = useRef({
-    currentFrame: pageFrameTargets[activePath] || 1,
-    targetFrame: pageFrameTargets[activePath] || 1,
+    currentFrame: startFrameForPath,
+    targetFrame: startFrameForPath,
     animFrameId: null,
   });
 
   useEffect(() => {
-    const target = pageFrameTargets[activePath] || 1;
+    const target = pageStartFrames[activePath] || 1;
     stateRef.current.targetFrame = target;
-    preloadFramesAround(target);
+    preloadAllFrames(target);
   }, [activePath]);
 
   useEffect(() => {
+    if (!isGlobalPreloadInitiated) {
+      isGlobalPreloadInitiated = true;
+      preloadAllFrames(startFrameForPath);
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -116,24 +111,23 @@ export default function CanvasAnimation({ currentPath }) {
 
     updateCanvasSize();
 
-    // Get closest available image to prevent any flickering or black canvas
+    // Get closest available image to ensure 0 flickering
     const getBestAvailableImage = (targetIndex) => {
-      const targetPadded = String(targetIndex).padStart(4, '0');
-      if (globalImageCache[targetPadded] && globalImageCache[targetPadded].complete) {
-        return globalImageCache[targetPadded];
+      const idx = Math.max(1, Math.min(TOTAL_FRAMES, Math.round(targetIndex)));
+      if (globalImageCache[idx] && globalImageCache[idx].complete && globalImageCache[idx].naturalWidth > 0) {
+        return globalImageCache[idx];
       }
 
+      // Search outward for nearest loaded frame
       for (let delta = 1; delta < TOTAL_FRAMES; delta++) {
-        const prevIdx = Math.max(1, targetIndex - delta);
-        const prevPadded = String(prevIdx).padStart(4, '0');
-        if (globalImageCache[prevPadded] && globalImageCache[prevPadded].complete) {
-          return globalImageCache[prevPadded];
+        const prevIdx = Math.max(1, idx - delta);
+        if (globalImageCache[prevIdx] && globalImageCache[prevIdx].complete && globalImageCache[prevIdx].naturalWidth > 0) {
+          return globalImageCache[prevIdx];
         }
 
-        const nextIdx = Math.min(TOTAL_FRAMES, targetIndex + delta);
-        const nextPadded = String(nextIdx).padStart(4, '0');
-        if (globalImageCache[nextPadded] && globalImageCache[nextPadded].complete) {
-          return globalImageCache[nextPadded];
+        const nextIdx = Math.min(TOTAL_FRAMES, idx + delta);
+        if (globalImageCache[nextIdx] && globalImageCache[nextIdx].complete && globalImageCache[nextIdx].naturalWidth > 0) {
+          return globalImageCache[nextIdx];
         }
       }
 
@@ -142,8 +136,7 @@ export default function CanvasAnimation({ currentPath }) {
 
     const renderFrame = (frameIndex) => {
       if (!ctx || !canvas) return;
-      const index = Math.max(1, Math.min(TOTAL_FRAMES, Math.round(frameIndex)));
-      const img = getBestAvailableImage(index);
+      const img = getBestAvailableImage(frameIndex);
 
       if (!img || !img.complete || img.naturalWidth === 0) {
         return;
@@ -177,15 +170,14 @@ export default function CanvasAnimation({ currentPath }) {
       ctx.drawImage(img, offsetPx, offsetPy, drawW, drawH);
     };
 
-    // Load initial target frame immediately
-    const initialFrame = Math.round(stateRef.current.currentFrame);
-    fetchFrame(initialFrame).then(() => renderFrame(initialFrame));
+    // Render initial frame
+    fetchSingleFrame(startFrameForPath).then(() => renderFrame(startFrameForPath));
 
     const animate = () => {
       const { targetFrame, currentFrame } = stateRef.current;
       const diff = targetFrame - currentFrame;
       if (Math.abs(diff) > 0.01) {
-        stateRef.current.currentFrame += diff * 0.22;
+        stateRef.current.currentFrame += diff * 0.28;
         renderFrame(stateRef.current.currentFrame);
       } else {
         stateRef.current.currentFrame = targetFrame;
@@ -195,12 +187,13 @@ export default function CanvasAnimation({ currentPath }) {
     };
 
     const handleScroll = () => {
-      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
       const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
       const scrollRatio = Math.max(0, Math.min(1, scrollY / maxScroll));
-      const baseFrame = pageFrameTargets[activePath] || 1;
-      const scrubFrames = 35;
-      const targetFrame = Math.round(baseFrame + scrollRatio * scrubFrames);
+      
+      const startF = pageStartFrames[activePath] || 1;
+      const availableSpan = TOTAL_FRAMES - startF;
+      const targetFrame = Math.round(startF + scrollRatio * availableSpan);
       stateRef.current.targetFrame = Math.min(TOTAL_FRAMES, Math.max(1, targetFrame));
     };
 
@@ -210,30 +203,34 @@ export default function CanvasAnimation({ currentPath }) {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize, { passive: true });
+    
     stateRef.current.animFrameId = requestAnimationFrame(animate);
 
     renderFrame(stateRef.current.currentFrame);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
       if (stateRef.current.animFrameId) {
         cancelAnimationFrame(stateRef.current.animFrameId);
       }
     };
-  }, [activePath]);
+  }, [activePath, startFrameForPath]);
 
   return (
     <canvas 
-      ref={canvasRef} 
+      ref={canvasRef}
+      id="animation-canvas"
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -1,
+        zIndex: 0,
         pointerEvents: 'none',
         display: 'block'
       }} 
