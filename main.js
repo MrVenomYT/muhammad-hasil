@@ -400,10 +400,10 @@ function setupContactForm() {
   const btnText = submitBtn ? submitBtn.querySelector('.btn-submit-text') : null;
   const statusMsg = document.getElementById('contact-status-msg');
 
-  // Environment variables from Vite (.env / Vercel Environment Variables)
-  const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-  const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+  // Environment variables (Supports both EMAILJS_... and VITE_EMAILJS_... on Vercel)
+  const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID || import.meta.env.EMAILJS_SERVICE_ID;
+  const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || import.meta.env.EMAILJS_TEMPLATE_ID;
+  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || import.meta.env.EMAILJS_PUBLIC_KEY;
 
   const setStatus = (type, message) => {
     if (!statusMsg) return;
