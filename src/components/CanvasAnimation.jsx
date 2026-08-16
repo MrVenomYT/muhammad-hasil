@@ -14,38 +14,70 @@ const pageFrameTargets = {
   '/admin/dashboard': 1
 };
 
-// Global image cache
+// Global in-memory image cache
 const globalImageCache = {};
-let isPreloadStarted = false;
+const loadedPaddedSet = new Set();
 
-// Preload frames progressively in the background without blocking main thread
-function startGlobalPreload() {
-  if (isPreloadStarted || typeof window === 'undefined') return;
-  isPreloadStarted = true;
+function fetchFrame(index) {
+  const i = Math.max(1, Math.min(TOTAL_FRAMES, index));
+  const paddedIndex = String(i).padStart(4, '0');
+  if (loadedPaddedSet.has(paddedIndex)) {
+    return Promise.resolve(globalImageCache[paddedIndex]);
+  }
 
-  let current = 1;
-  const loadNext = () => {
-    if (current > TOTAL_FRAMES) return;
-    const paddedIndex = String(current).padStart(4, '0');
-    if (!globalImageCache[paddedIndex]) {
-      const img = new Image();
-      img.onload = () => {
-        globalImageCache[paddedIndex] = img;
-        current++;
-        setTimeout(loadNext, 20);
-      };
-      img.onerror = () => {
-        current++;
-        setTimeout(loadNext, 20);
-      };
-      img.src = `${FRAME_DIRECTORY}/frame_${paddedIndex}.png`;
-    } else {
-      current++;
-      loadNext();
-    }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      globalImageCache[paddedIndex] = img;
+      loadedPaddedSet.add(paddedIndex);
+      resolve(img);
+    };
+    img.onerror = () => {
+      resolve(null);
+    };
+    img.src = `${FRAME_DIRECTORY}/frame_${paddedIndex}.png`;
+  });
+}
+
+// Parallel background stream around target frame
+function preloadFramesAround(centerFrame) {
+  if (typeof window === 'undefined') return;
+
+  const targetQueue = [];
+  const radius = 40;
+  
+  // 1. Queue surrounding scroll range first
+  for (let d = 0; d <= radius; d++) {
+    const nextF = centerFrame + d;
+    const prevF = centerFrame - d;
+    if (nextF <= TOTAL_FRAMES) targetQueue.push(nextF);
+    if (prevF >= 1 && prevF !== nextF) targetQueue.push(prevF);
+  }
+
+  // 2. Add remaining frames
+  for (let f = 1; f <= TOTAL_FRAMES; f++) {
+    if (!targetQueue.includes(f)) targetQueue.push(f);
+  }
+
+  // Stream in parallel batches of 8 for ultra-fast response
+  const batchSize = 8;
+  let queueIndex = 0;
+
+  const processQueue = () => {
+    if (queueIndex >= targetQueue.length) return;
+    const batch = targetQueue.slice(queueIndex, queueIndex + batchSize);
+    queueIndex += batchSize;
+
+    Promise.all(batch.map(f => fetchFrame(f))).then(() => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(processQueue);
+      } else {
+        setTimeout(processQueue, 15);
+      }
+    });
   };
 
-  loadNext();
+  processQueue();
 }
 
 export default function CanvasAnimation({ currentPath }) {
@@ -63,11 +95,10 @@ export default function CanvasAnimation({ currentPath }) {
   useEffect(() => {
     const target = pageFrameTargets[activePath] || 1;
     stateRef.current.targetFrame = target;
+    preloadFramesAround(target);
   }, [activePath]);
 
   useEffect(() => {
-    startGlobalPreload();
-
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -85,14 +116,13 @@ export default function CanvasAnimation({ currentPath }) {
 
     updateCanvasSize();
 
-    // Find closest loaded image to avoid black flashes
+    // Get closest available image to prevent any flickering or black canvas
     const getBestAvailableImage = (targetIndex) => {
       const targetPadded = String(targetIndex).padStart(4, '0');
       if (globalImageCache[targetPadded] && globalImageCache[targetPadded].complete) {
         return globalImageCache[targetPadded];
       }
 
-      // Search outwards for nearest loaded frame
       for (let delta = 1; delta < TOTAL_FRAMES; delta++) {
         const prevIdx = Math.max(1, targetIndex - delta);
         const prevPadded = String(prevIdx).padStart(4, '0');
@@ -116,7 +146,6 @@ export default function CanvasAnimation({ currentPath }) {
       const img = getBestAvailableImage(index);
 
       if (!img || !img.complete || img.naturalWidth === 0) {
-        // If no image is available at all, keep previous canvas content without wiping to black
         return;
       }
 
@@ -148,23 +177,15 @@ export default function CanvasAnimation({ currentPath }) {
       ctx.drawImage(img, offsetPx, offsetPy, drawW, drawH);
     };
 
-    // Load target frame immediately for active path
+    // Load initial target frame immediately
     const initialFrame = Math.round(stateRef.current.currentFrame);
-    const initialPadded = String(initialFrame).padStart(4, '0');
-    if (!globalImageCache[initialPadded]) {
-      const img = new Image();
-      img.onload = () => {
-        globalImageCache[initialPadded] = img;
-        renderFrame(initialFrame);
-      };
-      img.src = `${FRAME_DIRECTORY}/frame_${initialPadded}.png`;
-    }
+    fetchFrame(initialFrame).then(() => renderFrame(initialFrame));
 
     const animate = () => {
       const { targetFrame, currentFrame } = stateRef.current;
       const diff = targetFrame - currentFrame;
       if (Math.abs(diff) > 0.01) {
-        stateRef.current.currentFrame += diff * 0.15;
+        stateRef.current.currentFrame += diff * 0.22;
         renderFrame(stateRef.current.currentFrame);
       } else {
         stateRef.current.currentFrame = targetFrame;
