@@ -45,49 +45,55 @@ function getFramePath(index) {
 }
 
 /**
- * Optimized Frame Preloader:
- * Priority loads active keyframes first for instant render, then preloads remaining frames during browser idle time.
+ * Instant Frame Preloader:
+ * Loads ONLY the current page's target keyframe frame first for instant 0ms rendering.
+ * All remaining frames are preloaded asynchronously after window load event.
  */
 function preloadFrames() {
-  const priorityFrames = [1, 45, 95, 135, 180, targetFrame];
-
-  // Pre-fill image objects
+  // Pre-fill image array
   for (let i = 1; i <= TOTAL_FRAMES; i++) {
     images[i - 1] = new Image();
   }
 
-  // Phase 1: Priority load keyframes
-  priorityFrames.forEach(frameIndex => {
-    if (frameIndex >= 1 && frameIndex <= TOTAL_FRAMES) {
-      const img = images[frameIndex - 1];
-      if (!img.src) {
-        img.src = getFramePath(frameIndex);
-        img.onload = () => {
-          if (frameIndex === targetFrame) {
-            renderFrame(targetFrame);
-          }
-        };
-      }
+  // Load active target frame immediately
+  const activeImg = images[targetFrame - 1];
+  activeImg.src = getFramePath(targetFrame);
+  activeImg.onload = () => {
+    renderFrame(targetFrame);
+  };
+  if (activeImg.complete) {
+    renderFrame(targetFrame);
+  }
+
+  // Also priority-load keyframes (1, 45, 95, 135, 180)
+  const keyframes = [1, 45, 95, 135, 180];
+  keyframes.forEach(idx => {
+    if (!images[idx - 1].src) {
+      images[idx - 1].src = getFramePath(idx);
     }
   });
 
-  // Render target frame immediately
-  renderFrame(targetFrame);
-
-  // Phase 2: Deferred background loading for remaining frames
-  const loadRemaining = () => {
-    for (let i = 1; i <= TOTAL_FRAMES; i++) {
-      const img = images[i - 1];
-      if (!img.src) {
-        img.src = getFramePath(i);
+  // Defer all remaining frames until after page load completes
+  const scheduleRemainingLoad = () => {
+    const loadBatch = () => {
+      for (let i = 1; i <= TOTAL_FRAMES; i++) {
+        if (!images[i - 1].src) {
+          images[i - 1].src = getFramePath(i);
+        }
       }
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadBatch, { timeout: 2000 });
+    } else {
+      setTimeout(loadBatch, 500);
     }
   };
 
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(loadRemaining, { timeout: 1500 });
+  if (document.readyState === 'complete') {
+    scheduleRemainingLoad();
   } else {
-    setTimeout(loadRemaining, 300);
+    window.addEventListener('load', scheduleRemainingLoad, { once: true });
   }
 }
 
