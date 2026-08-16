@@ -19,12 +19,15 @@ const pageFrameTargets = {
 const frameImagesCache = new Array(TOTAL_FRAMES);
 let isPreloadStarted = false;
 
-// High-speed parallel preloader for all 192 frames
-function initializeFramePreloader() {
+// Preload all 192 keyframes in parallel streams for instantaneous access
+function initializeFramePreloader(activeStart = 0) {
   if (isPreloadStarted || typeof window === 'undefined') return;
   isPreloadStarted = true;
 
-  const indices = Array.from({ length: TOTAL_FRAMES }, (_, i) => i);
+  // Build loading order starting from active page frame outward
+  const indices = [];
+  for (let f = activeStart; f < TOTAL_FRAMES; f++) indices.push(f);
+  for (let f = 0; f < activeStart; f++) indices.push(f);
 
   const loadFrame = (index) => {
     return new Promise((resolve) => {
@@ -41,8 +44,8 @@ function initializeFramePreloader() {
     });
   };
 
-  // Process in high-speed parallel batches of 24
-  const batchSize = 24;
+  // High-throughput parallel batches of 16
+  const batchSize = 16;
   let offset = 0;
 
   const processBatches = () => {
@@ -71,12 +74,13 @@ export default function CanvasAnimation({ currentPath }) {
   const animState = useRef({
     currentFrame: startFrame,
     targetFrame: startFrame,
+    renderedFrame: -1,
     reqId: null
   });
 
   useEffect(() => {
-    initializeFramePreloader();
-  }, []);
+    initializeFramePreloader(startFrame);
+  }, [startFrame]);
 
   useEffect(() => {
     const baseTarget = pageFrameTargets[activePath] !== undefined ? pageFrameTargets[activePath] : 0;
@@ -102,14 +106,13 @@ export default function CanvasAnimation({ currentPath }) {
 
     resizeCanvas();
 
-    // Nearest loaded image finder to prevent any canvas flicker
+    // Find nearest loaded frame to guarantee zero black flashes
     const getBestAvailableImage = (targetIndex) => {
       const idx = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(targetIndex)));
       if (frameImagesCache[idx] && frameImagesCache[idx].complete && frameImagesCache[idx].naturalWidth > 0) {
         return frameImagesCache[idx];
       }
 
-      // Search outward for nearest loaded frame
       for (let delta = 1; delta < TOTAL_FRAMES; delta++) {
         const left = Math.max(0, idx - delta);
         if (frameImagesCache[left] && frameImagesCache[left].complete && frameImagesCache[left].naturalWidth > 0) {
@@ -162,26 +165,26 @@ export default function CanvasAnimation({ currentPath }) {
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
     };
 
-    // Smooth 30 FPS locked animation loop
-    let lastTime = 0;
-    const targetInterval = 1000 / 30; // ~33.33ms target interval for 30 FPS smoothness
+    // Native requestAnimationFrame smooth lerp loop
+    const tick = () => {
+      const { targetFrame, currentFrame } = animState.current;
+      const diff = targetFrame - currentFrame;
 
-    const tick = (timestamp) => {
-      if (!lastTime) lastTime = timestamp;
-      const elapsed = timestamp - lastTime;
-
-      if (elapsed >= targetInterval) {
-        lastTime = timestamp - (elapsed % targetInterval);
-
-        const { targetFrame, currentFrame } = animState.current;
-        const diff = targetFrame - currentFrame;
-
-        if (Math.abs(diff) > 0.005) {
-          animState.current.currentFrame += diff * 0.22; // Smooth lerp dampening
+      if (Math.abs(diff) > 0.001) {
+        // Fluid lerp dampening for 60fps/120fps screens
+        animState.current.currentFrame += diff * 0.14;
+        const integerFrame = Math.round(animState.current.currentFrame);
+        
+        if (integerFrame !== animState.current.renderedFrame) {
+          animState.current.renderedFrame = integerFrame;
           renderCanvas(animState.current.currentFrame);
-        } else {
-          animState.current.currentFrame = targetFrame;
-          renderCanvas(animState.current.currentFrame);
+        }
+      } else {
+        animState.current.currentFrame = targetFrame;
+        const integerFrame = Math.round(targetFrame);
+        if (integerFrame !== animState.current.renderedFrame) {
+          animState.current.renderedFrame = integerFrame;
+          renderCanvas(targetFrame);
         }
       }
 
