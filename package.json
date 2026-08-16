@@ -2,17 +2,24 @@
   "name": "muhammad-hasil-portfolio",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node node_modules/vite/bin/vite.js build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "vite": "^5.4.1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
-    "nodemon": "^3.1.14"
+    "firebase": "^12.17.1",
+    "firebase-admin": "^14.2.0",
+    "lucide-react": "^0.428.0",
+    "mongodb": "^7.5.0",
+    "mongoose": "^9.9.2",
+    "next": "^14.2.35",
+    "nodemon": "^3.1.14",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.1"
   }
 }

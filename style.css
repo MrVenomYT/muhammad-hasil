@@ -587,17 +587,26 @@ body {
 
 .feature-card {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-card);
-  border-radius: 14px;
-  padding: 18px 22px;
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--text-white);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feature-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(249, 115, 22, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(249, 115, 22, 0.15);
 }
 
 .check-icon {
@@ -1843,8 +1852,106 @@ body {
   transform: translateY(-2px);
 }
 
+/* Additional Responsive Enhancements for Mobile & Tablets */
+@media (max-width: 768px) {
+  .portfolio-container {
+    padding: 0 16px;
+  }
+  .navbar {
+    padding: 16px 20px;
+    margin: 16px 0 24px;
+    border-radius: 20px;
+  }
+  .nav-menu {
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .nav-link {
+    font-size: 0.85rem;
+  }
+  .btn-nav {
+    display: none;
+  }
+  .hero-front-title-layout {
+    min-height: auto;
+    padding: 10px 0 30px;
+  }
+  .about-features-grid,
+  .skills-grid,
+  .projects-grid,
+  .services-grid,
+  .contact-container-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .review-slide {
+    min-width: 100% !important;
+  }
+  .project-card,
+  .service-card,
+  .info-card,
+  .contact-info-box,
+  .contact-form {
+    padding: 24px !important;
+  }
+  .projects-tabs-row {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-typo-graphic-title {
+    font-size: 1.8rem !important;
+  }
+  .section-title {
+    font-size: 1.6rem !important;
+  }
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 18px !important;
+    font-size: 0.85rem !important;
+  }
+  .contact-links-stack {
+    gap: 10px;
+  }
+}
+
 .tech-brand-item .tech-star {
   color: var(--accent-orange);
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+/* Infinite Auto-Play Reviews Marquee (No Buttons) */
+.reviews-marquee-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: 20px 0;
+  user-select: none;
+}
+
+.reviews-marquee-track {
+  display: flex;
+  gap: 28px;
+  width: max-content;
+  animation: reviewsMarquee 35s linear infinite;
+}
+
+.reviews-marquee-container:hover .reviews-marquee-track {
+  animation-play-state: paused;
+}
+
+.review-marquee-item {
+  flex-shrink: 0;
+}
+
+@keyframes reviewsMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
