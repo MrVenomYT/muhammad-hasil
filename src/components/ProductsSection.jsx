@@ -3,33 +3,40 @@ import Link from 'next/link';
 import { getCombinedProducts } from '../lib/storage';
 
 export default function ProductsSection() {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(() => getCombinedProducts([]));
   const [activeTab, setActiveTab] = useState('All');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
-    fetchProducts();
+    // 1. Immediately ensure local/seed products are loaded
+    const initialLocal = getCombinedProducts([]);
+    setProducts(initialLocal);
+
+    // 2. Fetch API products in background with a fast 2.5s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+    fetch('/api/products', { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const combined = getCombinedProducts(data.data);
+          setProducts(combined);
+        }
+      })
+      .catch(err => {
+        // Silently preserve seed/local products if backend API times out or errs
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+      });
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
   }, []);
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    let apiProducts = [];
-
-    try {
-      const res = await fetch('/api/products');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        apiProducts = data.data;
-      }
-    } catch (err) {
-      console.warn('API fetch warning:', err);
-    }
-
-    const combined = getCombinedProducts(apiProducts);
-    setProducts(combined);
-    setLoading(false);
-  };
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category || 'Digital Product')))];
 

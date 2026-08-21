@@ -6,7 +6,6 @@ const nextConfig = {
   poweredByHeader: false,
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'img.youtube.com' },
       { protocol: 'https', hostname: 'images.unsplash.com' }
     ]
   },

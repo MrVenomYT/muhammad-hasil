@@ -19,19 +19,87 @@ const pageFrameTargets = {
 const frameImagesCache = new Array(TOTAL_FRAMES);
 let isPreloadStarted = false;
 
-// Preload ALL 192 keyframes eagerly into browser cache
-function initializeFramePreloader() {
-  if (isPreloadStarted || typeof window === 'undefined') return;
+// Load a single frame image into cache safely
+function loadFrame(index, onLoaded) {
+  if (frameImagesCache[index]) return;
+  const img = new Image();
+  const paddedStr = String(index + 1).padStart(4, '0');
+  img.src = `${FRAME_DIR}/frame_${paddedStr}.png`;
+  img.onload = () => {
+    frameImagesCache[index] = img;
+    if (onLoaded) onLoaded(index, img);
+  };
+}
+
+// 3-Tier Progressive Preloader: Instant Load (<50ms) -> Keyframe Steps -> Idle Background Fill
+function initializeFramePreloader(initialFrame = 0, onInitialFrameReady) {
+  if (typeof window === 'undefined') return;
+
+  // Tier 1: Immediately load target initial frame & key route targets
+  loadFrame(initialFrame, () => {
+    if (onInitialFrameReady) onInitialFrameReady();
+  });
+  
+  const keyRouteFrames = [0, 40, 80, 120, 160];
+  keyRouteFrames.forEach(idx => loadFrame(idx));
+
+  if (isPreloadStarted) return;
   isPreloadStarted = true;
 
-  for (let i = 0; i < TOTAL_FRAMES; i++) {
-    const img = new Image();
-    const paddedStr = String(i + 1).padStart(4, '0');
-    img.src = `${FRAME_DIR}/frame_${paddedStr}.png`;
-    img.onload = () => {
-      frameImagesCache[i] = img;
-    };
+  // Tier 2: Load keyframe steps (every 3rd frame) for instant smooth scroll coverage
+  const stepIndices = [];
+  for (let i = 0; i < TOTAL_FRAMES; i += 3) {
+    stepIndices.push(i);
   }
+
+  let stepIdx = 0;
+  function loadNextStepBatch() {
+    const end = Math.min(stepIndices.length, stepIdx + 6);
+    for (let i = stepIdx; i < end; i++) {
+      loadFrame(stepIndices[i]);
+    }
+    stepIdx = end;
+    if (stepIdx < stepIndices.length) {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(loadNextStepBatch);
+      } else {
+        setTimeout(loadNextStepBatch, 30);
+      }
+    } else {
+      // Tier 3: Fill in remaining frame gaps in idle background batches
+      loadRemainingFrames();
+    }
+  }
+
+  function loadRemainingFrames() {
+    let currentIdx = 0;
+    function loadNextRemainingBatch() {
+      let count = 0;
+      while (currentIdx < TOTAL_FRAMES && count < 4) {
+        if (!frameImagesCache[currentIdx]) {
+          loadFrame(currentIdx);
+          count++;
+        }
+        currentIdx++;
+      }
+      if (currentIdx < TOTAL_FRAMES) {
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(loadNextRemainingBatch);
+        } else {
+          setTimeout(loadNextRemainingBatch, 40);
+        }
+      }
+    }
+
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(loadNextRemainingBatch);
+    } else {
+      setTimeout(loadNextRemainingBatch, 60);
+    }
+  }
+
+  // Start Tier 2 steps after short delay so main UI thread is completely unblocked
+  setTimeout(loadNextStepBatch, 100);
 }
 
 export default function CanvasAnimation({ currentPath }) {
@@ -50,8 +118,13 @@ export default function CanvasAnimation({ currentPath }) {
   });
 
   useEffect(() => {
-    initializeFramePreloader();
-  }, []);
+    initializeFramePreloader(startFrame, () => {
+      // Force initial render as soon as initial frame is ready
+      if (animState.current) {
+        animState.current.renderedFrame = -1;
+      }
+    });
+  }, [startFrame]);
 
   useEffect(() => {
     const baseTarget = pageFrameTargets[activePath] !== undefined ? pageFrameTargets[activePath] : 0;
@@ -133,14 +206,14 @@ export default function CanvasAnimation({ currentPath }) {
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
     };
 
-    // Ultra-smooth 60fps frame tick loop ensuring no frame is skipped
+    // Ultra-smooth 60fps frame tick loop with smooth LERP momentum
     const tick = () => {
       const { targetFrame, currentFrame } = animState.current;
       const diff = targetFrame - currentFrame;
 
       if (Math.abs(diff) > 0.01) {
-        // Limit max step per frame tick to 0.85 so every single frame is smoothly rendered in order
-        const step = Math.sign(diff) * Math.min(Math.abs(diff) * 0.18, 0.85);
+        // Smooth LERP step calculation for silky smooth scroll tracking
+        const step = Math.sign(diff) * Math.min(Math.abs(diff) * 0.16 + 0.02, Math.abs(diff));
         animState.current.currentFrame += step;
 
         const integerFrame = Math.round(animState.current.currentFrame);
@@ -214,3 +287,4 @@ export default function CanvasAnimation({ currentPath }) {
     />
   );
 }
+

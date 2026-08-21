@@ -7,9 +7,6 @@ export const DELETED_PROJECTS_KEY = 'app_deleted_projects_cache';
 export const PRODUCTS_CACHE_KEY = 'app_products_cache';
 export const DELETED_PRODUCTS_KEY = 'app_deleted_products_cache';
 
-export const VIDEOS_CACHE_KEY = 'app_videos_cache';
-export const DELETED_VIDEOS_KEY = 'app_deleted_videos_cache';
-
 export const initialSeedProjects = [
   {
     id: 'takumisushi',
@@ -216,58 +213,6 @@ export function deleteLocalProject(id, title) {
   if (id && !deleted.includes(id)) deleted.push(id);
   if (title && !deleted.includes(title.toLowerCase())) deleted.push(title.toLowerCase());
   setLocalItems(DELETED_PROJECTS_KEY, deleted);
-}
-
-// Get combined list of YouTube videos
-export function getCombinedVideos(firestoreVideos = []) {
-  const localVideos = getLocalItems(VIDEOS_CACHE_KEY);
-  const deletedIds = getLocalItems(DELETED_VIDEOS_KEY);
-
-  const mergedMap = new Map();
-
-  firestoreVideos.forEach(v => {
-    const id = v.id || v._id;
-    if (!deletedIds.includes(id)) {
-      mergedMap.set(id, { ...v, id });
-    }
-  });
-
-  localVideos.forEach(v => {
-    const id = v.id || v._id;
-    if (!deletedIds.includes(id)) {
-      mergedMap.set(id, { ...v, id });
-    }
-  });
-
-  return Array.from(mergedMap.values());
-}
-
-// Save a local YouTube video
-export function saveLocalVideo(video) {
-  const local = getLocalItems(VIDEOS_CACHE_KEY);
-  const id = video.id || video._id || Date.now().toString();
-  const newVid = { ...video, id };
-
-  const idx = local.findIndex(v => v.id === id);
-  if (idx >= 0) {
-    local[idx] = newVid;
-  } else {
-    local.unshift(newVid);
-  }
-
-  setLocalItems(VIDEOS_CACHE_KEY, local);
-  return newVid;
-}
-
-// Delete a local YouTube video
-export function deleteLocalVideo(id) {
-  const local = getLocalItems(VIDEOS_CACHE_KEY);
-  const updated = local.filter(v => v.id !== id && v._id !== id);
-  setLocalItems(VIDEOS_CACHE_KEY, updated);
-
-  const deleted = getLocalItems(DELETED_VIDEOS_KEY);
-  if (id && !deleted.includes(id)) deleted.push(id);
-  setLocalItems(DELETED_VIDEOS_KEY, deleted);
 }
 
 // Get combined list of products

@@ -8,22 +8,16 @@ import {
   doc, 
   updateDoc, 
   onSnapshot, 
-  query, 
-  orderBy, 
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { getYouTubeId } from './ProjectsSection';
 import { 
   getCombinedProjects, 
   getCombinedProducts, 
-  getCombinedVideos, 
   saveLocalProject, 
   deleteLocalProject, 
   saveLocalProduct, 
   deleteLocalProduct, 
-  saveLocalVideo, 
-  deleteLocalVideo, 
   initialSeedProjects 
 } from '../lib/storage';
 
@@ -33,11 +27,9 @@ export default function AdminDashboardSection() {
 
   const [activeTab, setActiveTab] = useState('products');
   const [rawFirestoreProjects, setRawFirestoreProjects] = useState([]);
-  const [rawFirestoreVideos, setRawFirestoreVideos] = useState([]);
   const [rawApiProducts, setRawApiProducts] = useState([]);
 
   const [projects, setProjects] = useState([]);
-  const [videos, setVideos] = useState([]);
   const [products, setProducts] = useState([]);
 
   const [editingProjectId, setEditingProjectId] = useState(null);
@@ -49,8 +41,7 @@ export default function AdminDashboardSection() {
     pill: 'Full Stack Web App',
     description: '',
     liveDemoUrl: '',
-    imageUrl: '',
-    youtubeUrl: ''
+    imageUrl: ''
   });
 
   const [productForm, setProductForm] = useState({
@@ -65,13 +56,6 @@ export default function AdminDashboardSection() {
     features: ''
   });
 
-  const [videoForm, setVideoForm] = useState({
-    title: '',
-    youtubeUrl: '',
-    description: '',
-    category: 'YouTube Showcase'
-  });
-
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -84,11 +68,10 @@ export default function AdminDashboardSection() {
   // Initial load from storage helpers
   useEffect(() => {
     setProjects(getCombinedProjects([]));
-    setVideos(getCombinedVideos([]));
     setProducts(getCombinedProducts([]));
   }, []);
 
-  // Real-time Firestore sync for projects & videos
+  // Real-time Firestore sync for projects
   useEffect(() => {
     if (!user) return;
 
@@ -99,18 +82,10 @@ export default function AdminDashboardSection() {
       setProjects(getCombinedProjects(projs));
     }, (err) => console.error("Projects snapshot error:", err));
 
-    const qVideos = query(collection(db, 'youtube_videos'), orderBy('createdAt', 'desc'));
-    const unsubVideos = onSnapshot(qVideos, (snapshot) => {
-      const vids = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setRawFirestoreVideos(vids);
-      setVideos(getCombinedVideos(vids));
-    }, (err) => console.error("Videos snapshot error:", err));
-
     fetchProducts();
 
     return () => {
       unsubProjects();
-      unsubVideos();
     };
   }, [user]);
 
@@ -268,8 +243,7 @@ export default function AdminDashboardSection() {
         pill: 'Full Stack Web App',
         description: '',
         liveDemoUrl: '',
-        imageUrl: '',
-        youtubeUrl: ''
+        imageUrl: ''
       });
       setEditingProjectId(null);
     } catch (err) {
@@ -319,69 +293,6 @@ export default function AdminDashboardSection() {
     }
   };
 
-  // --- YOUTUBE CRUD ---
-  const handleSaveVideo = async (e) => {
-    e.preventDefault();
-    if (!videoForm.title || !videoForm.youtubeUrl) {
-      setStatusMsg({ type: 'error', text: 'Please enter Title and YouTube Link.' });
-      return;
-    }
-
-    const yId = getYouTubeId(videoForm.youtubeUrl);
-    if (!yId) {
-      setStatusMsg({ type: 'error', text: 'Invalid YouTube link provided.' });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setStatusMsg({ type: 'info', text: 'Adding YouTube video...' });
-
-    try {
-      let newVidId = Date.now().toString();
-      const videoData = {
-        title: videoForm.title,
-        youtubeUrl: videoForm.youtubeUrl,
-        youtubeId: yId,
-        description: videoForm.description || '',
-        category: videoForm.category || 'YouTube Video',
-        imageUrl: `https://img.youtube.com/vi/${yId}/hqdefault.jpg`
-      };
-
-      try {
-        const docRef = await addDoc(collection(db, 'youtube_videos'), {
-          ...videoData,
-          createdAt: serverTimestamp()
-        });
-        if (docRef?.id) newVidId = docRef.id;
-      } catch (e) {}
-
-      saveLocalVideo({ id: newVidId, ...videoData });
-      setVideos(getCombinedVideos(rawFirestoreVideos));
-
-      setStatusMsg({ type: 'success', text: '✓ YouTube video added successfully!' });
-      setVideoForm({ title: '', youtubeUrl: '', description: '', category: 'YouTube Showcase' });
-    } catch (err) {
-      setStatusMsg({ type: 'error', text: 'Failed to add video: ' + err.message });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteVideo = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this YouTube video link?')) return;
-    try {
-      try {
-        await deleteDoc(doc(db, 'youtube_videos', id));
-      } catch (e) {}
-
-      deleteLocalVideo(id);
-      setVideos(getCombinedVideos(rawFirestoreVideos));
-      setStatusMsg({ type: 'success', text: '✓ YouTube video deleted successfully.' });
-    } catch (err) {
-      setStatusMsg({ type: 'error', text: 'Failed to delete video: ' + err.message });
-    }
-  };
-
   return (
     <div className="page-view active" style={{ paddingBottom: '80px' }}>
       <section className="about-section">
@@ -417,7 +328,7 @@ export default function AdminDashboardSection() {
         </div>
 
         {/* Dashboard Overview Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
           <div className="feature-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '28px', backgroundColor: 'rgba(22, 17, 13, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: '22px', boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7)' }}>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' }}>STORE PRODUCTS</span>
             <span style={{ fontSize: '42px', fontWeight: '800', color: 'var(--accent-orange)', fontFamily: 'Syne, sans-serif', margin: '8px 0', textShadow: '0 0 20px rgba(249, 115, 22, 0.4)' }}>{products.length}</span>
@@ -428,12 +339,6 @@ export default function AdminDashboardSection() {
             <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' }}>PORTFOLIO PROJECTS</span>
             <span style={{ fontSize: '42px', fontWeight: '800', color: '#ffffff', fontFamily: 'Syne, sans-serif', margin: '8px 0', textShadow: '0 0 20px rgba(255, 255, 255, 0.2)' }}>{projects.length}</span>
             <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: '500' }}>✓ Firestore Real-time Sync</span>
-          </div>
-
-          <div className="feature-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '28px', backgroundColor: 'rgba(22, 17, 13, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 68, 68, 0.3)', borderRadius: '22px', boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7)' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' }}>YOUTUBE VIDEOS</span>
-            <span style={{ fontSize: '42px', fontWeight: '800', color: '#ff4444', fontFamily: 'Syne, sans-serif', margin: '8px 0', textShadow: '0 0 20px rgba(255, 68, 68, 0.4)' }}>{videos.length}</span>
-            <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: '500' }}>✓ Live Embed Showcase</span>
           </div>
         </div>
 
@@ -458,17 +363,11 @@ export default function AdminDashboardSection() {
           >
             🚀 Manage Projects ({projects.length})
           </button>
-          <button 
-            className={`project-tab-btn ${activeTab === 'youtube' ? 'active' : ''}`}
-            onClick={() => setActiveTab('youtube')}
-          >
-            📹 Manage YouTube Videos ({videos.length})
-          </button>
         </div>
 
         {/* PRODUCTS TAB */}
         {activeTab === 'products' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
             {/* Add / Edit Form */}
             <div style={{ padding: '32px', backgroundColor: 'rgba(20,18,16,0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,119,0,0.3)', borderRadius: '22px' }}>
               <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
@@ -661,7 +560,7 @@ export default function AdminDashboardSection() {
 
         {/* PROJECTS TAB */}
         {activeTab === 'projects' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
             {/* Add / Edit Form */}
             <div style={{ padding: '32px', backgroundColor: 'rgba(20,18,16,0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,119,0,0.3)', borderRadius: '22px' }}>
               <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
@@ -728,17 +627,6 @@ export default function AdminDashboardSection() {
                   />
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>YouTube Video URL (Optional)</label>
-                  <input 
-                    type="url" 
-                    value={projectForm.youtubeUrl} 
-                    onChange={e => setProjectForm({ ...projectForm, youtubeUrl: e.target.value })} 
-                    placeholder="https://www.youtube.com/watch?v=..." 
-                    className="form-input" 
-                  />
-                </div>
-
                 <div className="form-group" style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Description *</label>
                   <textarea 
@@ -760,7 +648,7 @@ export default function AdminDashboardSection() {
                       type="button" 
                       onClick={() => {
                         setEditingProjectId(null);
-                        setProjectForm({ title: '', category: 'fullstack react', pill: 'Full Stack Web App', description: '', liveDemoUrl: '', imageUrl: '', youtubeUrl: '' });
+                        setProjectForm({ title: '', category: 'fullstack react', pill: 'Full Stack Web App', description: '', liveDemoUrl: '', imageUrl: '' });
                       }}
                       className="btn-secondary"
                     >
@@ -804,8 +692,7 @@ export default function AdminDashboardSection() {
                             pill: p.pill || 'Full Stack Web App',
                             description: p.description || '',
                             liveDemoUrl: p.liveDemoUrl || '',
-                            imageUrl: p.imageUrl || '',
-                            youtubeUrl: p.youtubeUrl || ''
+                            imageUrl: p.imageUrl || ''
                           });
                         }}
                         className="btn-secondary"
@@ -827,100 +714,8 @@ export default function AdminDashboardSection() {
             </div>
           </div>
         )}
-
-        {/* YOUTUBE TAB */}
-        {activeTab === 'youtube' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-            {/* Add Video Form */}
-            <div style={{ padding: '32px', backgroundColor: 'rgba(20,18,16,0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,68,68,0.3)', borderRadius: '22px' }}>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
-                📹 Add YouTube Video Link
-              </h3>
-              <form onSubmit={handleSaveVideo}>
-                <div className="form-group" style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Video Title *</label>
-                  <input 
-                    type="text" 
-                    value={videoForm.title} 
-                    onChange={e => setVideoForm({ ...videoForm, title: e.target.value })} 
-                    placeholder="e.g. React Portfolio Walkthrough & Demo" 
-                    required 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>YouTube Link / URL *</label>
-                  <input 
-                    type="url" 
-                    value={videoForm.youtubeUrl} 
-                    onChange={e => setVideoForm({ ...videoForm, youtubeUrl: e.target.value })} 
-                    placeholder="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" 
-                    required 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Category Badge</label>
-                  <input 
-                    type="text" 
-                    value={videoForm.category} 
-                    onChange={e => setVideoForm({ ...videoForm, category: e.target.value })} 
-                    placeholder="e.g. YouTube Showcase / Tutorial" 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Description</label>
-                  <textarea 
-                    value={videoForm.description} 
-                    onChange={e => setVideoForm({ ...videoForm, description: e.target.value })} 
-                    placeholder="Brief description of the video..." 
-                    rows="3" 
-                    className="form-input" 
-                  />
-                </div>
-
-                <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ backgroundColor: '#ff4444', borderColor: '#ff4444' }}>
-                  Add YouTube Link <span className="arrow">↗</span>
-                </button>
-              </form>
-            </div>
-
-            {/* Video List */}
-            <div>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
-                Active YouTube Links ({videos.length})
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '680px', overflowY: 'auto' }}>
-                {videos.map((v) => {
-                  const yId = getYouTubeId(v.youtubeUrl || v.youtubeId);
-                  const thumbUrl = v.imageUrl || `https://img.youtube.com/vi/${yId}/hqdefault.jpg`;
-                  return (
-                    <div key={v.id} style={{ padding: '18px', backgroundColor: 'rgba(20,18,16,0.7)', border: '1px solid rgba(255,68,68,0.2)', borderRadius: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <img src={thumbUrl} alt={v.title} style={{ width: '90px', height: '60px', objectFit: 'cover', borderRadius: '10px' }} />
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: 0, fontSize: '16px', color: '#fff', fontWeight: '700' }}>{v.title}</h4>
-                        <span style={{ fontSize: '11px', color: '#ff6666' }}>{v.category || 'YouTube Video'}</span>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#bbb', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{v.description}</p>
-                      </div>
-                      <button 
-                        onClick={() => handleDeleteVideo(v.id)}
-                        className="btn-primary"
-                        style={{ padding: '6px 16px', fontSize: '12px', backgroundColor: '#ff4444', borderColor: '#ff4444', boxShadow: 'none' }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
       </section>
     </div>
   );
 }
+

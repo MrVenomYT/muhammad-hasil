@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { getCombinedProjects, getCombinedVideos } from '../lib/storage';
-
-export function getYouTubeId(url) {
-  if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : url;
-}
+import { getCombinedProjects } from '../lib/storage';
 
 export function formatImageUrl(url) {
   if (!url) return '/assets/muhammad-hasil.png';
@@ -20,12 +13,9 @@ export function formatImageUrl(url) {
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
   const [firestoreProjects, setFirestoreProjects] = useState([]);
-  const [rawVideos, setRawVideos] = useState([]);
-  const [activeVideoModal, setActiveVideoModal] = useState(null);
 
   useEffect(() => {
     let unsubProjects = () => { };
-    let unsubVideos = () => { };
 
     try {
       const refProjects = collection(db, 'projects');
@@ -35,34 +25,21 @@ export default function ProjectsSection() {
       }, (err) => {
         console.warn("Firestore projects snapshot notice:", err);
       });
-
-      const refVideos = collection(db, 'youtube_videos');
-      unsubVideos = onSnapshot(refVideos, (snapshot) => {
-        const vids = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setRawVideos(vids);
-      }, (err) => {
-        console.warn("Firestore youtube_videos snapshot notice:", err);
-      });
     } catch (e) {
       console.warn("Firestore connection notice:", e);
     }
 
     return () => {
       unsubProjects();
-      unsubVideos();
     };
   }, []);
 
   const mergedProjects = getCombinedProjects(firestoreProjects);
-  const youtubeVideos = getCombinedVideos(rawVideos);
 
   const filteredProjects = mergedProjects.filter(p => {
     if (filter === 'all') return true;
-    if (filter === 'youtube') return false;
     return (p.category || '').includes(filter);
   });
-
-  const showYouTubeSection = filter === 'all' || filter === 'youtube';
 
   return (
     <div id="page-projects" className="page-view active">
@@ -72,7 +49,7 @@ export default function ProjectsSection() {
             <span className="orange-dot"></span>
             <span>Some Recent Projects</span>
           </div>
-          <h2 className="section-title">Selected Work & Video Demos</h2>
+          <h2 className="section-title">Selected Work & Featured Projects</h2>
 
           {/* Filter Tabs */}
           <div className="projects-tabs-row" id="projects-tabs">
@@ -100,190 +77,49 @@ export default function ProjectsSection() {
             >
               UI/UX & Web Design
             </button>
-            <button
-              className={`project-tab-btn ${filter === 'youtube' ? 'active' : ''}`}
-              onClick={() => setFilter('youtube')}
-              style={{ color: '#ff4444', borderColor: filter === 'youtube' ? '#ff4444' : 'rgba(255,68,68,0.3)' }}
-            >
-              📹 YouTube Videos ({youtubeVideos.length})
-            </button>
           </div>
         </div>
 
-        {/* YouTube Video Section */}
-        {showYouTubeSection && youtubeVideos.length > 0 && (
-          <div style={{ marginBottom: '50px' }}>
-            <div className="section-tag" style={{ marginBottom: '15px' }}>
-              <span className="orange-dot" style={{ backgroundColor: '#ff4444' }}></span>
-              <span style={{ color: '#ffaa00' }}>FEATURED YOUTUBE VIDEOS</span>
-            </div>
-            <div className="projects-grid">
-              {youtubeVideos.map((vid) => {
-                const yId = getYouTubeId(vid.youtubeUrl || vid.youtubeId);
-                const thumbUrl = vid.imageUrl || (yId ? `https://img.youtube.com/vi/${yId}/hqdefault.jpg` : '/assets/muhammad-hasil.png');
-                return (
-                  <article key={vid.id} className="project-card" style={{ border: '1px solid rgba(255, 68, 68, 0.3)' }}>
-                    <div className="project-image-box" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setActiveVideoModal(yId)}>
-                      <img
-                        src={formatImageUrl(thumbUrl)}
-                        alt={vid.title}
-                        className="project-img"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/assets/muhammad-hasil.png';
-                        }}
-                      />
-                      <div className="project-overlay-link" style={{ background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#ff0000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '24px', boxShadow: '0 0 20px rgba(255,0,0,0.6)' }}>
-                          ▶
-                        </div>
-                      </div>
-                    </div>
-                    <div className="project-info">
-                      <div className="project-info-header">
-                        <h3 className="project-title">{vid.title}</h3>
-                        <span className="project-pill" style={{ backgroundColor: 'rgba(255,68,68,0.15)', color: '#ff6666', border: '1px solid rgba(255,68,68,0.3)' }}>
-                          {vid.category || 'YouTube Video'}
-                        </span>
-                      </div>
-                      <p className="project-desc">{vid.description}</p>
-                      <div className="project-card-actions">
-                        <button
-                          onClick={() => setActiveVideoModal(yId)}
-                          className="btn-live-demo-text"
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff7700', padding: 0 }}
-                        >
-                          Watch Video ▶
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Web Projects Grid */}
-        {filter !== 'youtube' && (
-          <div className="projects-grid" id="projects-grid">
-            {filteredProjects.map((proj) => (
-              <article key={proj.id} className="project-card" data-category={proj.category}>
-                <div className="project-image-box">
-                  <img
-                    src={formatImageUrl(proj.imageUrl)}
-                    alt={proj.title}
-                    className="project-img"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = '/assets/muhammad-hasil.png';
-                    }}
-                  />
+        <div className="projects-grid" id="projects-grid">
+          {filteredProjects.map((proj) => (
+            <article key={proj.id} className="project-card" data-category={proj.category}>
+              <div className="project-image-box">
+                <img
+                  src={formatImageUrl(proj.imageUrl)}
+                  alt={proj.title}
+                  className="project-img"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/assets/muhammad-hasil.png';
+                  }}
+                />
+                {proj.liveDemoUrl && (
+                  <div className="project-overlay-link">
+                    <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo">
+                      Live Demo <span className="arrow">↗</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+              <div className="project-info">
+                <div className="project-info-header">
+                  <h3 className="project-title">{proj.title}</h3>
+                  <span className="project-pill">{proj.pill || 'Full Stack'}</span>
+                </div>
+                <p className="project-desc">{proj.description}</p>
+                <div className="project-card-actions">
                   {proj.liveDemoUrl && (
-                    <div className="project-overlay-link">
-                      <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo">
-                        Live Demo <span className="arrow">↗</span>
-                      </a>
-                    </div>
+                    <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo-text">
+                      Live Demo <span className="arrow">↗</span>
+                    </a>
                   )}
                 </div>
-                <div className="project-info">
-                  <div className="project-info-header">
-                    <h3 className="project-title">{proj.title}</h3>
-                    <span className="project-pill">{proj.pill || 'Full Stack'}</span>
-                  </div>
-                  <p className="project-desc">{proj.description}</p>
-                  <div className="project-card-actions">
-                    {proj.liveDemoUrl && (
-                      <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo-text">
-                        Live Demo <span className="arrow">↗</span>
-                      </a>
-                    )}
-                    {proj.youtubeUrl && (
-                      <button
-                        onClick={() => setActiveVideoModal(getYouTubeId(proj.youtubeUrl))}
-                        className="btn-live-demo-text"
-                        style={{ marginLeft: '15px', background: 'none', border: 'none', cursor: 'pointer', color: '#ff4444' }}
-                      >
-                        Watch Video ▶
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-
-        {/* Video Player Modal */}
-        {activeVideoModal && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0,0,0,0.85)',
-              backdropFilter: 'blur(10px)',
-              zIndex: 99999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px'
-            }}
-            onClick={() => setActiveVideoModal(null)}
-          >
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                maxWidth: '900px',
-                aspectRatio: '16/9',
-                backgroundColor: '#000',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
-                border: '1px solid rgba(255,119,0,0.4)'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setActiveVideoModal(null)}
-                style={{
-                  position: 'absolute',
-                  top: '15px',
-                  right: '15px',
-                  zIndex: 10,
-                  backgroundColor: 'rgba(0,0,0,0.7)',
-                  color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  borderRadius: '50%',
-                  width: '40px',
-                  height: '40px',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                ✕
-              </button>
-              <iframe
-                src={`https://www.youtube.com/embed/${activeVideoModal}?autoplay=1`}
-                title="YouTube Video Player"
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        )}
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       {/* Tech Stack Marquee Banner */}
@@ -312,3 +148,4 @@ export default function ProjectsSection() {
     </div>
   );
 }
+
