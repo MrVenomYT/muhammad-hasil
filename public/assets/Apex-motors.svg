@@ -1,0 +1,697 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
+  <defs>
+    <!-- Fonts -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&amp;family=Caveat:wght@600&amp;display=swap');
+      .font-handwriting { font-family: 'Caveat', cursive, sans-serif; }
+      .font-sans { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .font-mono { font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; }
+    </style>
+
+    <!-- Canvas Background Gradient (Soft luxury cyber pearl with iridescent cyan/lavender/mint glow) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f3f0ff" />
+      <stop offset="30%" stop-color="#f8fafc" />
+      <stop offset="70%" stop-color="#f0f9ff" />
+      <stop offset="100%" stop-color="#e6fffa" />
+    </linearGradient>
+
+    <!-- Ambient Glows -->
+    <radialGradient id="glowPurple" cx="10%" cy="15%" r="50%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.3" />
+      <stop offset="60%" stop-color="#e9d5ff" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowCyan" cx="90%" cy="20%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.28" />
+      <stop offset="60%" stop-color="#bae6fd" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowMint" cx="85%" cy="85%" r="45%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- 3D Heading Text Gradient -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="35%" stop-color="#ec4899" />
+      <stop offset="70%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+
+    <linearGradient id="titleStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#c4b5fd" />
+      <stop offset="100%" stop-color="#67e8f9" />
+    </linearGradient>
+
+    <!-- Card Backgrounds & Borders -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#f8fafc" stop-opacity="0.90" />
+    </linearGradient>
+
+    <linearGradient id="cardBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#e2e8f0" />
+      <stop offset="100%" stop-color="#cbd5e1" stop-opacity="0.6" />
+    </linearGradient>
+
+    <linearGradient id="heroCardBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#93c5fd" />
+      <stop offset="50%" stop-color="#c4b5fd" />
+      <stop offset="100%" stop-color="#fbcfe8" />
+    </linearGradient>
+
+    <!-- Accent Icon Gradients -->
+    <linearGradient id="iconBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eff6ff" />
+      <stop offset="100%" stop-color="#dbeafe" />
+    </linearGradient>
+    <linearGradient id="iconPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#faf5ff" />
+      <stop offset="100%" stop-color="#f3e8ff" />
+    </linearGradient>
+    <linearGradient id="iconGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4" />
+      <stop offset="100%" stop-color="#dcfce7" />
+    </linearGradient>
+    <linearGradient id="iconRose" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2" />
+      <stop offset="100%" stop-color="#ffe4e6" />
+    </linearGradient>
+    <linearGradient id="iconAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="100%" stop-color="#fef3c7" />
+    </linearGradient>
+    <linearGradient id="iconCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ecfeff" />
+      <stop offset="100%" stop-color="#cffafe" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.06" />
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.04" />
+    </filter>
+
+    <filter id="floatShadow" x="-15%" y="-15%" width="130%" height="135%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#1e293b" flood-opacity="0.09" />
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#1e293b" flood-opacity="0.05" />
+    </filter>
+
+    <filter id="textGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#a855f7" flood-opacity="0.18" />
+    </filter>
+
+    <!-- Car Rendering Gradients -->
+    <linearGradient id="carBodyGrad" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="25%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#0284c7" />
+      <stop offset="85%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#082f49" />
+    </linearGradient>
+
+    <linearGradient id="carHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
+      <stop offset="30%" stop-color="#7dd3fc" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="carGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="35%" stop-color="#334155" />
+      <stop offset="60%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+
+    <linearGradient id="rimMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#94a3b8" />
+      <stop offset="70%" stop-color="#334155" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+
+    <radialGradient id="tireRubber" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="75%" stop-color="#0f172a" />
+      <stop offset="90%" stop-color="#020617" />
+      <stop offset="100%" stop-color="#000000" />
+    </radialGradient>
+
+    <!-- Tech Circuit Decorative Pattern -->
+    <pattern id="circuitPattern" width="120" height="120" patternUnits="userSpaceOnUse">
+      <path d="M0,60 H40 L60,80 H100 M60,0 V40 L80,60 V100" fill="none" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="4 8" opacity="0.35" />
+      <circle cx="40" cy="60" r="3" fill="#cbd5e1" opacity="0.4" />
+      <circle cx="80" cy="60" r="3" fill="#cbd5e1" opacity="0.4" />
+    </pattern>
+  </defs>
+
+  <!-- ================= CANVAS BACKGROUND ================= -->
+  <rect width="1920" height="1080" fill="url(#bgGrad)" />
+  <rect width="1920" height="1080" fill="url(#circuitPattern)" />
+  <rect width="1920" height="1080" fill="url(#glowPurple)" />
+  <rect width="1920" height="1080" fill="url(#glowCyan)" />
+  <rect width="1920" height="1080" fill="url(#glowMint)" />
+
+  <!-- ================= TOP HANDWRITTEN TAGLINE ================= -->
+  <g transform="translate(960, 56)" text-anchor="middle">
+    <text x="0" y="0" class="font-handwriting" font-size="34" font-weight="600" fill="#8b5cf6" opacity="0.9">
+      Your Next-Gen Vehicle Destination is Our Priority
+    </text>
+  </g>
+
+  <!-- ================= TOP RIGHT HERO HIGHLIGHT CARDS ================= -->
+  <g transform="translate(940, 95)">
+    <!-- Top Highlight Card 1: 350K+ Fleet -->
+    <g transform="translate(0, 0)" filter="url(#cardShadow)">
+      <rect width="440" height="130" rx="24" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.5" />
+      <!-- Icon Box -->
+      <g transform="translate(24, 25)">
+        <rect width="80" height="80" rx="18" fill="url(#iconBlue)" stroke="#bfdbfe" stroke-width="1.2" />
+        <!-- Fleet / Car Icon -->
+        <path d="M22,46 L30,30 L50,30 L58,46 L64,46 C67,46 68,48 68,52 L68,60 C68,62 66,64 64,64 L62,64 M18,64 L16,64 C14,64 12,62 12,60 L12,52 C12,48 13,46 16,46 L22,46 Z" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="26" cy="56" r="4" fill="#2563eb" />
+        <circle cx="54" cy="56" r="4" fill="#2563eb" />
+      </g>
+      <!-- Text -->
+      <text x="120" y="48" class="font-sans" font-size="20" font-weight="800" fill="#0f172a" letter-spacing="0.5">350K+ VERIFIED FLEET</text>
+      <text x="120" y="74" class="font-sans" font-size="14.5" font-weight="500" fill="#64748b">Complete civilian vehicles, trains,</text>
+      <text x="120" y="94" class="font-sans" font-size="14.5" font-weight="500" fill="#64748b">aircraft, EVs &amp; luxury supercars.</text>
+    </g>
+
+    <!-- Top Highlight Card 2: AI Multi-Scanner -->
+    <g transform="translate(460, 0)" filter="url(#cardShadow)">
+      <rect width="440" height="130" rx="24" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.5" />
+      <!-- Icon Box -->
+      <g transform="translate(24, 25)">
+        <rect width="80" height="80" rx="18" fill="url(#iconPurple)" stroke="#e9d5ff" stroke-width="1.2" />
+        <!-- Analytics / AI Scan Icon -->
+        <path d="M24,56 L34,42 L46,50 L56,28" fill="none" stroke="#9333ea" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        <circle cx="24" cy="56" r="3" fill="#9333ea" />
+        <circle cx="34" cy="42" r="3" fill="#9333ea" />
+        <circle cx="46" cy="50" r="3" fill="#9333ea" />
+        <circle cx="56" cy="28" r="4" fill="#9333ea" />
+      </g>
+      <!-- Text -->
+      <text x="120" y="48" class="font-sans" font-size="20" font-weight="800" fill="#0f172a" letter-spacing="0.5">GEMINI AI MULTI-SCAN</text>
+      <text x="120" y="74" class="font-sans" font-size="14.5" font-weight="500" fill="#64748b">Computer vision damage detection,</text>
+      <text x="120" y="94" class="font-sans" font-size="14.5" font-weight="500" fill="#64748b">acoustic motor analysis &amp; OCR.</text>
+    </g>
+  </g>
+
+  <!-- ================= LEFT BRANDING & DESCRIPTION ================= -->
+  <g transform="translate(80, 100)">
+    <!-- 3D Embossed Main Title -->
+    <text x="0" y="90" class="font-sans" font-size="78" font-weight="900" fill="url(#titleGrad)" letter-spacing="-1.5" filter="url(#textGlow)">
+      APEX MOTORS
+    </text>
+    
+    <!-- Sub-Heading -->
+    <text x="4" y="142" class="font-sans" font-size="24" font-weight="800" fill="#1e293b" letter-spacing="3.5">
+      GLOBAL VEHICLE MARKETPLACE &amp; FLEET HUB
+    </text>
+
+    <!-- Slogan with Accent Dots -->
+    <g transform="translate(4, 205)">
+      <text x="0" y="0" class="font-sans" font-size="34" font-weight="900" fill="#0f172a">
+        Discover<tspan fill="#3b82f6">.</tspan> <tspan fill="#8b5cf6">Inspect.</tspan> <tspan fill="#06b6d4">Drive.</tspan>
+      </text>
+    </g>
+
+    <!-- Description Paragraph -->
+    <g transform="translate(4, 235)">
+      <text x="0" y="24" class="font-sans" font-size="20" font-weight="500" fill="#475569" width="700">
+        An advanced, intuitive platform for automotive buyers, sellers &amp; fleet
+      </text>
+      <text x="0" y="52" class="font-sans" font-size="20" font-weight="500" fill="#475569">
+        managers to explore 350,000+ verified vehicles, run real-time AI inspections,
+      </text>
+      <text x="0" y="80" class="font-sans" font-size="20" font-weight="500" fill="#475569">
+        and customize dealership operations with granular RBAC workflows.
+      </text>
+    </g>
+  </g>
+
+  <!-- ================= LEFT 6-FEATURE GRID (2 cols x 3 rows) ================= -->
+  <g transform="translate(80, 470)">
+    <!-- Feature 1: Window Stickers & Specs (Col 1, Row 1) -->
+    <g transform="translate(0, 0)" filter="url(#cardShadow)">
+      <rect width="365" height="120" rx="20" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.2" />
+      <g transform="translate(20, 24)">
+        <rect width="72" height="72" rx="16" fill="url(#iconBlue)" stroke="#bfdbfe" stroke-width="1" />
+        <!-- Document / PDF icon -->
+        <path d="M26,18 L42,18 L50,26 L50,54 C50,56 48,58 46,58 L26,58 C24,58 22,56 22,54 L22,22 C22,20 24,18 26,18 Z" fill="none" stroke="#2563eb" stroke-width="2.4" />
+        <polyline points="42,18 42,26 50,26" fill="none" stroke="#2563eb" stroke-width="2" />
+        <line x1="30" y1="36" x2="42" y2="36" stroke="#2563eb" stroke-width="2" stroke-linecap="round" />
+        <line x1="30" y1="44" x2="42" y2="44" stroke="#2563eb" stroke-width="2" stroke-linecap="round" />
+      </g>
+      <text x="106" y="46" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">Window Stickers &amp; PDFs</text>
+      <text x="106" y="70" class="font-sans" font-size="13" font-weight="500" fill="#64748b">Instant OEM sticker generation</text>
+      <text x="106" y="88" class="font-sans" font-size="13" font-weight="500" fill="#64748b">and official PDF spec exports.</text>
+    </g>
+
+    <!-- Feature 2: Role-Based Access (Col 2, Row 1) -->
+    <g transform="translate(385, 0)" filter="url(#cardShadow)">
+      <rect width="365" height="120" rx="20" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.2" />
+      <g transform="translate(20, 24)">
+        <rect width="72" height="72" rx="16" fill="url(#iconGreen)" stroke="#bbf7d0" stroke-width="1" />
+        <!-- Key / Security Icon -->
+        <circle cx="33" cy="39" r="9" fill="none" stroke="#16a34a" stroke-width="2.5" />
+        <path d="M40,33 L54,19 M50,19 L54,23 M46,23 L50,27" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="33" cy="39" r="3" fill="#16a34a" />
+      </g>
+      <text x="106" y="46" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">Role-Based Staff RBAC</text>
+      <text x="106" y="70" class="font-sans" font-size="13" font-weight="500" fill="#64748b">Strict permission tiers for owners,</text>
+      <text x="106" y="88" class="font-sans" font-size="13" font-weight="500" fill="#64748b">managers, &amp; technicians.</text>
+    </g>
+
+    <!-- Feature 3: Auto-Geo Currency (Col 1, Row 2) -->
+    <g transform="translate(0, 138)" filter="url(#cardShadow)">
+      <rect width="365" height="120" rx="20" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.2" />
+      <g transform="translate(20, 24)">
+        <rect width="72" height="72" rx="16" fill="url(#iconPurple)" stroke="#e9d5ff" stroke-width="1" />
+        <!-- Currency / Globe Icon -->
+        <circle cx="36" cy="36" r="16" fill="none" stroke="#9333ea" stroke-width="2.4" />
+        <ellipse cx="36" cy="36" rx="7" ry="16" fill="none" stroke="#9333ea" stroke-width="1.8" />
+        <line x1="20" y1="36" x2="52" y2="36" stroke="#9333ea" stroke-width="1.8" />
+      </g>
+      <text x="106" y="46" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">Auto-Geo Multi-Currency</text>
+      <text x="106" y="70" class="font-sans" font-size="13" font-weight="500" fill="#64748b">12+ Global currencies auto-</text>
+      <text x="106" y="88" class="font-sans" font-size="13" font-weight="500" fill="#64748b">detected by user geolocation.</text>
+    </g>
+
+    <!-- Feature 4: Attendance & Punch Clock (Col 2, Row 2) -->
+    <g transform="translate(385, 138)" filter="url(#cardShadow)">
+      <rect width="365" height="120" rx="20" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.2" />
+      <g transform="translate(20, 24)">
+        <rect width="72" height="72" rx="16" fill="url(#iconAmber)" stroke="#fde68a" stroke-width="1" />
+        <!-- Clock / Timer Icon -->
+        <circle cx="36" cy="36" r="16" fill="none" stroke="#d97706" stroke-width="2.4" />
+        <polyline points="36,26 36,36 44,40" fill="none" stroke="#d97706" stroke-width="2.4" stroke-linecap="round" />
+        <circle cx="36" cy="16" r="2" fill="#d97706" />
+      </g>
+      <text x="106" y="46" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">Attendance &amp; Shifts</text>
+      <text x="106" y="70" class="font-sans" font-size="13" font-weight="500" fill="#64748b">Live punch clock, shift roster</text>
+      <text x="106" y="88" class="font-sans" font-size="13" font-weight="500" fill="#64748b">&amp; holiday schedule calendar.</text>
+    </g>
+
+    <!-- Feature 5: Recent Searches & Priority (Col 1, Row 3) -->
+    <g transform="translate(0, 276)" filter="url(#cardShadow)">
+      <rect width="365" height="120" rx="20" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.2" />
+      <g transform="translate(20, 24)">
+        <rect width="72" height="72" rx="16" fill="url(#iconRose)" stroke="#fecdd3" stroke-width="1" />
+        <!-- Megaphone / Search Icon -->
+        <circle cx="32" cy="32" r="12" fill="none" stroke="#e11d48" stroke-width="2.4" />
+        <line x1="41" y1="41" x2="52" y2="52" stroke="#e11d48" stroke-width="2.8" stroke-linecap="round" />
+      </g>
+      <text x="106" y="46" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">Recent Searches &amp; Alerts</text>
+      <text x="106" y="70" class="font-sans" font-size="13" font-weight="500" fill="#64748b">Instant query recovery and</text>
+      <text x="106" y="88" class="font-sans" font-size="13" font-weight="500" fill="#64748b">weighted priority ad ranking.</text>
+    </g>
+
+    <!-- Feature 6: Customizable White-Label (Col 2, Row 3) -->
+    <g transform="translate(385, 276)" filter="url(#cardShadow)">
+      <rect width="365" height="120" rx="20" fill="url(#cardGrad)" stroke="url(#cardBorder)" stroke-width="1.2" />
+      <g transform="translate(20, 24)">
+        <rect width="72" height="72" rx="16" fill="url(#iconCyan)" stroke="#a5f3fc" stroke-width="1" />
+        <!-- Settings / Palette Icon -->
+        <circle cx="36" cy="36" r="14" fill="none" stroke="#0891b2" stroke-width="2.4" />
+        <circle cx="36" cy="28" r="2.5" fill="#0891b2" />
+        <circle cx="43" cy="33" r="2.5" fill="#0891b2" />
+        <circle cx="41" cy="42" r="2.5" fill="#0891b2" />
+        <circle cx="31" cy="42" r="2.5" fill="#0891b2" />
+      </g>
+      <text x="106" y="46" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">White-Label Customizer</text>
+      <text x="106" y="70" class="font-sans" font-size="13" font-weight="500" fill="#64748b">Full site branding, theme colors,</text>
+      <text x="106" y="88" class="font-sans" font-size="13" font-weight="500" fill="#64748b">&amp; persistent style controls.</text>
+    </g>
+  </g>
+
+  <!-- ================= RIGHT SIDE: DIRECT FLOATING UI MARKETPLACE DASHBOARD ================= -->
+  <!-- (No laptop or phone frame, pure sleek floating software canvas) -->
+  <g transform="translate(860, 255)" filter="url(#floatShadow)">
+    <!-- Main Dashboard Container -->
+    <rect width="980" height="690" rx="28" fill="#ffffff" stroke="url(#heroCardBorder)" stroke-width="2" />
+    
+    <!-- Top App Navigation Bar Inside Canvas -->
+    <g transform="translate(0, 0)">
+      <path d="M0,28 Q0,0 28,0 L952,0 Q980,0 980,28 L980,68 L0,68 Z" fill="#f8fafc" />
+      <line x1="0" y1="68" x2="980" y2="68" stroke="#e2e8f0" stroke-width="1.2" />
+
+      <!-- Left App Logo inside UI -->
+      <g transform="translate(28, 20)">
+        <polygon points="12,0 24,7 20,22 12,26 4,22 0,7" fill="#8b5cf6" />
+        <text x="32" y="19" class="font-sans" font-size="16" font-weight="800" fill="#0f172a">APEX MOTORS</text>
+        <rect x="156" y="3" width="70" height="20" rx="10" fill="#e0e7ff" />
+        <text x="191" y="16" class="font-sans" font-size="10" font-weight="800" fill="#4338ca" text-anchor="middle">LIVE HUB</text>
+      </g>
+
+      <!-- Nav Links -->
+      <g transform="translate(290, 32)" class="font-sans" font-size="13" font-weight="600" fill="#475569">
+        <text x="0" y="0">Inventory</text>
+        <text x="85" y="0">3D Showroom</text>
+        <text x="195" y="0">AI Scanners</text>
+        <text x="295" y="0">Staff Portal</text>
+      </g>
+
+      <!-- Right Action Badges -->
+      <g transform="translate(730, 20)">
+        <!-- Currency Badge -->
+        <rect width="84" height="28" rx="8" fill="#ecfeff" stroke="#a5f3fc" stroke-width="1" />
+        <circle cx="14" cy="14" r="3.5" fill="#06b6d4" />
+        <text x="46" y="18" class="font-sans" font-size="11" font-weight="700" fill="#0e7490">USD $</text>
+
+        <!-- Active Status -->
+        <g transform="translate(94, 0)">
+          <rect width="125" height="28" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1" />
+          <circle cx="16" cy="14" r="4" fill="#16a34a" />
+          <text x="26" y="18" class="font-sans" font-size="11" font-weight="700" fill="#15803d">350,000 Online</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Sub-Header: Search & Filter Ticker -->
+    <g transform="translate(28, 86)">
+      <!-- Search Input Simulation -->
+      <rect width="640" height="42" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" />
+      <circle cx="24" cy="21" r="6" fill="none" stroke="#64748b" stroke-width="1.8" />
+      <line x1="28" y1="25" x2="35" y2="32" stroke="#64748b" stroke-width="1.8" />
+      <text x="48" y="26" class="font-sans" font-size="13" font-weight="500" fill="#64748b">Search 350K+ vehicles by make, model, chassis, or AI inspection status...</text>
+
+      <!-- Quick Action Buttons -->
+      <g transform="translate(655, 0)">
+        <rect width="130" height="42" rx="12" fill="#10b981" />
+        <text x="65" y="26" class="font-sans" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">⚡ Priority Sort</text>
+      </g>
+      <g transform="translate(795, 0)">
+        <rect width="125" height="42" rx="12" fill="#8b5cf6" />
+        <text x="62" y="26" class="font-sans" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">AI Multi-Scan</text>
+      </g>
+    </g>
+
+    <!-- Main Content Area: Left Showcase Vehicle Card + Right Live Metrics Panel -->
+    
+    <!-- Left Showcase Vehicle Card -->
+    <g transform="translate(28, 146)">
+      <rect width="580" height="505" rx="20" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+
+      <!-- Vehicle Image / WebGL Preview Box -->
+      <g transform="translate(18, 18)">
+        <rect width="544" height="230" rx="14" fill="#080a12" />
+        
+        <!-- Studio Lighting & Grid Atmosphere -->
+        <radialGradient id="studioSpotlight" cx="50%" cy="40%" r="55%">
+          <stop offset="0%" stop-color="#1e293b" stop-opacity="0.8" />
+          <stop offset="60%" stop-color="#0b0f19" stop-opacity="0.9" />
+          <stop offset="100%" stop-color="#05070d" stop-opacity="1" />
+        </radialGradient>
+        <rect width="544" height="230" rx="14" fill="url(#studioSpotlight)" />
+
+        <!-- Studio Floor Reflection Grid & Wet Asphalt Gloss -->
+        <ellipse cx="272" cy="186" rx="240" ry="32" fill="#0284c7" opacity="0.18" filter="url(#neonBlur)" />
+        <ellipse cx="272" cy="188" rx="210" ry="22" fill="#000000" opacity="0.85" />
+        <ellipse cx="140" cy="192" rx="60" ry="8" fill="#000000" opacity="0.95" />
+        <ellipse cx="400" cy="192" rx="60" ry="8" fill="#000000" opacity="0.95" />
+
+        <!-- ================= DETAILED SUPERCAR ILLUSTRATION ================= -->
+        <g transform="translate(28, 26)">
+          <!-- Rear Aero Wing -->
+          <g>
+            <!-- Wing Struts -->
+            <polygon points="415,108 422,78 427,78 422,108" fill="#1e293b" />
+            <polygon points="445,110 450,80 455,80 451,110" fill="#0f172a" />
+            <!-- Carbon Wing Blade -->
+            <path d="M 405,78 Q 440,73 475,76 L 478,82 Q 440,79 405,84 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="0.8" />
+          </g>
+
+          <!-- Main Body Shell (Sleek Exotic GT Hypercar) -->
+          <!-- Base Underbody -->
+          <path d="M 45,152 L 105,152 Q 130,120 165,152 L 365,152 Q 395,120 430,152 L 475,148 Q 482,135 470,120 Q 455,105 400,102 Q 340,98 250,96 Q 160,98 100,118 Q 65,130 45,152 Z" fill="#0369a1" />
+
+          <!-- Main Sculpted Body & Fenders with Metallic Paint Gradient -->
+          <path d="M 32,146 C 42,130 75,118 120,114 C 180,108 260,108 345,108 C 410,108 450,116 478,128 C 484,136 476,146 450,148 L 434,148 C 425,128 395,122 370,136 C 362,142 358,148 358,150 L 175,150 C 170,132 142,122 118,136 C 110,142 106,148 106,150 L 52,150 C 42,150 34,148 32,146 Z" fill="url(#carBodyGrad)" stroke="#38bdf8" stroke-width="1" />
+
+          <!-- High-Gloss Shoulder Highlight Line -->
+          <path d="M 52,142 C 90,125 180,116 280,115 C 380,115 440,124 472,132" fill="none" stroke="#e0f2fe" stroke-width="1.8" opacity="0.85" />
+          <path d="M 125,120 C 190,112 280,112 360,113" fill="none" stroke="#ffffff" stroke-width="2.2" opacity="0.9" filter="url(#glowSubtle)" />
+
+          <!-- Cabin Cockpit / Glass Greenhouse -->
+          <path d="M 148,114 Q 210,68 290,68 Q 360,68 405,104 Q 320,105 148,114 Z" fill="url(#carGlassGrad)" stroke="#1e293b" stroke-width="1.2" />
+
+          <!-- Windshield Specular Reflection Blade -->
+          <path d="M 195,76 L 255,72 L 230,112 L 180,113 Z" fill="#ffffff" opacity="0.2" />
+          <path d="M 285,72 L 315,72 L 310,110 L 280,111 Z" fill="#ffffff" opacity="0.08" />
+
+          <!-- Interior Cabin Detail (Sport Bucket Seats & Steering Wheel Silhouette) -->
+          <g opacity="0.7">
+            <!-- Steering Wheel -->
+            <ellipse cx="215" cy="98" rx="6" ry="10" fill="none" stroke="#94a3b8" stroke-width="2" />
+            <!-- Driver & Passenger Bucket Seats -->
+            <path d="M 240,106 L 245,86 Q 252,82 258,86 L 260,106 Z" fill="#0f172a" stroke="#475569" stroke-width="1" />
+            <path d="M 275,106 L 280,88 Q 287,84 293,88 L 295,106 Z" fill="#0f172a" stroke="#475569" stroke-width="1" />
+          </g>
+
+          <!-- A-Pillar, Roof Arc & B-Pillar Frame -->
+          <path d="M 144,115 Q 210,67 290,67 Q 365,67 412,106" fill="none" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" />
+          <path d="M 275,70 L 285,110" stroke="#0f172a" stroke-width="3" />
+
+          <!-- Aerodynamic Hood Scoop & Side Air Intake -->
+          <path d="M 95,128 C 120,124 150,124 165,128" fill="none" stroke="#0369a1" stroke-width="2.5" />
+          <polygon points="325,120 345,120 338,138 322,138" fill="#082f49" stroke="#0284c7" stroke-width="1" />
+          <!-- Door Cut Line & Aerodynamic Side Skirt Crease -->
+          <path d="M 210,113 L 205,148" fill="none" stroke="#075985" stroke-width="1.5" />
+          <path d="M 285,112 L 295,148" fill="none" stroke="#075985" stroke-width="1.5" />
+          <path d="M 175,145 L 355,145" stroke="#0c4a6e" stroke-width="2" />
+
+          <!-- Front Carbon Splitter & Winglets -->
+          <polygon points="24,148 48,148 56,155 18,155" fill="#020617" stroke="#38bdf8" stroke-width="0.8" />
+          <rect x="18" y="152" width="460" height="4" rx="2" fill="#020617" />
+
+          <!-- High-Tech Jewel LED Headlight Assembly -->
+          <g transform="translate(36, 126)">
+            <!-- Headlight Housing -->
+            <polygon points="0,14 42,4 46,12 10,20" fill="#030712" stroke="#38bdf8" stroke-width="1" />
+            <!-- Piercing Laser LED DRL Lightbar -->
+            <polyline points="2,14 40,5 44,11" fill="none" stroke="#38bdf8" stroke-width="2.8" filter="url(#glowSubtle)" />
+            <polyline points="2,14 40,5 44,11" fill="none" stroke="#ffffff" stroke-width="1.2" />
+            <!-- Projector Lenses -->
+            <circle cx="16" cy="14" r="2.5" fill="#ffffff" filter="url(#glowSubtle)" />
+            <circle cx="28" cy="10" r="2.5" fill="#38bdf8" filter="url(#glowSubtle)" />
+          </g>
+
+          <!-- Headlight Radiant Light Beam Projection -->
+          <polygon points="40,136 -20,110 -20,170 36,146" fill="#38bdf8" opacity="0.12" filter="url(#neonBlur)" />
+
+          <!-- Rear Tail Lamp Accent (Red Neon Blade) -->
+          <polygon points="468,122 480,126 476,132 465,128" fill="#ff0055" filter="url(#glowSubtle)" />
+          <polygon points="468,122 480,126 476,132 465,128" fill="#ffffff" opacity="0.8" />
+
+          <!-- ================= WHEEL 1: FRONT FORGED ALLOY ================= -->
+          <g transform="translate(140, 150)">
+            <!-- Outer Tire -->
+            <circle cx="0" cy="0" r="29" fill="url(#tireRubber)" stroke="#0f172a" stroke-width="2" />
+            <circle cx="0" cy="0" r="27" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="3 4" opacity="0.6" />
+            <!-- Carbon Ceramic Brake Rotor -->
+            <circle cx="0" cy="0" r="21" fill="#475569" stroke="#334155" stroke-width="0.8" />
+            <!-- Crimson Red Brembo Brake Caliper -->
+            <path d="M -12,-16 Q 0,-22 14,-17 L 11,-8 Q 0,-14 -9,-9 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="0.8" />
+            <!-- Alloy Rim Lip & Star Spokes -->
+            <circle cx="0" cy="0" r="19" fill="none" stroke="url(#rimMetal)" stroke-width="2.5" />
+            <!-- 5-Twin Spoke Forged Pattern -->
+            <g stroke="url(#rimMetal)" stroke-width="2.2" stroke-linecap="round">
+              <line x1="0" y1="0" x2="0" y2="-18" />
+              <line x1="0" y1="0" x2="17" y2="-6" />
+              <line x1="0" y1="0" x2="11" y2="15" />
+              <line x1="0" y1="0" x2="-11" y2="15" />
+              <line x1="0" y1="0" x2="-17" y2="-6" />
+            </g>
+            <!-- Center Hub & Apex Badge -->
+            <circle cx="0" cy="0" r="5" fill="#0f172a" stroke="#38bdf8" stroke-width="1" />
+            <circle cx="0" cy="0" r="2" fill="#38bdf8" />
+          </g>
+
+          <!-- ================= WHEEL 2: REAR FORGED ALLOY ================= -->
+          <g transform="translate(395, 150)">
+            <!-- Outer Tire -->
+            <circle cx="0" cy="0" r="30" fill="url(#tireRubber)" stroke="#0f172a" stroke-width="2" />
+            <circle cx="0" cy="0" r="28" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="3 4" opacity="0.6" />
+            <!-- Carbon Ceramic Brake Rotor -->
+            <circle cx="0" cy="0" r="22" fill="#475569" stroke="#334155" stroke-width="0.8" />
+            <!-- Crimson Red Brake Caliper -->
+            <path d="M -13,-17 Q 0,-23 15,-18 L 12,-9 Q 0,-15 -10,-10 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="0.8" />
+            <!-- Alloy Rim Lip & Star Spokes -->
+            <circle cx="0" cy="0" r="20" fill="none" stroke="url(#rimMetal)" stroke-width="2.5" />
+            <!-- 5-Twin Spoke Forged Pattern -->
+            <g stroke="url(#rimMetal)" stroke-width="2.2" stroke-linecap="round">
+              <line x1="0" y1="0" x2="0" y2="-19" />
+              <line x1="0" y1="0" x2="18" y2="-6" />
+              <line x1="0" y1="0" x2="12" y2="16" />
+              <line x1="0" y1="0" x2="-12" y2="16" />
+              <line x1="0" y1="0" x2="-18" y2="-6" />
+            </g>
+            <!-- Center Hub & Apex Badge -->
+            <circle cx="0" cy="0" r="5.5" fill="#0f172a" stroke="#38bdf8" stroke-width="1" />
+            <circle cx="0" cy="0" r="2.2" fill="#38bdf8" />
+          </g>
+        </g>
+
+        <!-- Floating Tag Badges over Image -->
+        <rect x="14" y="14" width="130" height="26" rx="8" fill="#ff0055" opacity="0.95" />
+        <text x="79" y="31" class="font-sans" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">PRIORITY 98 • URGENT</text>
+
+        <rect x="420" y="14" width="110" height="26" rx="8" fill="#0f172a" opacity="0.85" />
+        <text x="475" y="31" class="font-sans" font-size="11" font-weight="700" fill="#38bdf8" text-anchor="middle">3D STUDIO 360°</text>
+      </g>
+
+      <!-- Vehicle Specs & Title -->
+      <g transform="translate(24, 268)">
+        <text x="0" y="24" class="font-sans" font-size="22" font-weight="900" fill="#0f172a">2026 Apex Spectre GT Hyper-Electric</text>
+        <text x="0" y="48" class="font-sans" font-size="14" font-weight="600" fill="#64748b">1,475 HP • Quad-Motor AWD • 0-60 in 1.82s • Carbon Monocoque</text>
+
+        <!-- Spec Badges Row -->
+        <g transform="translate(0, 64)">
+          <rect width="115" height="34" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+          <text x="57" y="22" class="font-sans" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">⚡ 480 mi Range</text>
+
+          <g transform="translate(125, 0)">
+            <rect width="125" height="34" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+            <text x="62" y="22" class="font-sans" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">🛡️ 100% Inspected</text>
+          </g>
+
+          <g transform="translate(260, 0)">
+            <rect width="120" height="34" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+            <text x="60" y="22" class="font-sans" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">📑 Window Sticker</text>
+          </g>
+
+          <g transform="translate(390, 0)">
+            <rect width="138" height="34" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+            <text x="69" y="22" class="font-sans" font-size="12" font-weight="700" fill="#334155" text-anchor="middle">🌍 Global Logistics</text>
+          </g>
+        </g>
+
+        <!-- Price & Booking Row -->
+        <g transform="translate(0, 120)">
+          <text x="0" y="32" class="font-sans" font-size="28" font-weight="900" fill="#0f172a">$285,000 <tspan font-size="15" font-weight="600" fill="#64748b">USD / €262,400</tspan></text>
+          <g transform="translate(365, 4)">
+            <rect width="165" height="42" rx="10" fill="#2563eb" />
+            <text x="82" y="26" class="font-sans" font-size="14" font-weight="800" fill="#ffffff" text-anchor="middle">View Full Spec →</text>
+          </g>
+        </g>
+      </g>
+    </g>
+
+    <!-- Right Side: AI Telemetry & Staff Activity Widget -->
+    <g transform="translate(625, 146)">
+      <!-- AI Health Telemetry Circular Dial Card -->
+      <g transform="translate(0, 0)">
+        <rect width="325" height="235" rx="20" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+        <text x="20" y="34" class="font-sans" font-size="15" font-weight="800" fill="#0f172a">AI HEALTH SCORE</text>
+        <rect x="230" y="16" width="75" height="22" rx="6" fill="#dcfce7" />
+        <text x="267" y="31" class="font-sans" font-size="10" font-weight="800" fill="#15803d" text-anchor="middle">PASSED</text>
+
+        <!-- Circular Score Meter -->
+        <g transform="translate(162, 125)">
+          <circle cx="0" cy="0" r="54" fill="none" stroke="#e2e8f0" stroke-width="10" />
+          <circle cx="0" cy="0" r="54" fill="none" stroke="#3b82f6" stroke-width="10" stroke-dasharray="339" stroke-dashoffset="34" stroke-linecap="round" />
+          <text x="0" y="8" class="font-sans" font-size="28" font-weight="900" fill="#0f172a" text-anchor="middle">98%</text>
+          <text x="0" y="26" class="font-sans" font-size="10" font-weight="700" fill="#64748b" text-anchor="middle">ACCURACY</text>
+        </g>
+        <text x="162" y="210" class="font-sans" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">0 Damage • 100% Paint Uniformity</text>
+      </g>
+
+      <!-- Live Staff Operational Stream Card -->
+      <g transform="translate(0, 250)">
+        <rect width="325" height="255" rx="20" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+        <text x="20" y="32" class="font-sans" font-size="15" font-weight="800" fill="#0f172a">LIVE OPERATIONS</text>
+        <circle cx="295" cy="26" r="4" fill="#22c55e" />
+
+        <!-- Activity 1 -->
+        <g transform="translate(18, 52)">
+          <rect width="288" height="54" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+          <circle cx="20" cy="27" r="10" fill="#eff6ff" />
+          <text x="20" y="31" class="font-sans" font-size="10" font-weight="800" fill="#2563eb" text-anchor="middle">QC</text>
+          <text x="38" y="24" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">Acoustic Audio Scanner</text>
+          <text x="38" y="42" class="font-sans" font-size="10.5" font-weight="500" fill="#64748b">Inspector Marcus • 2m ago</text>
+          <rect x="235" y="16" width="42" height="20" rx="4" fill="#ecfdf5" />
+          <text x="256" y="30" class="font-sans" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">100%</text>
+        </g>
+
+        <!-- Activity 2 -->
+        <g transform="translate(18, 114)">
+          <rect width="288" height="54" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+          <circle cx="20" cy="27" r="10" fill="#f5f3ff" />
+          <text x="20" y="31" class="font-sans" font-size="10" font-weight="800" fill="#7c3aed" text-anchor="middle">FX</text>
+          <text x="38" y="24" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">Currency Geo-Switch</text>
+          <text x="38" y="42" class="font-sans" font-size="10.5" font-weight="500" fill="#64748b">Detected EUR (€) • 5m ago</text>
+          <rect x="235" y="16" width="42" height="20" rx="4" fill="#eff6ff" />
+          <text x="256" y="30" class="font-sans" font-size="10" font-weight="700" fill="#2563eb" text-anchor="middle">SYNC</text>
+        </g>
+
+        <!-- Activity 3 -->
+        <g transform="translate(18, 176)">
+          <rect width="288" height="54" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+          <circle cx="20" cy="27" r="10" fill="#fef2f2" />
+          <text x="20" y="31" class="font-sans" font-size="10" font-weight="800" fill="#dc2626" text-anchor="middle">RB</text>
+          <text x="38" y="24" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">Punch Clock Clock-In</text>
+          <text x="38" y="42" class="font-sans" font-size="10.5" font-weight="500" fill="#64748b">Advisor Elena • Active Shift</text>
+          <rect x="235" y="16" width="42" height="20" rx="4" fill="#fef3c7" />
+          <text x="256" y="30" class="font-sans" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">LIVE</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= BOTTOM LEFT TECH STACK PILLS ================= -->
+  <g transform="translate(80, 975)">
+    <!-- Tech 1: React 19 -->
+    <g transform="translate(0, 0)">
+      <rect width="125" height="42" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" />
+      <circle cx="24" cy="21" r="9" fill="#e0f2fe" />
+      <text x="24" y="25" class="font-sans" font-size="10" font-weight="800" fill="#0284c7" text-anchor="middle">R</text>
+      <text x="42" y="26" class="font-sans" font-size="14" font-weight="700" fill="#0f172a">React 19</text>
+    </g>
+
+    <!-- Tech 2: TypeScript -->
+    <g transform="translate(138, 0)">
+      <rect width="140" height="42" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" />
+      <rect x="15" y="12" width="18" height="18" rx="4" fill="#3178c6" />
+      <text x="24" y="25" class="font-mono" font-size="11" font-weight="800" fill="#ffffff" text-anchor="middle">TS</text>
+      <text x="42" y="26" class="font-sans" font-size="14" font-weight="700" fill="#0f172a">TypeScript</text>
+    </g>
+
+    <!-- Tech 3: Vite -->
+    <g transform="translate(290, 0)">
+      <rect width="110" height="42" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" />
+      <circle cx="22" cy="21" r="9" fill="#ede9fe" />
+      <text x="22" y="25" class="font-sans" font-size="11" font-weight="800" fill="#7c3aed" text-anchor="middle">⚡</text>
+      <text x="40" y="26" class="font-sans" font-size="14" font-weight="700" fill="#0f172a">Vite 6</text>
+    </g>
+
+    <!-- Tech 4: Tailwind CSS -->
+    <g transform="translate(412, 0)">
+      <rect width="150" height="42" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" />
+      <circle cx="24" cy="21" r="9" fill="#ccfbf1" />
+      <text x="24" y="25" class="font-sans" font-size="10" font-weight="800" fill="#0f766e" text-anchor="middle">🎨</text>
+      <text x="42" y="26" class="font-sans" font-size="14" font-weight="700" fill="#0f172a">Tailwind CSS</text>
+    </g>
+
+    <!-- Tech 5: Firebase -->
+    <g transform="translate(574, 0)">
+      <rect width="125" height="42" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" />
+      <circle cx="24" cy="21" r="9" fill="#fef3c7" />
+      <text x="24" y="25" class="font-sans" font-size="11" font-weight="800" fill="#d97706" text-anchor="middle">🔥</text>
+      <text x="42" y="26" class="font-sans" font-size="14" font-weight="700" fill="#0f172a">Firebase</text>
+    </g>
+
+    <!-- Tech 6: Gemini AI -->
+    <g transform="translate(710, 0)">
+      <rect width="140" height="42" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" />
+      <circle cx="24" cy="21" r="9" fill="#f3e8ff" />
+      <text x="24" y="25" class="font-sans" font-size="11" font-weight="800" fill="#9333ea" text-anchor="middle">✦</text>
+      <text x="42" y="26" class="font-sans" font-size="14" font-weight="700" fill="#0f172a">Gemini AI</text>
+    </g>
+  </g>
+</svg>
