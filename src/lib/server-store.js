@@ -50,6 +50,38 @@ function writeJsonFile(filename, data) {
 // Baseline Initial Seed Data
 const initialProjects = [
   {
+    id: '6abc2297b173089d07a2d135',
+    _id: '6abc2297b173089d07a2d135',
+    title: 'Eshop',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'A full stack webstore app',
+    liveDemoUrl: 'https://eshop-pi-five.vercel.app/',
+    githubUrl: '',
+    imageUrl: '/assets/eshop.png',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true,
+    views: 0,
+    likes: 0,
+    createdAt: '2026-09-29T20:41:59.052Z'
+  },
+  {
+    id: '6abc1bb31f4649b944b2568a',
+    _id: '6abc1bb31f4649b944b2568a',
+    title: 'Veloce',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'Hand-delivered to private aviation tarmacs, five-star residences, and executive offices in under 60 minutes. Guaranteed exact model reservations with zero-deductible coverage.',
+    liveDemoUrl: 'https://veloce-five-murex.vercel.app/',
+    githubUrl: '',
+    imageUrl: 'https://raw.githubusercontent.com/MrVenomYT/Veloce./refs/heads/main/src/assets/veloce.jpg',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true,
+    views: 0,
+    likes: 0,
+    createdAt: '2026-09-29T20:12:35.458Z'
+  },
+  {
     id: '6abbfcf5de05124ca18a5c7d',
     _id: '6abbfcf5de05124ca18a5c7d',
     title: 'Apex Motors',
@@ -593,13 +625,25 @@ export async function getProjects() {
     console.warn('Projects Mongo read note:', err.message);
   }
 
-  // Deduplicate strictly by unique id and title so projects appear strictly once
-  const seen = new Set();
+  // Combine disk & rawDocs with disk taking priority for matching titles
+  const combined = [...disk];
+  if (Array.isArray(rawDocs) && rawDocs !== disk) {
+    rawDocs.forEach(d => {
+      const titleKey = (d.title || '').toString().toLowerCase().trim();
+      const existingIdx = combined.findIndex(p => (p.title || '').toString().toLowerCase().trim() === titleKey || p.id === d.id || (p._id && p._id === d._id));
+      if (existingIdx < 0) {
+        combined.push(d);
+      }
+    });
+  }
+
+  // Deduplicate strictly by title (and fallback to unique id)
+  const seenTitles = new Set();
   const deduped = [];
-  rawDocs.forEach(p => {
-    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
-    if (key && !seen.has(key)) {
-      seen.add(key);
+  combined.forEach(p => {
+    const key = (p.title || p.id || p._id || '').toString().toLowerCase().trim();
+    if (key && !seenTitles.has(key)) {
+      seenTitles.add(key);
       deduped.push(p);
     }
   });
@@ -1117,6 +1161,15 @@ export async function getAbout() {
     if (About.db && About.db.readyState === 1) {
       const doc = await About.findOne({}).lean();
       if (doc) {
+        const docCerts = Array.isArray(doc.certifications) ? doc.certifications.length : 0;
+        const diskCerts = Array.isArray(disk.certifications) ? disk.certifications.length : 0;
+        
+        // If disk has more certifications or newer updated timestamp, prioritize disk and sync to Mongo
+        if (diskCerts > docCerts || (disk.updatedAt && (!doc.updatedAt || disk.updatedAt > doc.updatedAt))) {
+          await About.findByIdAndUpdate(doc._id, disk);
+          return disk;
+        }
+
         const normalized = {
           ...doc,
           id: doc._id ? doc._id.toString() : 'about',

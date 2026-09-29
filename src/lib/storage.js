@@ -9,7 +9,31 @@ export const DELETED_PRODUCTS_KEY = 'app_deleted_products_cache';
 
 export const initialSeedProjects = [
   {
-    id: 'apexmotors',
+    id: '6abc2297b173089d07a2d135',
+    _id: '6abc2297b173089d07a2d135',
+    title: 'Eshop',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'A full stack webstore app',
+    liveDemoUrl: 'https://eshop-pi-five.vercel.app/',
+    imageUrl: '/assets/eshop.png',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true
+  },
+  {
+    id: '6abc1bb31f4649b944b2568a',
+    _id: '6abc1bb31f4649b944b2568a',
+    title: 'Veloce',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'Hand-delivered to private aviation tarmacs, five-star residences, and executive offices in under 60 minutes. Guaranteed exact model reservations with zero-deductible coverage.',
+    liveDemoUrl: 'https://veloce-five-murex.vercel.app/',
+    imageUrl: 'https://raw.githubusercontent.com/MrVenomYT/Veloce./refs/heads/main/src/assets/veloce.jpg',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true
+  },
+  {
+    id: '6abbfcf5de05124ca18a5c7d',
     _id: '6abbfcf5de05124ca18a5c7d',
     title: 'Apex Motors',
     category: 'fullstack react',
@@ -21,7 +45,7 @@ export const initialSeedProjects = [
     featured: true
   },
   {
-    id: 'papersbank',
+    id: '6abbdb3323131d20f5e719a8',
     _id: '6abbdb3323131d20f5e719a8',
     title: 'Papers Bank',
     category: 'fullstack react',
