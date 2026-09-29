@@ -46,8 +46,8 @@ export default function Navbar() {
     <>
       <header className="navbar">
         <Link href="/" className="nav-logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" className="brand-logo-img" width="36" height="36" />
-          <span className="brand-logo-text">Muhammad Hasil</span>
+          <img src="/assets/muhammad-hasil.png" alt="iHasil" className="brand-logo-img" width="36" height="36" />
+          <span className="brand-logo-text">iHasil</span>
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -95,8 +95,8 @@ export default function Navbar() {
       <div className={`nav-mobile-drawer ${mobileMenuOpen ? 'active' : ''}`}>
         <div className="mobile-drawer-header">
           <Link href="/" className="nav-logo" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" className="brand-logo-img" width="32" height="32" />
-            <span className="brand-logo-text">Muhammad Hasil</span>
+            <img src="/assets/muhammad-hasil.png" alt="iHasil" className="brand-logo-img" width="32" height="32" />
+            <span className="brand-logo-text">iHasil</span>
           </Link>
           <button className="mobile-close-btn" onClick={() => setMobileMenuOpen(false)}>
             ✕

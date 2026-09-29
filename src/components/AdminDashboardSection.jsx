@@ -815,8 +815,8 @@ export default function AdminDashboardSection() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #ff7700' }} />
-            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>Muhammad Hasil</span>
+            <img src="/assets/muhammad-hasil.png" alt="iHasil" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #ff7700' }} />
+            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>iHasil</span>
           </Link>
         </div>
 
