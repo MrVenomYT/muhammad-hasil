@@ -27,15 +27,32 @@ export default function ContactSection() {
     const publicKey = process.env.EMAILJS_PUBLIC_KEY;
 
     setSending(true);
-    setStatus({ type: 'info', text: 'Sending your message to Muhammad Hasil...' });
+    setStatus({ type: 'info', text: 'Sending your inquiry...' });
 
     try {
-      await emailjs.send(serviceID, templateID, formData, publicKey);
-      setStatus({ type: 'success', text: '✓ Thank you! Your message has been sent successfully to my inbox.' });
+      // 1. Store permanently in MongoDB via API
+      const res = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.from_name,
+          email: formData.from_email,
+          subject: formData.subject,
+          message: formData.message,
+          serviceType: 'Full-Stack Web App Development',
+        })
+      });
+
+      // 2. Also send via EmailJS if configured
+      if (serviceID && templateID && publicKey) {
+        await emailjs.send(serviceID, templateID, formData, publicKey).catch((e) => console.warn('EmailJS note:', e));
+      }
+
+      setStatus({ type: 'success', text: '✓ Thank you! Your message has been saved and sent to Muhammad Hasil.' });
       setFormData({ from_name: '', from_email: '', subject: '', message: '' });
     } catch (err) {
-      console.error('EmailJS Error:', err);
-      setStatus({ type: 'error', text: '❌ Unable to send message right now. Please try reaching out directly.' });
+      console.error('Inquiry Submission Error:', err);
+      setStatus({ type: 'error', text: '❌ Unable to send inquiry right now. Please reach out directly on LinkedIn or Fiverr.' });
     } finally {
       setSending(false);
     }

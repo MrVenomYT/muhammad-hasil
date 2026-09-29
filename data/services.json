@@ -1,0 +1,86 @@
+[
+  {
+    "_id": "6abbd8bc57df84cc42addd9e",
+    "title": "Full-Stack Web App Development",
+    "category": "Engineering",
+    "icon": "Layers",
+    "description": "Custom web applications built from concept to deployment using modern React, Next.js, Node.js, Express, MongoDB, and Firebase.",
+    "features": [],
+    "deliverables": [
+      "Production Next.js App",
+      "REST/GraphQL API endpoints",
+      "Database schemas & migrations",
+      "Deployment & CI/CD pipeline"
+    ],
+    "startingPrice": "$800",
+    "deliveryTime": "5-14 Days",
+    "active": true,
+    "order": 1,
+    "createdAt": "2026-09-29T15:26:52.590Z",
+    "__v": 0,
+    "id": "6abbd8bc57df84cc42addd9e"
+  },
+  {
+    "_id": "6abbd8bc57df84cc42addd9f",
+    "title": "UI/UX Design & Frontend Engineering",
+    "category": "Design & Code",
+    "icon": "Palette",
+    "description": "Bespoke dark-aesthetic, glassmorphism, responsive designs with fluid CSS micro-interactions and high-converting landing experiences.",
+    "features": [],
+    "deliverables": [
+      "Responsive Web Design",
+      "Interactive Prototypes",
+      "Tailwind CSS system",
+      "Accessibility WCAG AA standard"
+    ],
+    "startingPrice": "$500",
+    "deliveryTime": "3-7 Days",
+    "active": true,
+    "order": 2,
+    "createdAt": "2026-09-29T15:26:52.590Z",
+    "__v": 0,
+    "id": "6abbd8bc57df84cc42addd9f"
+  },
+  {
+    "_id": "6abbd8bc57df84cc42addda0",
+    "title": "Custom Admin Dashboards & CMS",
+    "category": "Enterprise SaaS",
+    "icon": "LayoutDashboard",
+    "description": "Feature-rich internal management dashboards with role-based auth, live analytics data grids, and CRUD content control.",
+    "features": [],
+    "deliverables": [
+      "Secure Authentication",
+      "Real-time Data Grids",
+      "CRUD Management Panels",
+      "CSV/Data Export"
+    ],
+    "startingPrice": "$650",
+    "deliveryTime": "4-10 Days",
+    "active": true,
+    "order": 3,
+    "createdAt": "2026-09-29T15:26:52.591Z",
+    "__v": 0,
+    "id": "6abbd8bc57df84cc42addda0"
+  },
+  {
+    "_id": "6abbd8bc57df84cc42addda1",
+    "title": "API Integration & Database Architecture",
+    "category": "Backend Architecture",
+    "icon": "Database",
+    "description": "High-performance database modeling with MongoDB Mongoose schemas, Firebase real-time data sync, and third-party API webhooks.",
+    "features": [],
+    "deliverables": [
+      "MongoDB Database Schemas",
+      "Authentication & Session Handling",
+      "Stripe / PayPal Payment Gates",
+      "EmailJS Webhooks"
+    ],
+    "startingPrice": "$450",
+    "deliveryTime": "3-5 Days",
+    "active": true,
+    "order": 4,
+    "createdAt": "2026-09-29T15:26:52.591Z",
+    "__v": 0,
+    "id": "6abbd8bc57df84cc42addda1"
+  }
+]

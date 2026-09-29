@@ -12,19 +12,32 @@ export function formatImageUrl(url) {
 
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
+  const [apiProjects, setApiProjects] = useState([]);
   const [firestoreProjects, setFirestoreProjects] = useState([]);
 
   useEffect(() => {
-    let unsubProjects = () => { };
+    // 1. Fetch from MongoDB API
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          setApiProjects(data.data);
+        }
+      })
+      .catch(err => console.warn('Projects API note:', err));
 
+    // 2. Optional Firestore sync
+    let unsubProjects = () => { };
     try {
-      const refProjects = collection(db, 'projects');
-      unsubProjects = onSnapshot(refProjects, (snapshot) => {
-        const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setFirestoreProjects(projs);
-      }, (err) => {
-        console.warn("Firestore projects snapshot notice:", err);
-      });
+      if (db) {
+        const refProjects = collection(db, 'projects');
+        unsubProjects = onSnapshot(refProjects, (snapshot) => {
+          const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setFirestoreProjects(projs);
+        }, (err) => {
+          console.warn("Firestore projects snapshot notice:", err);
+        });
+      }
     } catch (e) {
       console.warn("Firestore connection notice:", e);
     }
@@ -34,7 +47,11 @@ export default function ProjectsSection() {
     };
   }, []);
 
-  const mergedProjects = getCombinedProjects(firestoreProjects);
+  // Merge MongoDB API projects, Firestore projects, and baseline cache
+  const baseProjects = apiProjects.length > 0 ? apiProjects : getCombinedProjects(firestoreProjects);
+  const mergedProjects = apiProjects.length > 0 && firestoreProjects.length > 0
+    ? [...firestoreProjects, ...apiProjects.filter(ap => !firestoreProjects.some(fp => fp.id === ap.id || fp.title === ap.title))]
+    : baseProjects;
 
   const filteredProjects = mergedProjects.filter(p => {
     if (filter === 'all') return true;

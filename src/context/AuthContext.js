@@ -20,22 +20,35 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    if (!auth) {
       setLoading(false);
-    });
-    return () => unsubscribe();
+      return;
+    }
+
+    try {
+      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    } catch (err) {
+      console.warn('Firebase auth listener note:', err?.message);
+      setLoading(false);
+    }
   }, []);
 
   const login = async (email, password) => {
+    if (!auth) throw new Error('Firebase Auth is not initialized. Please ensure credentials are provided.');
     return signInWithEmailAndPassword(auth, email, password);
   };
 
   const signup = async (email, password) => {
+    if (!auth) throw new Error('Firebase Auth is not initialized. Please ensure credentials are provided.');
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
+    if (!auth) return;
     return signOut(auth);
   };
 

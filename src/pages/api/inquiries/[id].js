@@ -1,4 +1,4 @@
-import { getProducts, saveProduct, deleteProduct } from '../../../lib/server-store';
+import { getInquiries, saveInquiry, deleteInquiry } from '../../../lib/server-store';
 
 export default async function handler(req, res) {
   const { method, query } = req;
@@ -7,10 +7,10 @@ export default async function handler(req, res) {
   switch (method) {
     case 'GET':
       try {
-        const products = await getProducts();
-        const found = products.find(p => p.id === id || p._id === id);
+        const inquiries = await getInquiries();
+        const found = inquiries.find(i => i.id === id || i._id === id);
         if (!found) {
-          return res.status(404).json({ success: false, error: 'Product not found' });
+          return res.status(404).json({ success: false, error: 'Inquiry not found' });
         }
         return res.status(200).json({ success: true, data: found });
       } catch (error) {
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     case 'PUT':
       try {
-        const saved = await saveProduct({ ...req.body, id });
+        const saved = await saveInquiry({ ...req.body, id });
         return res.status(200).json({ success: true, data: saved });
       } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
@@ -27,8 +27,8 @@ export default async function handler(req, res) {
 
     case 'DELETE':
       try {
-        await deleteProduct(id);
-        return res.status(200).json({ success: true, message: 'Product permanently deleted' });
+        await deleteInquiry(id);
+        return res.status(200).json({ success: true, message: 'Inquiry deleted' });
       } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
       }

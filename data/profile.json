@@ -1,0 +1,61 @@
+{
+  "_id": "6abbd8bc57df84cc42addda2",
+  "fullName": "Muhammad Hasil",
+  "tagline": "Full Stack Developer & UI/UX Designer",
+  "bio": "Specializing in high-performance web applications, modern responsive UI/UX, MongoDB database architecture, and production Next.js engineering.",
+  "yearsExperience": 4,
+  "projectsCompleted": 35,
+  "happyClients": 28,
+  "hoursCoded": 3400,
+  "availableForHire": true,
+  "availabilityText": "Available for freelance client work & full-stack contract roles",
+  "skills": [
+    {
+      "name": "React & Next.js",
+      "category": "Frontend",
+      "level": 95,
+      "_id": "6abbd8bc57df84cc42addda3"
+    },
+    {
+      "name": "Node.js & Express",
+      "category": "Backend",
+      "level": 90,
+      "_id": "6abbd8bc57df84cc42addda4"
+    },
+    {
+      "name": "MongoDB & Mongoose",
+      "category": "Database",
+      "level": 92,
+      "_id": "6abbd8bc57df84cc42addda5"
+    },
+    {
+      "name": "Firebase & Firestore",
+      "category": "Cloud",
+      "level": 88,
+      "_id": "6abbd8bc57df84cc42addda6"
+    },
+    {
+      "name": "Tailwind CSS & UI/UX",
+      "category": "Styling",
+      "level": 94,
+      "_id": "6abbd8bc57df84cc42addda7"
+    },
+    {
+      "name": "REST APIs & Webhooks",
+      "category": "Integration",
+      "level": 90,
+      "_id": "6abbd8bc57df84cc42addda8"
+    }
+  ],
+  "socials": {
+    "github": "https://github.com/venomous-studio",
+    "linkedin": "https://www.linkedin.com/in/muhammad-hasil/",
+    "fiverr": "https://pro.fiverr.com/users/venomdesigne613/",
+    "patreon": "https://www.patreon.com/MrVenomYT",
+    "email": "esp.hasil.insight@gmail.com",
+    "twitter": ""
+  },
+  "updatedAt": "2026-09-29T15:26:52.622Z",
+  "__v": 0,
+  "id": "6abbd8bc57df84cc42addda2"
+}

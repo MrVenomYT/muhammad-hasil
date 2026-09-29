@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const ProductSchema = new mongoose.Schema({
+const ProjectSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -13,55 +13,51 @@ const ProductSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    default: 'Web Apps',
+    default: 'fullstack react',
     index: true,
   },
-  price: {
+  pill: {
     type: String,
-    default: '$29',
-  },
-  originalPrice: {
-    type: String,
-    default: '',
-  },
-  badge: {
-    type: String,
-    default: 'Featured',
+    default: 'Full Stack Web App',
   },
   description: {
     type: String,
     required: true,
   },
+  longDescription: {
+    type: String,
+    default: '',
+  },
+  liveDemoUrl: {
+    type: String,
+    default: '#',
+  },
+  githubUrl: {
+    type: String,
+    default: '',
+  },
   imageUrl: {
     type: String,
     default: '/assets/thumbnail.png',
   },
-  buyUrl: {
-    type: String,
-    default: '#',
-  },
-  demoUrl: {
-    type: String,
-    default: '#',
-  },
-  features: {
+  technologies: {
     type: [String],
-    default: [],
+    default: ['React', 'Next.js', 'Node.js', 'Tailwind CSS'],
   },
-  salesCount: {
-    type: Number,
-    default: 0,
-  },
-  rating: {
-    type: Number,
-    default: 5.0,
-  },
-  isPublished: {
+  featured: {
     type: Boolean,
     default: true,
     index: true,
   },
   order: {
+    type: Number,
+    default: 0,
+  },
+  views: {
+    type: Number,
+    default: 0,
+  },
+  likes: {
     type: Number,
     default: 0,
   },
@@ -76,6 +72,6 @@ const ProductSchema = new mongoose.Schema({
   },
 });
 
-ProductSchema.index({ createdAt: -1 });
+ProjectSchema.index({ createdAt: -1 });
 
-export default mongoose.models.Product || mongoose.model('Product', ProductSchema);
+export default mongoose.models.Project || mongoose.model('Project', ProjectSchema);

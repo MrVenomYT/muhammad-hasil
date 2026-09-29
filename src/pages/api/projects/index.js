@@ -1,4 +1,4 @@
-import { getProducts, saveProduct } from '../../../lib/server-store';
+import { getProjects, saveProject } from '../../../lib/server-store';
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -6,8 +6,8 @@ export default async function handler(req, res) {
   switch (method) {
     case 'GET':
       try {
-        const products = await getProducts();
-        return res.status(200).json({ success: true, data: products });
+        const projects = await getProjects();
+        return res.status(200).json({ success: true, data: projects });
       } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
       }
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         if (!req.body || !req.body.title || !req.body.description) {
           return res.status(400).json({ success: false, error: 'Title and description are required.' });
         }
-        const saved = await saveProduct(req.body);
+        const saved = await saveProject(req.body);
         return res.status(201).json({ success: true, data: saved });
       } catch (error) {
         return res.status(500).json({ success: false, error: error.message });

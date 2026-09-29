@@ -49,6 +49,25 @@ const reviewsData = [
 export default function HomeSection() {
   const [typedText, setTypedText] = useState('');
   const textToType = "MUHAMMAD HASIL";
+  const [reviewsList, setReviewsList] = useState(reviewsData);
+
+  useEffect(() => {
+    fetch('/api/reviews')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const mapped = data.data.map(r => ({
+            quote: r.quote,
+            author: r.authorName,
+            role: r.authorRole || (r.company ? `Client at ${r.company}` : 'Verified Client'),
+            initials: (r.authorName || 'CL').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
+            tech: r.badge || 'Full-Stack'
+          }));
+          setReviewsList(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Typewriter effect
   useEffect(() => {
@@ -181,7 +200,7 @@ export default function HomeSection() {
 
         <div className="reviews-marquee-container" style={{ overflow: 'hidden', width: '100%', padding: '16px 0' }}>
           <div className="reviews-marquee-track">
-            {[...reviewsData, ...reviewsData].map((rev, idx) => (
+            {[...reviewsList, ...reviewsList].map((rev, idx) => (
               <div key={idx} className="review-marquee-item">
                 <div 
                   className="review-card-pro" 

@@ -1,47 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
-import { 
-  collection, 
-  addDoc, 
-  deleteDoc, 
-  doc, 
-  updateDoc, 
-  onSnapshot, 
-  serverTimestamp 
-} from 'firebase/firestore';
-import { db } from '../../firebase';
-import { 
-  getCombinedProjects, 
-  getCombinedProducts, 
-  saveLocalProject, 
-  deleteLocalProject, 
-  saveLocalProduct, 
-  deleteLocalProduct, 
-  initialSeedProjects 
-} from '../lib/storage';
+import Link from 'next/link';
 
 export default function AdminDashboardSection() {
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState('products');
-  const [rawFirestoreProjects, setRawFirestoreProjects] = useState([]);
-  const [rawApiProducts, setRawApiProducts] = useState([]);
+  // Navigation State
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'projects' | 'products' | 'inquiries' | 'reviews' | 'services' | 'profile'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
 
+  // Data States
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    totalProducts: 0,
+    totalInquiries: 0,
+    unreadInquiries: 0,
+    totalReviews: 0,
+    totalServices: 0,
+    totalViews: 0,
+    totalSales: 0,
+    dbStatus: 'connected'
+  });
   const [projects, setProjects] = useState([]);
   const [products, setProducts] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [services, setServices] = useState([]);
+  const [profile, setProfile] = useState({
+    fullName: 'Muhammad Hasil',
+    tagline: 'Full Stack Developer & UI/UX Designer',
+    bio: '',
+    yearsExperience: 4,
+    projectsCompleted: 35,
+    happyClients: 28,
+    hoursCoded: 3400,
+    availableForHire: true,
+    availabilityText: 'Available for freelance client work & full-stack contract roles',
+    socials: {
+      github: '',
+      linkedin: '',
+      fiverr: '',
+      patreon: '',
+      email: ''
+    }
+  });
 
-  const [editingProjectId, setEditingProjectId] = useState(null);
-  const [editingProductId, setEditingProductId] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState({ show: false, type: 'success', text: '' });
 
+  // Modal & Form States
+  const [projectModal, setProjectModal] = useState({ isOpen: false, mode: 'create', data: null });
+  const [productModal, setProductModal] = useState({ isOpen: false, mode: 'create', data: null });
+  const [reviewModal, setReviewModal] = useState({ isOpen: false, mode: 'create', data: null });
+  const [serviceModal, setServiceModal] = useState({ isOpen: false, mode: 'create', data: null });
+  const [inquiryModal, setInquiryModal] = useState({ isOpen: false, data: null });
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, type: '', id: null, title: '' });
+
+  // Forms
   const [projectForm, setProjectForm] = useState({
     title: '',
     category: 'fullstack react',
     pill: 'Full Stack Web App',
     description: '',
     liveDemoUrl: '',
-    imageUrl: ''
+    githubUrl: '',
+    imageUrl: '/assets/thumbnail.png',
+    technologies: 'React, Next.js, Node.js',
+    featured: true
   });
 
   const [productForm, setProductForm] = useState({
@@ -50,672 +79,2002 @@ export default function AdminDashboardSection() {
     price: '$29',
     badge: 'Featured',
     description: '',
-    imageUrl: '',
+    imageUrl: '/assets/thumbnail.png',
     buyUrl: '',
     demoUrl: '',
-    features: ''
+    features: 'Responsive UI, Clean Code, Documentation',
+    salesCount: 0,
+    isPublished: true
   });
 
-  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    authorName: '',
+    authorRole: 'Client',
+    company: '',
+    rating: 5,
+    badge: 'Verified Client',
+    quote: '',
+    verified: true,
+    featured: true
+  });
 
+  const [serviceForm, setServiceForm] = useState({
+    title: '',
+    category: 'Engineering',
+    icon: 'Layers',
+    description: '',
+    deliverables: 'Full Source Code, Deployment Setup, 30 Days Support',
+    startingPrice: '$500',
+    deliveryTime: '5-7 Days',
+    active: true
+  });
+
+  // Auth Guard
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace('/admin/login');
     }
   }, [user, authLoading, router]);
 
-  // Initial load from storage helpers
+  // Initial Load
   useEffect(() => {
-    setProjects(getCombinedProjects([]));
-    setProducts(getCombinedProducts([]));
+    fetchAllData();
   }, []);
 
-  // Real-time Firestore sync for projects
-  useEffect(() => {
-    if (!user) return;
-
-    const qProjects = collection(db, 'projects');
-    const unsubProjects = onSnapshot(qProjects, (snapshot) => {
-      const projs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setRawFirestoreProjects(projs);
-      setProjects(getCombinedProjects(projs));
-    }, (err) => console.error("Projects snapshot error:", err));
-
-    fetchProducts();
-
-    return () => {
-      unsubProjects();
-    };
-  }, [user]);
-
-  // Fetch Products from MongoDB API + LocalStorage fallback
-  const fetchProducts = async () => {
-    let apiData = [];
-    try {
-      const res = await fetch('/api/products');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        apiData = data.data;
-        setRawApiProducts(apiData);
-      }
-    } catch (e) {
-      console.warn('MongoDB API fetch warning:', e);
-    }
-    setProducts(getCombinedProducts(apiData));
+  const showToast = (text, type = 'success') => {
+    setToast({ show: true, type, text });
+    setTimeout(() => setToast({ show: false, type: 'success', text: '' }), 4000);
   };
 
-  if (authLoading || !user) {
-    return (
-      <div className="page-view active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '70vh' }}>
-        <p style={{ color: '#ff7700', fontSize: '18px', fontWeight: 'bold' }}>Loading Admin Dashboard...</p>
-      </div>
-    );
-  }
-
-  // --- PRODUCTS CRUD ---
-  const handleSaveProduct = async (e) => {
-    e.preventDefault();
-    if (!productForm.title || !productForm.description) {
-      setStatusMsg({ type: 'error', text: 'Please fill in Title and Description.' });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setStatusMsg({ type: 'info', text: 'Saving product to storage...' });
-
-    const productPayload = {
-      ...productForm,
-      features: typeof productForm.features === 'string'
-        ? productForm.features.split(',').map(s => s.trim()).filter(Boolean)
-        : productForm.features
-    };
-
+  const fetchAllData = async () => {
+    setLoadingData(true);
     try {
-      if (editingProductId) {
-        try {
-          await fetch(`/api/products/${editingProductId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productPayload)
-          });
-        } catch (err) {}
+      const [statsRes, projRes, prodRes, inqRes, revRes, srvRes, profRes] = await Promise.all([
+        fetch('/api/stats').then(r => r.json()),
+        fetch('/api/projects').then(r => r.json()),
+        fetch('/api/products').then(r => r.json()),
+        fetch('/api/inquiries').then(r => r.json()),
+        fetch('/api/reviews').then(r => r.json()),
+        fetch('/api/services').then(r => r.json()),
+        fetch('/api/profile').then(r => r.json())
+      ]);
 
-        saveLocalProduct({ _id: editingProductId, ...productPayload });
-        setStatusMsg({ type: 'success', text: '✓ Product updated successfully!' });
-      } else {
-        let newProdId = Date.now().toString();
-        try {
-          const res = await fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productPayload)
-          });
-          const resData = await res.json();
-          if (resData.data && (resData.data._id || resData.data.id)) {
-            newProdId = resData.data._id || resData.data.id;
-          }
-        } catch (err) {}
-
-        saveLocalProduct({ _id: newProdId, id: newProdId, ...productPayload });
-        setStatusMsg({ type: 'success', text: '✓ New Product added successfully!' });
-      }
-
-      setProducts(getCombinedProducts(rawApiProducts));
-
-      setProductForm({
-        title: '',
-        category: 'Web Apps',
-        price: '$29',
-        badge: 'Featured',
-        description: '',
-        imageUrl: '',
-        buyUrl: '',
-        demoUrl: '',
-        features: ''
-      });
-      setEditingProductId(null);
+      if (statsRes.success) setStats(statsRes.stats);
+      if (projRes.success) setProjects(projRes.data);
+      if (prodRes.success) setProducts(prodRes.data);
+      if (inqRes.success) setInquiries(inqRes.data);
+      if (revRes.success) setReviews(revRes.data);
+      if (srvRes.success) setServices(srvRes.data);
+      if (profRes.success && profRes.data) setProfile(profRes.data);
     } catch (err) {
-      console.error('Error saving product:', err);
-      setStatusMsg({ type: 'error', text: 'Failed to save product: ' + err.message });
+      console.error('Error fetching admin data:', err);
+      showToast('Error syncing with database', 'error');
     } finally {
-      setIsSubmitting(false);
+      setLoadingData(false);
     }
   };
 
-  const handleDeleteProduct = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    try {
-      try {
-        await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      } catch (err) {}
-      
-      const prodToDelete = products.find(p => p._id === id || p.id === id);
-      deleteLocalProduct(id, prodToDelete?.title);
-      setProducts(getCombinedProducts(rawApiProducts));
-      setStatusMsg({ type: 'success', text: '✓ Product deleted successfully.' });
-    } catch (err) {
-      setStatusMsg({ type: 'error', text: 'Failed to delete: ' + err.message });
-    }
-  };
-
-  // --- PROJECTS CRUD ---
-  const handleSaveProject = async (e) => {
-    e.preventDefault();
-    if (!projectForm.title || !projectForm.description) {
-      setStatusMsg({ type: 'error', text: 'Please fill in required fields (Title & Description).' });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setStatusMsg({ type: 'info', text: 'Saving project...' });
-
-    try {
-      if (editingProjectId) {
-        try {
-          await updateDoc(doc(db, 'projects', editingProjectId), {
-            ...projectForm,
-            updatedAt: serverTimestamp()
-          });
-        } catch (e) {}
-
-        saveLocalProject({ id: editingProjectId, ...projectForm });
-        setStatusMsg({ type: 'success', text: '✓ Project updated successfully!' });
-      } else {
-        let newProjId = Date.now().toString();
-        try {
-          const docRef = await addDoc(collection(db, 'projects'), {
-            ...projectForm,
-            createdAt: serverTimestamp()
-          });
-          if (docRef?.id) newProjId = docRef.id;
-        } catch (e) {}
-
-        saveLocalProject({ id: newProjId, ...projectForm });
-        setStatusMsg({ type: 'success', text: '✓ New project added successfully!' });
-      }
-
-      setProjects(getCombinedProjects(rawFirestoreProjects));
-
+  // -------------------------------------------------------------
+  // PROJECT ACTIONS
+  // -------------------------------------------------------------
+  const openProjectModal = (proj = null) => {
+    if (proj) {
+      setProjectForm({
+        id: proj.id || proj._id,
+        title: proj.title || '',
+        category: proj.category || 'fullstack react',
+        pill: proj.pill || 'Full Stack Web App',
+        description: proj.description || '',
+        liveDemoUrl: proj.liveDemoUrl || '',
+        githubUrl: proj.githubUrl || '',
+        imageUrl: proj.imageUrl || '/assets/thumbnail.png',
+        technologies: Array.isArray(proj.technologies) ? proj.technologies.join(', ') : (proj.technologies || ''),
+        featured: proj.featured !== false
+      });
+      setProjectModal({ isOpen: true, mode: 'edit', data: proj });
+    } else {
       setProjectForm({
         title: '',
         category: 'fullstack react',
         pill: 'Full Stack Web App',
         description: '',
         liveDemoUrl: '',
-        imageUrl: ''
+        githubUrl: '',
+        imageUrl: '/assets/thumbnail.png',
+        technologies: 'React, Next.js, Node.js',
+        featured: true
       });
-      setEditingProjectId(null);
-    } catch (err) {
-      console.error('Error saving project:', err);
-      setStatusMsg({ type: 'error', text: 'Failed to save project: ' + err.message });
-    } finally {
-      setIsSubmitting(false);
+      setProjectModal({ isOpen: true, mode: 'create', data: null });
     }
   };
 
-  const handleDeleteProject = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) return;
-    try {
-      try {
-        await deleteDoc(doc(db, 'projects', id));
-      } catch (e) {}
-
-      const projToDelete = projects.find(p => p.id === id || p._id === id);
-      deleteLocalProject(id, projToDelete?.title);
-      setProjects(getCombinedProjects(rawFirestoreProjects));
-      setStatusMsg({ type: 'success', text: '✓ Project deleted successfully.' });
-    } catch (err) {
-      setStatusMsg({ type: 'error', text: 'Failed to delete: ' + err.message });
+  const handleSaveProject = async (e) => {
+    e.preventDefault();
+    if (!projectForm.title || !projectForm.description) {
+      showToast('Title and description are required', 'error');
+      return;
     }
-  };
 
-  const handleSeedProjects = async () => {
-    if (!window.confirm('This will seed default portfolio projects. Continue?')) return;
     setIsSubmitting(true);
-    setStatusMsg({ type: 'info', text: 'Seeding portfolio projects...' });
+    const techArray = typeof projectForm.technologies === 'string'
+      ? projectForm.technologies.split(',').map(t => t.trim()).filter(Boolean)
+      : projectForm.technologies;
+
+    const payload = {
+      ...projectForm,
+      technologies: techArray
+    };
+
     try {
-      for (const p of initialSeedProjects) {
-        saveLocalProject(p);
-        try {
-          await addDoc(collection(db, 'projects'), {
-            ...p,
-            createdAt: serverTimestamp()
-          });
-        } catch (e) {}
+      const isEdit = projectModal.mode === 'edit';
+      const url = isEdit ? `/api/projects/${projectForm.id}` : '/api/projects';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(isEdit ? 'Project updated permanently in MongoDB!' : 'New project created permanently in MongoDB!');
+        setProjectModal({ isOpen: false, mode: 'create', data: null });
+        fetchAllData();
+      } else {
+        showToast(data.error || 'Failed to save project', 'error');
       }
-      setProjects(getCombinedProjects(rawFirestoreProjects));
-      setStatusMsg({ type: 'success', text: '✓ Portfolio projects seeded successfully!' });
     } catch (err) {
-      setStatusMsg({ type: 'error', text: 'Seeding failed: ' + err.message });
+      showToast(err.message, 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // -------------------------------------------------------------
+  // PRODUCT ACTIONS
+  // -------------------------------------------------------------
+  const openProductModal = (prod = null) => {
+    if (prod) {
+      setProductForm({
+        id: prod.id || prod._id,
+        title: prod.title || '',
+        category: prod.category || 'Web Apps',
+        price: prod.price || '$29',
+        badge: prod.badge || 'Featured',
+        description: prod.description || '',
+        imageUrl: prod.imageUrl || '/assets/thumbnail.png',
+        buyUrl: prod.buyUrl || '',
+        demoUrl: prod.demoUrl || '',
+        features: Array.isArray(prod.features) ? prod.features.join(', ') : (prod.features || ''),
+        salesCount: prod.salesCount || 0,
+        isPublished: prod.isPublished !== false
+      });
+      setProductModal({ isOpen: true, mode: 'edit', data: prod });
+    } else {
+      setProductForm({
+        title: '',
+        category: 'Web Apps',
+        price: '$29',
+        badge: 'Featured',
+        description: '',
+        imageUrl: '/assets/thumbnail.png',
+        buyUrl: 'https://pro.fiverr.com/users/venomdesigne613/',
+        demoUrl: '',
+        features: 'Responsive UI, Clean Code, Documentation',
+        salesCount: 0,
+        isPublished: true
+      });
+      setProductModal({ isOpen: true, mode: 'create', data: null });
+    }
+  };
+
+  const handleSaveProduct = async (e) => {
+    e.preventDefault();
+    if (!productForm.title || !productForm.description) {
+      showToast('Title and description are required', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const featuresArray = typeof productForm.features === 'string'
+      ? productForm.features.split(',').map(f => f.trim()).filter(Boolean)
+      : productForm.features;
+
+    const payload = {
+      ...productForm,
+      features: featuresArray
+    };
+
+    try {
+      const isEdit = productModal.mode === 'edit';
+      const url = isEdit ? `/api/products/${productForm.id}` : '/api/products';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(isEdit ? 'Product updated permanently in MongoDB!' : 'New digital product created in MongoDB!');
+        setProductModal({ isOpen: false, mode: 'create', data: null });
+        fetchAllData();
+      } else {
+        showToast(data.error || 'Failed to save product', 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // REVIEWS & TESTIMONIALS
+  // -------------------------------------------------------------
+  const openReviewModal = (rev = null) => {
+    if (rev) {
+      setReviewForm({
+        id: rev.id || rev._id,
+        authorName: rev.authorName || '',
+        authorRole: rev.authorRole || 'Client',
+        company: rev.company || '',
+        rating: rev.rating || 5,
+        badge: rev.badge || 'Verified Client',
+        quote: rev.quote || '',
+        verified: rev.verified !== false,
+        featured: rev.featured !== false
+      });
+      setReviewModal({ isOpen: true, mode: 'edit', data: rev });
+    } else {
+      setReviewForm({
+        authorName: '',
+        authorRole: 'Client',
+        company: '',
+        rating: 5,
+        badge: 'Verified Client',
+        quote: '',
+        verified: true,
+        featured: true
+      });
+      setReviewModal({ isOpen: true, mode: 'create', data: null });
+    }
+  };
+
+  const handleSaveReview = async (e) => {
+    e.preventDefault();
+    if (!reviewForm.authorName || !reviewForm.quote) {
+      showToast('Author name and quote are required', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const isEdit = reviewModal.mode === 'edit';
+      const url = isEdit ? `/api/reviews/${reviewForm.id}` : '/api/reviews';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewForm)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(isEdit ? 'Review updated in MongoDB!' : 'New review added to MongoDB!');
+        setReviewModal({ isOpen: false, mode: 'create', data: null });
+        fetchAllData();
+      } else {
+        showToast(data.error || 'Failed to save review', 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // SERVICES ACTIONS
+  // -------------------------------------------------------------
+  const openServiceModal = (srv = null) => {
+    if (srv) {
+      setServiceForm({
+        id: srv.id || srv._id,
+        title: srv.title || '',
+        category: srv.category || 'Engineering',
+        icon: srv.icon || 'Layers',
+        description: srv.description || '',
+        deliverables: Array.isArray(srv.deliverables) ? srv.deliverables.join(', ') : (srv.deliverables || ''),
+        startingPrice: srv.startingPrice || '$500',
+        deliveryTime: srv.deliveryTime || '5-7 Days',
+        active: srv.active !== false
+      });
+      setServiceModal({ isOpen: true, mode: 'edit', data: srv });
+    } else {
+      setServiceForm({
+        title: '',
+        category: 'Engineering',
+        icon: 'Layers',
+        description: '',
+        deliverables: 'Full Source Code, Deployment Setup, 30 Days Support',
+        startingPrice: '$500',
+        deliveryTime: '5-7 Days',
+        active: true
+      });
+      setServiceModal({ isOpen: true, mode: 'create', data: null });
+    }
+  };
+
+  const handleSaveService = async (e) => {
+    e.preventDefault();
+    if (!serviceForm.title || !serviceForm.description) {
+      showToast('Title and description are required', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const deliverablesArray = typeof serviceForm.deliverables === 'string'
+      ? serviceForm.deliverables.split(',').map(d => d.trim()).filter(Boolean)
+      : serviceForm.deliverables;
+
+    const payload = {
+      ...serviceForm,
+      deliverables: deliverablesArray
+    };
+
+    try {
+      const isEdit = serviceModal.mode === 'edit';
+      const url = isEdit ? `/api/services/${serviceForm.id}` : '/api/services';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(isEdit ? 'Service updated in MongoDB!' : 'New service created in MongoDB!');
+        setServiceModal({ isOpen: false, mode: 'create', data: null });
+        fetchAllData();
+      } else {
+        showToast(data.error || 'Failed to save service', 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // INQUIRIES ACTIONS
+  // -------------------------------------------------------------
+  const toggleInquiryStatus = async (inq, newStatus) => {
+    try {
+      const res = await fetch(`/api/inquiries/${inq.id || inq._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...inq, status: newStatus })
+      });
+      if (res.ok) {
+        showToast(`Inquiry marked as ${newStatus}`);
+        fetchAllData();
+      }
+    } catch (err) {
+      showToast('Failed to update status', 'error');
+    }
+  };
+
+  const toggleInquiryStarred = async (inq) => {
+    try {
+      const res = await fetch(`/api/inquiries/${inq.id || inq._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...inq, starred: !inq.starred })
+      });
+      if (res.ok) {
+        fetchAllData();
+      }
+    } catch (err) {
+      showToast('Failed to star inquiry', 'error');
+    }
+  };
+
+  // -------------------------------------------------------------
+  // PROFILE & AVAILABILITY UPDATE
+  // -------------------------------------------------------------
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Profile and live metrics saved permanently in MongoDB!');
+        fetchAllData();
+      } else {
+        showToast(data.error || 'Failed to save profile', 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // MANUAL DELETE EXECUTION (PROTECTED BY CONFIRMATION MODAL)
+  // -------------------------------------------------------------
+  const triggerDeleteConfirm = (type, item) => {
+    setDeleteConfirm({
+      isOpen: true,
+      type,
+      id: item.id || item._id,
+      title: item.title || item.name || item.authorName || 'this item'
+    });
+  };
+
+  const executeDelete = async () => {
+    const { type, id } = deleteConfirm;
+    if (!id || !type) return;
+
+    setIsSubmitting(true);
+    let endpoint = '';
+    if (type === 'project') endpoint = `/api/projects/${id}`;
+    else if (type === 'product') endpoint = `/api/products/${id}`;
+    else if (type === 'inquiry') endpoint = `/api/inquiries/${id}`;
+    else if (type === 'review') endpoint = `/api/reviews/${id}`;
+    else if (type === 'service') endpoint = `/api/services/${id}`;
+
+    try {
+      const res = await fetch(endpoint, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Item permanently deleted from MongoDB and storage.`);
+        setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
+        fetchAllData();
+      } else {
+        showToast(data.error || 'Failed to delete item', 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Filtering helpers
+  const filteredProjects = projects.filter(p => {
+    const matchesSearch = (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (p.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = filterCategory === 'all' || (p.category || '').includes(filterCategory);
+    return matchesSearch && matchesCat;
+  });
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (p.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = filterCategory === 'all' || (p.category || '').toLowerCase() === filterCategory.toLowerCase();
+    return matchesSearch && matchesCat;
+  });
+
+  const filteredInquiries = inquiries.filter(i => {
+    const matchesSearch = (i.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (i.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (i.message || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = filterCategory === 'all' || i.status === filterCategory;
+    return matchesSearch && matchesCat;
+  });
 
   return (
-    <div className="page-view active" style={{ paddingBottom: '80px' }}>
-      <section className="about-section">
-        {/* Admin Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '30px', padding: '28px', backgroundColor: 'rgba(20, 18, 16, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,119,0,0.3)', borderRadius: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.6)' }}>
-          <div>
-            <span className="hero-tagline-badge" style={{ marginBottom: '10px' }}>
-              <span className="orange-dot"></span> AUTHENTICATED ADMIN SESSION
+    <div style={{ minHeight: '100vh', backgroundColor: '#070605', color: '#f3f4f6', fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)' }}>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          right: '24px',
+          zIndex: 9999,
+          padding: '12px 20px',
+          borderRadius: '8px',
+          backgroundColor: toast.type === 'error' ? '#ef4444' : '#10b981',
+          color: '#ffffff',
+          fontWeight: 600,
+          fontSize: '14px',
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <span>{toast.type === 'error' ? '⚠' : '✓'}</span>
+          <span>{toast.text}</span>
+        </div>
+      )}
+
+      {/* Top Header Bar */}
+      <header style={{
+        height: '64px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        backgroundColor: 'rgba(12, 11, 10, 0.95)',
+        backdropFilter: 'blur(12px)',
+        padding: '0 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+            <img src="/assets/muhammad-hasil.png" alt="iHasil" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #ff7700' }} />
+            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>iHasil <span style={{ color: '#ff7700' }}>Admin</span></span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: stats.dbStatus === 'connected' ? '#10b981' : '#f59e0b' }}></span>
+            <span>MongoDB: <strong>{stats.dbStatus === 'connected' ? 'Atlas Connected & Persistent' : 'Local Disk Persistent'}</strong></span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Link href="/" style={{ fontSize: '13px', color: '#94a3b8', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            ↗ View Public Site
+          </Link>
+          <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'rgba(255, 119, 0, 0.2)', color: '#ff7700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px' }}>
+              {user?.email ? user.email.charAt(0).toUpperCase() : 'A'}
             </span>
-            <h1 style={{ fontSize: '32px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', margin: 0 }}>
-              Portfolio & Store Control Center
-            </h1>
-            <p style={{ color: '#aaa', margin: '6px 0 0 0', fontSize: '14px' }}>
-              Logged in as: <strong style={{ color: '#ff7700' }}>{user.email}</strong>
-            </p>
+            <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'Admin'}</span>
           </div>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button 
-              onClick={() => router.push('/products')} 
-              className="btn-secondary"
-            >
-              View Store <span className="arrow">↗</span>
-            </button>
-            <button 
-              onClick={() => logout()} 
-              className="btn-primary" 
-              style={{ backgroundColor: '#ff4444', borderColor: '#ff4444' }}
-            >
-              Logout 🔒
-            </button>
-          </div>
-        </div>
-
-        {/* Dashboard Overview Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-          <div className="feature-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '28px', backgroundColor: 'rgba(22, 17, 13, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: '22px', boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7)' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' }}>STORE PRODUCTS</span>
-            <span style={{ fontSize: '42px', fontWeight: '800', color: 'var(--accent-orange)', fontFamily: 'Syne, sans-serif', margin: '8px 0', textShadow: '0 0 20px rgba(249, 115, 22, 0.4)' }}>{products.length}</span>
-            <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: '500' }}>✓ MongoDB Persisted</span>
-          </div>
-
-          <div className="feature-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '28px', backgroundColor: 'rgba(22, 17, 13, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '22px', boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7)' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase' }}>PORTFOLIO PROJECTS</span>
-            <span style={{ fontSize: '42px', fontWeight: '800', color: '#ffffff', fontFamily: 'Syne, sans-serif', margin: '8px 0', textShadow: '0 0 20px rgba(255, 255, 255, 0.2)' }}>{projects.length}</span>
-            <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: '500' }}>✓ Firestore Real-time Sync</span>
-          </div>
-        </div>
-
-        {/* Status Notification Banner */}
-        {statusMsg.text && (
-          <div className={`contact-status-msg ${statusMsg.type}`} style={{ marginBottom: '30px' }}>
-            {statusMsg.text}
-          </div>
-        )}
-
-        {/* Tab Switcher */}
-        <div className="projects-tabs-row" style={{ marginBottom: '35px' }}>
-          <button 
-            className={`project-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
-            onClick={() => setActiveTab('products')}
+          <button
+            onClick={() => logout()}
+            style={{
+              fontSize: '12px',
+              color: '#f87171',
+              backgroundColor: 'transparent',
+              border: '1px solid rgba(248, 113, 113, 0.2)',
+              padding: '6px 14px',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
           >
-            🛍️ Manage Products ({products.length})
-          </button>
-          <button 
-            className={`project-tab-btn ${activeTab === 'projects' ? 'active' : ''}`}
-            onClick={() => setActiveTab('projects')}
-          >
-            🚀 Manage Projects ({projects.length})
+            Logout
           </button>
         </div>
+      </header>
 
-        {/* PRODUCTS TAB */}
-        {activeTab === 'products' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
-            {/* Add / Edit Form */}
-            <div style={{ padding: '32px', backgroundColor: 'rgba(20,18,16,0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,119,0,0.3)', borderRadius: '22px' }}>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
-                {editingProductId ? '✏️ Edit Digital Product' : '🛍️ Add New Digital Product'}
-              </h3>
-              <form onSubmit={handleSaveProduct}>
-                <div className="form-group" style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Product Title *</label>
-                  <input 
-                    type="text" 
-                    value={productForm.title} 
-                    onChange={e => setProductForm({ ...productForm, title: e.target.value })} 
-                    placeholder="e.g. StayPilot Pro SaaS Starter" 
-                    required 
-                    className="form-input" 
-                  />
+      {/* Main Container: Sidebar + Content */}
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)' }}>
+        {/* Navigation Sidebar */}
+        <aside style={{
+          width: '260px',
+          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: '#0c0a09',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          flexShrink: 0
+        }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px', paddingLeft: '12px' }}>
+            Management
+          </div>
+
+          <button
+            onClick={() => { setActiveTab('overview'); setSearchQuery(''); setFilterCategory('all'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'overview' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'overview' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>📊 Overview & Stats</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('projects'); setSearchQuery(''); setFilterCategory('all'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'projects' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'projects' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>🚀 Projects ({projects.length})</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('products'); setSearchQuery(''); setFilterCategory('all'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'products' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'products' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>🛍 Digital Store ({products.length})</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('inquiries'); setSearchQuery(''); setFilterCategory('all'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'inquiries' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'inquiries' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>📬 Inbound Inquiries</span>
+            {stats.unreadInquiries > 0 && (
+              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 700 }}>
+                {stats.unreadInquiries} new
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('reviews'); setSearchQuery(''); setFilterCategory('all'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'reviews' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'reviews' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>⭐ Testimonials ({reviews.length})</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('services'); setSearchQuery(''); setFilterCategory('all'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'services' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'services' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>🛠 Services Offered ({services.length})</span>
+          </button>
+
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '20px', marginBottom: '8px', paddingLeft: '12px' }}>
+            Site Settings
+          </div>
+
+          <button
+            onClick={() => { setActiveTab('profile'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'profile' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'profile' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>⚙ Profile & Availability</span>
+          </button>
+
+          <div style={{ marginTop: 'auto', padding: '14px', backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#e2e8f0', marginBottom: '4px' }}>Permanent DB Shield</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.5 }}>
+              All database schemas auto-sync with MongoDB and persistent disk storage. No reloads or server refreshes can erase your content.
+            </div>
+          </div>
+        </aside>
+
+        {/* Content Area */}
+        <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+          {/* TAB 1: OVERVIEW */}
+          {activeTab === 'overview' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+                <div>
+                  <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.5px' }}>
+                    Dashboard Overview
+                  </h1>
+                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '6px 0 0 0' }}>
+                    Real-time MongoDB data metrics, store products, and client project inquiries.
+                  </p>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Category</label>
-                    <select 
-                      value={productForm.category} 
-                      onChange={e => setProductForm({ ...productForm, category: e.target.value })}
-                      className="form-input"
-                      style={{ backgroundColor: '#111', color: '#fff' }}
-                    >
-                      <option value="Web Apps">Web Apps</option>
-                      <option value="Source Code">Source Code</option>
-                      <option value="UI Kits">UI Kits</option>
-                      <option value="Templates">Templates</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Price Badge</label>
-                    <input 
-                      type="text" 
-                      value={productForm.price} 
-                      onChange={e => setProductForm({ ...productForm, price: e.target.value })} 
-                      placeholder="e.g. $29 or Free" 
-                      className="form-input" 
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Highlight Badge</label>
-                    <input 
-                      type="text" 
-                      value={productForm.badge} 
-                      onChange={e => setProductForm({ ...productForm, badge: e.target.value })} 
-                      placeholder="e.g. Best Seller / Featured" 
-                      className="form-input" 
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Image URL</label>
-                    <input 
-                      type="text" 
-                      value={productForm.imageUrl} 
-                      onChange={e => setProductForm({ ...productForm, imageUrl: e.target.value })} 
-                      placeholder="/assets/StayPilot.png" 
-                      className="form-input" 
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Buy / Download Link</label>
-                    <input 
-                      type="url" 
-                      value={productForm.buyUrl} 
-                      onChange={e => setProductForm({ ...productForm, buyUrl: e.target.value })} 
-                      placeholder="https://..." 
-                      className="form-input" 
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Demo Link</label>
-                    <input 
-                      type="url" 
-                      value={productForm.demoUrl} 
-                      onChange={e => setProductForm({ ...productForm, demoUrl: e.target.value })} 
-                      placeholder="https://..." 
-                      className="form-input" 
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Feature Tags (comma separated)</label>
-                  <input 
-                    type="text" 
-                    value={productForm.features} 
-                    onChange={e => setProductForm({ ...productForm, features: e.target.value })} 
-                    placeholder="Next.js 14, Firebase Auth, Responsive UI" 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Description *</label>
-                  <textarea 
-                    value={productForm.description} 
-                    onChange={e => setProductForm({ ...productForm, description: e.target.value })} 
-                    placeholder="Comprehensive description of the product..." 
-                    rows="3" 
-                    required 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <button type="submit" disabled={isSubmitting} className="btn-primary">
-                    {editingProductId ? 'Update Product' : 'Publish Product to Store'} <span className="arrow">↗</span>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={() => openProjectModal()}
+                    style={{
+                      backgroundColor: '#ff7700',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '10px 18px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + New Project
                   </button>
-                  {editingProductId && (
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        setEditingProductId(null);
-                        setProductForm({ title: '', category: 'Web Apps', price: '$29', badge: 'Featured', description: '', imageUrl: '', buyUrl: '', demoUrl: '', features: '' });
-                      }}
-                      className="btn-secondary"
-                    >
-                      Cancel
+                  <button
+                    onClick={() => openProductModal()}
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#ffffff',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      padding: '10px 18px',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      fontSize: '13px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    + Add Product
+                  </button>
+                </div>
+              </div>
+
+              {/* Metric Cards Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '36px' }}>
+                <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Total Portfolio Projects</div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    {projects.length}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#10b981', marginTop: '6px' }}>✓ Live on website</div>
+                </div>
+
+                <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Digital Store Products</div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    {products.length}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#ff7700', marginTop: '6px' }}>{stats.totalSales} total downloads/sales</div>
+                </div>
+
+                <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Client Inquiries</div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    {inquiries.length}
+                  </div>
+                  <div style={{ fontSize: '12px', color: stats.unreadInquiries > 0 ? '#ef4444' : '#10b981', marginTop: '6px' }}>
+                    {stats.unreadInquiries} pending unread
+                  </div>
+                </div>
+
+                <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Client Reviews</div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, color: '#ffffff', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums' }}>
+                    {reviews.length}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '6px' }}>★★★★★ 5.0 Average Rating</div>
+                </div>
+              </div>
+
+              {/* Quick Split: Recent Inquiries + Recent Projects */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '24px' }}>
+                {/* Recent Inbound Leads */}
+                <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', margin: 0 }}>Recent Client Inquiries</h3>
+                    <button onClick={() => setActiveTab('inquiries')} style={{ fontSize: '12px', color: '#ff7700', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      View all →
                     </button>
+                  </div>
+
+                  {inquiries.length === 0 ? (
+                    <div style={{ padding: '30px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
+                      No inquiries yet. Submissions from the contact form will appear here in real time.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {inquiries.slice(0, 3).map((inq) => (
+                        <div
+                          key={inq.id || inq._id}
+                          onClick={() => setInquiryModal({ isOpen: true, data: inq })}
+                          style={{
+                            padding: '14px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <span style={{ fontWeight: 700, fontSize: '14px', color: '#ffffff' }}>{inq.name}</span>
+                            <span style={{ fontSize: '11px', color: inq.status === 'new' ? '#ef4444' : '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>
+                              {inq.status}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#ff7700', marginBottom: '4px' }}>{inq.subject || 'Project Inquiry'}</div>
+                          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {inq.message}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-              </form>
-            </div>
 
-            {/* Products List */}
+                {/* Live Availability Status */}
+                <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', margin: '0 0 16px 0' }}>Client Availability Status</h3>
+                  <div style={{ padding: '16px', backgroundColor: profile.availableForHire ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `1px solid ${profile.availableForHire ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, borderRadius: '8px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '14px', color: profile.availableForHire ? '#10b981' : '#ef4444' }}>
+                      <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: profile.availableForHire ? '#10b981' : '#ef4444' }}></span>
+                      {profile.availableForHire ? 'AVAILABLE FOR CLIENT WORK' : 'CURRENTLY BOOKED'}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '6px' }}>{profile.availabilityText}</div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                      <span style={{ color: '#94a3b8' }}>Years Experience:</span>
+                      <strong style={{ color: '#fff', fontFamily: 'monospace' }}>{profile.yearsExperience} Years</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                      <span style={{ color: '#94a3b8' }}>Completed Projects:</span>
+                      <strong style={{ color: '#fff', fontFamily: 'monospace' }}>{profile.projectsCompleted}+</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+                      <span style={{ color: '#94a3b8' }}>Happy Clients:</span>
+                      <strong style={{ color: '#fff', fontFamily: 'monospace' }}>{profile.happyClients}+</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setActiveTab('profile')}
+                    style={{
+                      marginTop: '20px',
+                      width: '100%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: '#ffffff',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Edit Profile & Metrics Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: PROJECTS */}
+          {activeTab === 'projects' && (
             <div>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
-                Active Digital Products ({products.length})
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '680px', overflowY: 'auto' }}>
-                {products.map((p) => {
-                  const pId = p._id || p.id;
-                  return (
-                    <div key={pId} style={{ padding: '18px', backgroundColor: 'rgba(20,18,16,0.7)', border: '1px solid rgba(255,119,0,0.2)', borderRadius: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <img src={p.imageUrl || '/assets/muhammad-hasil.png'} alt={p.title} style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '10px' }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <h4 style={{ margin: 0, fontSize: '16px', color: '#fff', fontWeight: '700' }}>{p.title}</h4>
-                          <span style={{ fontSize: '11px', backgroundColor: '#ff7700', color: '#000', fontWeight: '800', padding: '2px 8px', borderRadius: '10px' }}>{p.price || 'Free'}</span>
-                        </div>
-                        <span style={{ fontSize: '11px', color: '#aaa' }}>{p.category}</span>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#bbb', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Projects Manager</h1>
+                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
+                    Manage portfolio showcase projects stored permanently in MongoDB.
+                  </p>
+                </div>
+                <button
+                  onClick={() => openProjectModal()}
+                  style={{
+                    backgroundColor: '#ff7700',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Add Project
+                </button>
+              </div>
+
+              {/* Filters & Search */}
+              <div style={{ display: 'flex', gap: '14px', marginBottom: '20px' }}>
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#131110',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '8px',
+                    padding: '10px 16px',
+                    color: '#fff',
+                    fontSize: '14px'
+                  }}
+                />
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  style={{
+                    backgroundColor: '#131110',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '8px',
+                    padding: '10px 16px',
+                    color: '#fff',
+                    fontSize: '14px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="fullstack">Full-Stack</option>
+                  <option value="react">React / Next.js</option>
+                  <option value="design">Design & UI</option>
+                </select>
+              </div>
+
+              {/* Data Table */}
+              <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
+                      <th style={{ padding: '14px 20px', fontWeight: 600 }}>Project</th>
+                      <th style={{ padding: '14px 20px', fontWeight: 600 }}>Category</th>
+                      <th style={{ padding: '14px 20px', fontWeight: 600 }}>Pill / Tag</th>
+                      <th style={{ padding: '14px 20px', fontWeight: 600 }}>Live Link</th>
+                      <th style={{ padding: '14px 20px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProjects.map((p) => (
+                      <tr key={p.id || p._id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                        <td style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <img
+                            src={p.imageUrl || '/assets/thumbnail.png'}
+                            alt={p.title}
+                            style={{ width: '42px', height: '32px', objectFit: 'cover', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}
+                          />
+                          <div>
+                            <strong style={{ color: '#ffffff', display: 'block', fontSize: '14px' }}>{p.title}</strong>
+                            <span style={{ color: '#64748b', fontSize: '12px' }}>{Array.isArray(p.technologies) ? p.technologies.slice(0, 3).join(', ') : p.technologies}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 20px', color: '#cbd5e1' }}>{p.category}</td>
+                        <td style={{ padding: '14px 20px', color: '#ff7700' }}>{p.pill}</td>
+                        <td style={{ padding: '14px 20px' }}>
+                          {p.liveDemoUrl && p.liveDemoUrl !== '#' ? (
+                            <a href={p.liveDemoUrl} target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'none' }}>
+                              Demo ↗
+                            </a>
+                          ) : (
+                            <span style={{ color: '#64748b' }}>None</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                          <button
+                            onClick={() => openProjectModal(p)}
+                            style={{
+                              backgroundColor: 'transparent',
+                              border: '1px solid rgba(255, 255, 255, 0.15)',
+                              color: '#ffffff',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              marginRight: '8px',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => triggerDeleteConfirm('project', p)}
+                            style={{
+                              backgroundColor: 'transparent',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: '#ef4444',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: PRODUCTS */}
+          {activeTab === 'products' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Digital Store Products</h1>
+                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
+                    Manage software templates, UI kits, and booking components for sale.
+                  </p>
+                </div>
+                <button
+                  onClick={() => openProductModal()}
+                  style={{
+                    backgroundColor: '#ff7700',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Add Digital Product
+                </button>
+              </div>
+
+              {/* Products Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                {filteredProducts.map((p) => (
+                  <div key={p.id || p._id} style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '11px', color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '3px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                          {p.badge || 'Featured'}
+                        </span>
+                        <span style={{ fontSize: '18px', fontWeight: 800, color: '#ff7700', fontFamily: 'monospace' }}>{p.price}</span>
                       </div>
+                      <img src={p.imageUrl || '/assets/thumbnail.png'} alt={p.title} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px', marginBottom: '14px' }} />
+                      <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: '0 0 8px 0' }}>{p.title}</h3>
+                      <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5, margin: '0 0 14px 0' }}>{p.description}</p>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>{p.category} · {p.salesCount || 0} sales</span>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <button 
-                          onClick={() => {
-                            setEditingProductId(pId);
-                            setProductForm({
-                              title: p.title || '',
-                              category: p.category || 'Web Apps',
-                              price: p.price || '$29',
-                              badge: p.badge || 'Featured',
-                              description: p.description || '',
-                              imageUrl: p.imageUrl || '',
-                              buyUrl: p.buyUrl || '',
-                              demoUrl: p.demoUrl || '',
-                              features: Array.isArray(p.features) ? p.features.join(', ') : (p.features || '')
-                            });
+                        <button
+                          onClick={() => openProductModal(p)}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: '#ffffff',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
                           }}
-                          className="btn-secondary"
-                          style={{ padding: '6px 16px', fontSize: '12px' }}
                         >
                           Edit
                         </button>
-                        <button 
-                          onClick={() => handleDeleteProduct(pId)}
-                          className="btn-primary"
-                          style={{ padding: '6px 16px', fontSize: '12px', backgroundColor: '#ff4444', borderColor: '#ff4444', boxShadow: 'none' }}
+                        <button
+                          onClick={() => triggerDeleteConfirm('product', p)}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#ef4444',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
                         >
                           Delete
                         </button>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* PROJECTS TAB */}
-        {activeTab === 'projects' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
-            {/* Add / Edit Form */}
-            <div style={{ padding: '32px', backgroundColor: 'rgba(20,18,16,0.85)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,119,0,0.3)', borderRadius: '22px' }}>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
-                {editingProjectId ? '✏️ Edit Project' : '➕ Add New Project'}
-              </h3>
-              <form onSubmit={handleSaveProject}>
-                <div className="form-group" style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Project Title *</label>
-                  <input 
-                    type="text" 
-                    value={projectForm.title} 
-                    onChange={e => setProjectForm({ ...projectForm, title: e.target.value })} 
-                    placeholder="e.g. StayPilot Web App" 
-                    required 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Category Filter</label>
-                    <select 
-                      value={projectForm.category} 
-                      onChange={e => setProjectForm({ ...projectForm, category: e.target.value })}
-                      className="form-input"
-                      style={{ backgroundColor: '#111', color: '#fff' }}
-                    >
-                      <option value="fullstack react">Full Stack & React</option>
-                      <option value="react">React & Next.js</option>
-                      <option value="design">UI/UX & Web Design</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Pill Badge Text</label>
-                    <input 
-                      type="text" 
-                      value={projectForm.pill} 
-                      onChange={e => setProjectForm({ ...projectForm, pill: e.target.value })} 
-                      placeholder="e.g. Full Stack Web App" 
-                      className="form-input" 
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Live Demo URL</label>
-                  <input 
-                    type="url" 
-                    value={projectForm.liveDemoUrl} 
-                    onChange={e => setProjectForm({ ...projectForm, liveDemoUrl: e.target.value })} 
-                    placeholder="https://stay-pilot-liard.vercel.app/" 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Image URL</label>
-                  <input 
-                    type="text" 
-                    value={projectForm.imageUrl} 
-                    onChange={e => setProjectForm({ ...projectForm, imageUrl: e.target.value })} 
-                    placeholder="/assets/StayPilot.png" 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', color: '#ccc', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Description *</label>
-                  <textarea 
-                    value={projectForm.description} 
-                    onChange={e => setProjectForm({ ...projectForm, description: e.target.value })} 
-                    placeholder="Brief project details..." 
-                    rows="3" 
-                    required 
-                    className="form-input" 
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <button type="submit" disabled={isSubmitting} className="btn-primary">
-                    {editingProjectId ? 'Update Project' : 'Publish Project'} <span className="arrow">↗</span>
-                  </button>
-                  {editingProjectId && (
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        setEditingProjectId(null);
-                        setProjectForm({ title: '', category: 'fullstack react', pill: 'Full Stack Web App', description: '', liveDemoUrl: '', imageUrl: '' });
-                      }}
-                      className="btn-secondary"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </div>
-              </form>
-
-              {projects.length === 0 && (
-                <div style={{ marginTop: '25px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  <p style={{ fontSize: '13px', color: '#aaa', marginBottom: '10px' }}>No projects in Firestore yet.</p>
-                  <button onClick={handleSeedProjects} disabled={isSubmitting} className="btn-secondary" style={{ borderColor: 'var(--accent-orange)', color: 'var(--accent-orange)' }}>
-                    ⚡ Seed 6 Default Portfolio Projects
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Live Projects List */}
+          {/* TAB 4: INQUIRIES */}
+          {activeTab === 'inquiries' && (
             <div>
-              <h3 style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', marginBottom: '20px' }}>
-                Existing Projects ({projects.length})
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '680px', overflowY: 'auto' }}>
-                {projects.map((p) => (
-                  <div key={p.id} style={{ padding: '18px', backgroundColor: 'rgba(20,18,16,0.7)', border: '1px solid rgba(255,119,0,0.2)', borderRadius: '16px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <img src={p.imageUrl || '/assets/muhammad-hasil.png'} alt={p.title} style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '10px' }} />
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: 0, fontSize: '16px', color: '#fff', fontWeight: '700' }}>{p.title}</h4>
-                      <span style={{ fontSize: '11px', color: '#ff7700' }}>{p.pill || p.category}</span>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#bbb', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Client Inquiries & Proposals</h1>
+                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
+                    Direct inbound client proposals submitted from the website contact section.
+                  </p>
+                </div>
+              </div>
+
+              {/* Inquiries List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {filteredInquiries.length === 0 ? (
+                  <div style={{ padding: '60px', backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', textAlign: 'center', color: '#64748b' }}>
+                    No client inquiries in database yet.
+                  </div>
+                ) : (
+                  filteredInquiries.map((inq) => (
+                    <div
+                      key={inq.id || inq._id}
+                      style={{
+                        backgroundColor: inq.status === 'new' ? 'rgba(255, 119, 0, 0.04)' : '#131110',
+                        border: inq.status === 'new' ? '1px solid rgba(255, 119, 0, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '10px',
+                        padding: '18px 22px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '16px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                        <button
+                          onClick={() => toggleInquiryStarred(inq)}
+                          style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: inq.starred ? '#f59e0b' : '#475569' }}
+                        >
+                          {inq.starred ? '★' : '☆'}
+                        </button>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                            <strong style={{ fontSize: '15px', color: '#fff' }}>{inq.name}</strong>
+                            <span style={{ fontSize: '12px', color: '#38bdf8' }}>{inq.email}</span>
+                            <span style={{
+                              fontSize: '11px',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontWeight: 700,
+                              backgroundColor: inq.status === 'new' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                              color: inq.status === 'new' ? '#ef4444' : '#10b981'
+                            }}>
+                              {inq.status.toUpperCase()}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#ff7700', fontWeight: 600 }}>{inq.subject || 'Project Inquiry'}</div>
+                          <p style={{ fontSize: '13px', color: '#94a3b8', margin: '4px 0 0 0', maxWidth: '600px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {inq.message}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          onClick={() => setInquiryModal({ isOpen: true, data: inq })}
+                          style={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: '#ffffff',
+                            padding: '6px 14px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          View Message
+                        </button>
+                        <a
+                          href={`mailto:${inq.email}?subject=Re: ${encodeURIComponent(inq.subject || 'Portfolio Inquiry')}`}
+                          style={{
+                            backgroundColor: '#ff7700',
+                            color: '#ffffff',
+                            padding: '6px 14px',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600
+                          }}
+                        >
+                          Reply ↗
+                        </a>
+                        <button
+                          onClick={() => triggerDeleteConfirm('inquiry', inq)}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#ef4444',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        onClick={() => {
-                          setEditingProjectId(p.id);
-                          setProjectForm({
-                            title: p.title || '',
-                            category: p.category || 'fullstack react',
-                            pill: p.pill || 'Full Stack Web App',
-                            description: p.description || '',
-                            liveDemoUrl: p.liveDemoUrl || '',
-                            imageUrl: p.imageUrl || ''
-                          });
-                        }}
-                        className="btn-secondary"
-                        style={{ padding: '6px 16px', fontSize: '12px' }}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteProject(p.id)}
-                        className="btn-primary"
-                        style={{ padding: '6px 16px', fontSize: '12px', backgroundColor: '#ff4444', borderColor: '#ff4444', boxShadow: 'none' }}
-                      >
-                        Delete
-                      </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: TESTIMONIALS */}
+          {activeTab === 'reviews' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Client Testimonials</h1>
+                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
+                    Manage client reviews that showcase on the homepage marquee.
+                  </p>
+                </div>
+                <button
+                  onClick={() => openReviewModal()}
+                  style={{
+                    backgroundColor: '#ff7700',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Add Testimonial
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                {reviews.map((rev) => (
+                  <div key={rev.id || rev._id} style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ color: '#f59e0b', fontSize: '14px', letterSpacing: '2px' }}>★★★★★</span>
+                        <span style={{ fontSize: '11px', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: '4px' }}>
+                          {rev.badge || 'Verified Client'}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6, fontStyle: 'italic', margin: '0 0 16px 0' }}>
+                        "{rev.quote}"
+                      </p>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <strong style={{ color: '#ffffff', fontSize: '14px', display: 'block' }}>{rev.authorName}</strong>
+                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>{rev.authorRole} {rev.company && `· ${rev.company}`}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => openReviewModal(rev)}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: '#ffffff',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => triggerDeleteConfirm('review', rev)}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#ef4444',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+          )}
+
+          {/* TAB 6: SERVICES */}
+          {activeTab === 'services' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Engineering & Design Services</h1>
+                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
+                    Configure freelance offerings, deliverables, timelines, and starting rates.
+                  </p>
+                </div>
+                <button
+                  onClick={() => openServiceModal()}
+                  style={{
+                    backgroundColor: '#ff7700',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  + Add Service
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+                {services.map((srv) => (
+                  <div key={srv.id || srv._id} style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '22px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '11px', color: '#38bdf8', textTransform: 'uppercase', fontWeight: 700 }}>{srv.category}</span>
+                      <span style={{ fontSize: '16px', fontWeight: 800, color: '#ff7700', fontFamily: 'monospace' }}>From {srv.startingPrice}</span>
+                    </div>
+                    <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', margin: '0 0 8px 0' }}>{srv.title}</h3>
+                    <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5, margin: '0 0 16px 0' }}>{srv.description}</p>
+                    <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>⏱ Delivery: {srv.deliveryTime}</span>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => openServiceModal(srv)}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: '#ffffff',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => triggerDeleteConfirm('service', srv)}
+                          style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#ef4444',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: PROFILE SETTINGS */}
+          {activeTab === 'profile' && (
+            <div style={{ maxWidth: '800px' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: '0 0 6px 0' }}>Site Profile & Live Availability</h1>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 24px 0' }}>
+                Update your public stats, availability status, and social channels stored permanently in MongoDB.
+              </p>
+
+              <form onSubmit={handleSaveProfile} style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: '8px' }}>
+                  <div>
+                    <strong style={{ color: '#fff', fontSize: '15px', display: 'block' }}>Availability Toggle</strong>
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>Mark yourself as available for new client work</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={profile.availableForHire}
+                    onChange={(e) => setProfile({ ...profile, availableForHire: e.target.checked })}
+                    style={{ width: '22px', height: '22px', accentColor: '#ff7700', cursor: 'pointer' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>Availability Tagline</label>
+                  <input
+                    type="text"
+                    value={profile.availabilityText}
+                    onChange={(e) => setProfile({ ...profile, availabilityText: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>Years Experience</label>
+                    <input
+                      type="number"
+                      value={profile.yearsExperience}
+                      onChange={(e) => setProfile({ ...profile, yearsExperience: parseInt(e.target.value) || 0 })}
+                      style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>Projects Completed</label>
+                    <input
+                      type="number"
+                      value={profile.projectsCompleted}
+                      onChange={(e) => setProfile({ ...profile, projectsCompleted: parseInt(e.target.value) || 0 })}
+                      style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>Happy Clients</label>
+                    <input
+                      type="number"
+                      value={profile.happyClients}
+                      onChange={(e) => setProfile({ ...profile, happyClients: parseInt(e.target.value) || 0 })}
+                      style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>Bio / Overview</label>
+                  <textarea
+                    rows={3}
+                    value={profile.bio}
+                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>Fiverr Pro Link</label>
+                    <input
+                      type="text"
+                      value={profile.socials?.fiverr || ''}
+                      onChange={(e) => setProfile({ ...profile, socials: { ...profile.socials, fiverr: e.target.value } })}
+                      style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>LinkedIn Link</label>
+                    <input
+                      type="text"
+                      value={profile.socials?.linkedin || ''}
+                      onChange={(e) => setProfile({ ...profile, socials: { ...profile.socials, linkedin: e.target.value } })}
+                      style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff' }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    backgroundColor: '#ff7700',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    marginTop: '10px'
+                  }}
+                >
+                  {isSubmitting ? 'Saving to MongoDB...' : 'Save Profile Changes'}
+                </button>
+              </form>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 1: PROJECT MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {projectModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '28px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 16px 0' }}>
+              {projectModal.mode === 'edit' ? 'Edit Portfolio Project' : 'Create New Project'}
+            </h2>
+            <form onSubmit={handleSaveProject} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Project Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={projectForm.title}
+                  onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Category *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. fullstack react"
+                    value={projectForm.category}
+                    onChange={(e) => setProjectForm({ ...projectForm, category: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Badge / Tag Pill</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Full Stack Web App"
+                    value={projectForm.pill}
+                    onChange={(e) => setProjectForm({ ...projectForm, pill: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Description *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={projectForm.description}
+                  onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Live Demo URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://..."
+                    value={projectForm.liveDemoUrl}
+                    onChange={(e) => setProjectForm({ ...projectForm, liveDemoUrl: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Image URL</label>
+                  <input
+                    type="text"
+                    placeholder="/assets/StayPilot.png"
+                    value={projectForm.imageUrl}
+                    onChange={(e) => setProjectForm({ ...projectForm, imageUrl: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Technologies (comma separated)</label>
+                <input
+                  type="text"
+                  placeholder="React, Next.js, Node.js, MongoDB"
+                  value={projectForm.technologies}
+                  onChange={(e) => setProjectForm({ ...projectForm, technologies: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setProjectModal({ isOpen: false, mode: 'create', data: null })}
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save to MongoDB'}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </section>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 2: PRODUCT MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {productModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '28px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 16px 0' }}>
+              {productModal.mode === 'edit' ? 'Edit Digital Product' : 'Add New Digital Product'}
+            </h2>
+            <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Product Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={productForm.title}
+                  onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Category *</label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.category}
+                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Price *</label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.price}
+                    onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Badge</label>
+                  <input
+                    type="text"
+                    value={productForm.badge}
+                    onChange={(e) => setProductForm({ ...productForm, badge: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Description *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={productForm.description}
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Purchase / Order URL</label>
+                  <input
+                    type="text"
+                    value={productForm.buyUrl}
+                    onChange={(e) => setProductForm({ ...productForm, buyUrl: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Live Demo URL</label>
+                  <input
+                    type="text"
+                    value={productForm.demoUrl}
+                    onChange={(e) => setProductForm({ ...productForm, demoUrl: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Features (comma separated)</label>
+                <input
+                  type="text"
+                  value={productForm.features}
+                  onChange={(e) => setProductForm({ ...productForm, features: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setProductModal({ isOpen: false, mode: 'create', data: null })}
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Product'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 3: INQUIRY DETAIL MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {inquiryModal.isOpen && inquiryModal.data && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '580px', padding: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <span style={{ fontSize: '11px', color: '#ff7700', textTransform: 'uppercase', fontWeight: 800 }}>Inbound Client Proposal</span>
+              <button onClick={() => setInquiryModal({ isOpen: false, data: null })} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 4px 0' }}>{inquiryModal.data.name}</h2>
+            <div style={{ fontSize: '14px', color: '#38bdf8', marginBottom: '14px' }}>{inquiryModal.data.email}</div>
+
+            <div style={{ padding: '16px', backgroundColor: '#070605', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', marginBottom: '16px' }}>
+              <strong style={{ color: '#ff7700', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Subject: {inquiryModal.data.subject}</strong>
+              <p style={{ color: '#e2e8f0', fontSize: '14px', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+                {inquiryModal.data.message}
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => { toggleInquiryStatus(inquiryModal.data, 'replied'); setInquiryModal({ isOpen: false, data: null }); }}
+                  style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '8px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Mark Replied
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <a
+                  href={`mailto:${inquiryModal.data.email}?subject=Re: ${encodeURIComponent(inquiryModal.data.subject || 'Portfolio Inquiry')}`}
+                  style={{ backgroundColor: '#ff7700', color: '#fff', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}
+                >
+                  Reply via Email ↗
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 4: DELETE CONFIRMATION MODAL (MANUAL SAFETY SHIELD) */}
+      {/* ------------------------------------------------------------- */}
+      {deleteConfirm.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', width: '100%', maxWidth: '440px', padding: '24px', textAlign: 'center' }}>
+            <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', margin: '0 0 8px 0' }}>Confirm Permanent Deletion</h3>
+            <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+              Are you sure you want to permanently delete <strong>"{deleteConfirm.title}"</strong> from MongoDB and disk storage? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button
+                onClick={() => setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' })}
+                style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 18px', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDelete}
+                disabled={isSubmitting}
+                style={{ backgroundColor: '#ef4444', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+              >
+                {isSubmitting ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 5: TESTIMONIAL MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {reviewModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '28px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 16px 0' }}>
+              {reviewModal.mode === 'edit' ? 'Edit Testimonial' : 'Add Client Testimonial'}
+            </h2>
+            <form onSubmit={handleSaveReview} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Client Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={reviewForm.authorName}
+                    onChange={(e) => setReviewForm({ ...reviewForm, authorName: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Role / Title</label>
+                  <input
+                    type="text"
+                    value={reviewForm.authorRole}
+                    onChange={(e) => setReviewForm({ ...reviewForm, authorRole: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Badge Category</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Next.js & React"
+                  value={reviewForm.badge}
+                  onChange={(e) => setReviewForm({ ...reviewForm, badge: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Client Quote / Review *</label>
+                <textarea
+                  rows={4}
+                  required
+                  value={reviewForm.quote}
+                  onChange={(e) => setReviewForm({ ...reviewForm, quote: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setReviewModal({ isOpen: false, mode: 'create', data: null })}
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Review'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 6: SERVICE MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {serviceModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '28px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 16px 0' }}>
+              {serviceModal.mode === 'edit' ? 'Edit Service' : 'Add Service'}
+            </h2>
+            <form onSubmit={handleSaveService} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Service Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={serviceForm.title}
+                  onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Starting Price</label>
+                  <input
+                    type="text"
+                    value={serviceForm.startingPrice}
+                    onChange={(e) => setServiceForm({ ...serviceForm, startingPrice: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Delivery Timeline</label>
+                  <input
+                    type="text"
+                    value={serviceForm.deliveryTime}
+                    onChange={(e) => setServiceForm({ ...serviceForm, deliveryTime: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Description *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={serviceForm.description}
+                  onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Deliverables (comma separated)</label>
+                <input
+                  type="text"
+                  value={serviceForm.deliverables}
+                  onChange={(e) => setServiceForm({ ...serviceForm, deliverables: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setServiceModal({ isOpen: false, mode: 'create', data: null })}
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Service'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
