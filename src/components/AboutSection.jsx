@@ -1,46 +1,136 @@
 import React, { useState, useEffect } from 'react';
 
 const defaultAboutData = {
-  headline: 'Clean web experiences with personality and purpose.',
-  subtext: 'I am Muhammad Hasil, a full-stack developer who builds clean portfolio websites, interactive dashboards, scalable backend APIs, and responsive project experiences. I care about simple layouts, strong visual hierarchy, and interfaces that feel professional on every screen.',
+  headline: 'Sales Engineer | Lead Generation and Data Mining | Hindi Translator | Discord Mod Expert | Skilled in Discord.js and Custom Integrations | Mern Stack Developer | Freelancer | AI Vibe Coding',
+  subtext: 'I am a Front End Web Developer with over 5 years of experience building fast, responsive, and user focused web applications. I work with HTML5, CSS3, Bootstrap, JavaScript, jQuery, and React Redux to deliver clean, scalable, and high performing interfaces.\n\nI also bring full stack experience with the MERN stack including MongoDB, Express.js, React.js, and Node.js, which allows me to support projects from frontend development to backend logic and deployment. WordPress is a major part of my current stack, where I build and manage custom themes, plugins, and performance optimized websites for businesses and agencies.\n\nAlongside development, I have strong experience in B2B and B2C sales, LinkedIn lead generation, and data mining. I understand how to identify ideal prospects, generate qualified leads, and align technical solutions with business and revenue goals. This makes me especially valuable for startups, agencies, and founders looking for both technical execution and growth support.\n\nI have also worked with Discord.js and quick.db to build Discord bots for automation, moderation, and community engagement. In addition, I currently work with Lunar Client as a Hindi Translator, helping expand reach and accessibility within a global community.\n\nI am focused on problem solving, clear communication, and delivering results. I help businesses turn ideas into reliable, scalable products that drive growth.',
   ctaText: 'Hire me on Fiverr',
   ctaLink: 'https://pro.fiverr.com/users/venomdesigne613/',
   skills: [
-    { name: 'React.js', percentage: 94, category: 'Frontend' },
-    { name: 'Next.js', percentage: 91, category: 'Frontend' },
-    { name: 'Node.js', percentage: 88, category: 'Backend' },
-    { name: 'Tailwind CSS', percentage: 96, category: 'Styling' },
-    { name: 'Discord API & Bots', percentage: 95, category: 'Integration' },
-    { name: 'Minecraft Development', percentage: 90, category: 'Gaming' },
-    { name: 'MongoDB & PostgreSQL', percentage: 92, category: 'Database' }
+    { name: 'React.js', percentage: 94, category: 'Frontend', _id: '6abbe223b095e8e372b6d5d5' },
+    { name: 'Next.js', percentage: 91, category: 'Frontend', _id: '6abbe223b095e8e372b6d5d6' },
+    { name: 'Node.js', percentage: 88, category: 'Backend', _id: '6abbe223b095e8e372b6d5d7' },
+    { name: 'Tailwind CSS', percentage: 96, category: 'Styling', _id: '6abbe223b095e8e372b6d5d8' },
+    { name: 'Discord API & Bots', percentage: 95, category: 'Integration', _id: '6abbe223b095e8e372b6d5d9' },
+    { name: 'Minecraft Development', percentage: 90, category: 'Gaming', _id: '6abbe223b095e8e372b6d5da' },
+    { name: 'MongoDB & PostgreSQL', percentage: 92, category: 'Database', _id: '6abbe223b095e8e372b6d5db' }
   ],
   education: [
     {
-      id: 'edu-1',
+      degree: 'Matric (Computer Science)',
+      institution: 'Al-Qalam High School',
+      period: '2010 - 2012',
+      description: 'Completed Matric in computer science',
+      certificationLink: '',
+      _id: '6abc008fcb970af861a20871'
+    },
+    {
+      degree: 'Intermediate (Ics)',
+      institution: 'CIMS (Central Group Of Colleges',
+      period: '2014 - 2016',
+      description: 'Completed Intermediate in ICS',
+      certificationLink: '',
+      _id: '6abc008fcb970af861a20872'
+    },
+    {
       degree: 'BS Business & Information Technology (BBIT)',
       institution: 'Virtual University of Pakistan',
       period: '2025 - Present',
       description: 'Currently pursuing BBIT, combining Information Technology and enterprise software systems. Focused on full-stack web engineering, database architecture, software development, and modern web application deployment.',
-      certificationLink: 'https://www.vu.edu.pk'
+      certificationLink: 'https://www.vu.edu.pk',
+      _id: '6abbe223b095e8e372b6d5dc'
     }
   ],
   experience: [
     {
-      id: 'exp-1',
+      role: 'Wordpress Developer',
+      company: 'Freelance',
+      period: '2016 - 2018',
+      description: 'Complete 500+ private project with multiple clients',
+      projectLink: '',
+      _id: '6abc008fcb970af861a20874'
+    },
+    {
+      role: 'Sales Engineer / B2B Leads',
+      company: 'Esp Inspire',
+      period: '2024 - Present',
+      description: 'Working as Sales Eng / B2B Lead Generation / Email Automation / Data Miner',
+      projectLink: '',
+      _id: '6abc008fcb970af861a20875'
+    },
+    {
+      role: 'Computer Operator - Inventory & Warehouse Management',
+      company: 'Kamal Limited',
+      period: '3 Months',
+      description: 'Managed inventory records and maintained accurate stock data using computer-based systems.\nHandled data entry, inventory tracking, stock updates, and daily documentation efficiently.\nSupported warehouse operations by ensuring timely and organized inventory management.',
+      projectLink: '',
+      _id: '6abc008fcb970af861a20876'
+    },
+    {
+      role: 'Customer Support / Data Miner / Backend Manager',
+      company: 'Quantum LHE',
+      period: '2019 - 2021',
+      description: 'Managed daily Shopify store operations, including product listings, inventory updates, orders, and store maintenance.\nHandled customer support, responded to inquiries, and resolved order-related issues professionally.\nMonitored orders and ensured smooth coordination between customers, products, and fulfillment.',
+      projectLink: '',
+      _id: '6abc008fcb970af861a20877'
+    },
+    {
       role: 'Full Stack Developer',
       company: 'Freelance & Client Systems',
       period: '2024 - Present',
       description: 'Built responsive web apps, full-stack portfolio systems, interactive dashboards, custom APIs, Discord bots, Minecraft/Roblox integrations, and high-performance UI flows.',
-      projectLink: 'https://pro.fiverr.com/users/venomdesigne613/'
+      projectLink: 'https://pro.fiverr.com/users/venomdesigne613/',
+      _id: '6abbe223b095e8e372b6d5dd'
     }
   ],
   certifications: [
     {
-      id: 'cert-1',
+      title: 'Technical Sales',
+      issuer: 'John Care',
+      date: '2025',
+      link: 'https://www.linkedin.com/learning/certificates/5fdb0df8d0d818233c6fd949d93dd1a19fed1810b65089ce616c79c69d860274',
+      _id: '6abc09328d6d3360ae209ba1'
+    },
+    {
+      title: 'Salesforce: Sales Automation for Salespeople',
+      issuer: 'Christine Volden',
+      date: '2025',
+      link: 'https://www.linkedin.com/learning/certificates/919a525db2af917e227508a1acf83d9a6a728fd792a707a5d3724f5f53da9f72',
+      _id: '6abc09328d6d3360ae209ba2'
+    },
+    {
+      title: 'Program Databases with Transact-SQL',
+      issuer: 'Adam Wilbert',
+      date: '2025',
+      link: 'https://www.linkedin.com/learning/certificates/a7691b4007228f21ae4e4c0f6b0837d5a5e4707547eb1c905a974b8d3e3d5c09',
+      _id: '6abc09328d6d3360ae209ba3'
+    },
+    {
+      title: 'Project Management Foundations',
+      issuer: 'Bonnie Biafore',
+      date: '2025',
+      link: 'https://www.linkedin.com/learning/certificates/169d2cf06c18bf265649f7da6a144ac9d7b544f575a8bc7a77aa946cf4712201',
+      _id: '6abc09328d6d3360ae209ba4'
+    },
+    {
+      title: 'Advanced Product Marketing',
+      issuer: 'Jonathan Chang',
+      date: '2025',
+      link: 'https://www.linkedin.com/learning/certificates/f8e6621a64acbf7d9d9e5c80cb7f6a9cf3e35ad73d66f0b8363c52f69910b0d3',
+      _id: '6abc09328d6d3360ae209ba5'
+    },
+    {
+      title: 'PMI - Project Management Professional (PMP)®',
+      issuer: 'Total Seminars',
+      date: '2025',
+      link: 'https://www.linkedin.com/learning/certificates/cce119d92c617dac81812ed1797893fe59d984bd6153e9ed828a4167ae31610a',
+      _id: '6abc09328d6d3360ae209ba6'
+    },
+    {
       title: 'Full-Stack Software Engineering & Modern Web Architecture',
-      issuer: 'Verified Credential',
-      date: '2024',
-      link: 'https://www.linkedin.com/in/muhammad-hasil/'
+      issuer: 'Samer Buna',
+      date: '2025',
+      link: 'https://www.linkedin.com/learning/certificates/5235036d3988c62e762dffdcf4a88084150c6c88f341761a5897c8ccdaa43a70',
+      _id: '6abbe223b095e8e372b6d5de'
     }
   ]
 };

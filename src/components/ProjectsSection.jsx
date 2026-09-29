@@ -71,14 +71,14 @@ export default function ProjectsSection() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Deduplicate strictly by unique id and title so each project is posted strictly once
-  const rawList = apiProjects.length > 0 ? apiProjects : getCombinedProjects(firestoreProjects);
-  const seenIds = new Set();
+  // Deduplicate strictly by title and unique id so each project is posted strictly once
+  const rawList = apiProjects && apiProjects.length > 0 ? apiProjects : getCombinedProjects(firestoreProjects);
+  const seenKeys = new Set();
   const mergedProjects = [];
   rawList.forEach(p => {
-    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
-    if (key && !seenIds.has(key)) {
-      seenIds.add(key);
+    const titleKey = (p.title || p.id || p._id || '').toString().toLowerCase().trim();
+    if (titleKey && !seenKeys.has(titleKey)) {
+      seenKeys.add(titleKey);
       mergedProjects.push(p);
     }
   });
