@@ -8,8 +8,8 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer-content">
         <Link href="/" className="footer-brand" style={{ textDecoration: 'none' }}>
-          <img src="/assets/muhammad-hasil.png" alt="iHasil Logo" className="brand-logo-img" />
-          <span className="brand-logo-text">iHasil</span>
+          <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil Logo" className="brand-logo-img" />
+          <span className="brand-logo-text">Muhammad Hasil</span>
         </Link>
         <div className="footer-socials">
           <a href="https://www.linkedin.com/in/muhammad-hasil/" target="_blank" rel="noopener noreferrer" className="footer-social-link">

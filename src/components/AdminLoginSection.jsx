@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminLoginSection() {
@@ -38,41 +39,42 @@ export default function AdminLoginSection() {
   };
 
   return (
-    <div className="page-view active" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px', width: '100%' }}>
       <div 
         style={{
           width: '100%',
-          maxWidth: '440px',
-          padding: '40px 32px',
-          backgroundColor: 'rgba(20, 18, 16, 0.85)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 119, 0, 0.3)',
+          maxWidth: '460px',
+          padding: '44px 36px',
+          backgroundColor: 'rgba(16, 14, 12, 0.78)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 119, 0, 0.35)',
           borderRadius: '24px',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+          boxShadow: '0 24px 70px rgba(0, 0, 0, 0.85), 0 0 40px rgba(255, 119, 0, 0.15)',
           textAlign: 'center'
         }}
       >
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <img src="/assets/muhammad-hasil.png" alt="Logo" width="42" height="42" style={{ borderRadius: '50%' }} />
-          <span style={{ fontSize: '24px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff' }}>iHasil Admin</span>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginBottom: '22px' }}>
+          <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" width="46" height="46" style={{ borderRadius: '50%', border: '2px solid #ff7700' }} />
+          <span style={{ fontSize: '26px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', letterSpacing: '-0.5px' }}>Muhammad Hasil</span>
         </div>
 
-        <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#fff', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#fff', marginBottom: '8px', letterSpacing: '-0.5px' }}>
           Admin Login
         </h2>
-        <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '30px' }}>
+        <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '28px' }}>
           Access your portfolio management dashboard
         </p>
 
         {error && (
-          <div style={{ padding: '12px 16px', backgroundColor: 'rgba(255, 68, 68, 0.15)', border: '1px solid rgba(255, 68, 68, 0.4)', borderRadius: '10px', color: '#ff6666', fontSize: '14px', marginBottom: '20px', textAlign: 'left' }}>
+          <div style={{ padding: '12px 16px', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '10px', color: '#fca5a5', fontSize: '13px', marginBottom: '20px', textAlign: 'left' }}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div className="form-group" style={{ marginBottom: '20px', width: '100%', textAlign: 'left' }}>
-            <label htmlFor="admin-email" style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '14px', fontWeight: '600' }}>Admin Email</label>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', width: '100%' }}>
+          <div className="form-group" style={{ marginBottom: '18px', width: '100%', textAlign: 'left' }}>
+            <label htmlFor="admin-email" style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Admin Email</label>
             <input 
               id="admin-email" 
               type="email" 
@@ -81,12 +83,12 @@ export default function AdminLoginSection() {
               placeholder="admin@ihasil.com" 
               required 
               className="form-input" 
-              style={{ width: '100%', padding: '14px', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#fff' }} 
+              style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#fff', fontSize: '14px', boxSizing: 'border-box' }} 
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: '28px', width: '100%', textAlign: 'left' }}>
-            <label htmlFor="admin-password" style={{ display: 'block', marginBottom: '8px', color: '#ccc', fontSize: '14px', fontWeight: '600' }}>Password</label>
+          <div className="form-group" style={{ marginBottom: '24px', width: '100%', textAlign: 'left' }}>
+            <label htmlFor="admin-password" style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>
             <input 
               id="admin-password" 
               type="password" 
@@ -95,7 +97,7 @@ export default function AdminLoginSection() {
               placeholder="••••••••••••" 
               required 
               className="form-input" 
-              style={{ width: '100%', padding: '14px', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#fff' }} 
+              style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#fff', fontSize: '14px', boxSizing: 'border-box' }} 
             />
           </div>
 
@@ -103,11 +105,31 @@ export default function AdminLoginSection() {
             type="submit" 
             disabled={loading} 
             className="btn-primary" 
-            style={{ cursor: 'pointer', border: 'none' }}
+            style={{ 
+              cursor: 'pointer', 
+              border: 'none', 
+              padding: '14px 24px', 
+              borderRadius: '12px', 
+              backgroundColor: '#ff7700', 
+              color: '#fff', 
+              fontWeight: 700, 
+              fontSize: '15px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 20px rgba(255, 119, 0, 0.45)'
+            }}
           >
-            {loading ? 'Authenticating...' : 'Sign In To Dashboard'} <span className="arrow">↗</span>
+            <span>{loading ? 'Authenticating...' : 'Sign In To Dashboard'}</span> <span className="arrow">↗</span>
           </button>
         </form>
+
+        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Link href="/" style={{ color: '#94a3b8', fontSize: '13px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            ← Back to Public Portfolio
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -27,7 +27,16 @@ export default function ProductsSection() {
       .then(data => {
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           const combined = getCombinedProducts(data.data);
-          setProducts(combined);
+          const seen = new Set();
+          const deduped = [];
+          combined.forEach(p => {
+            const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
+            if (key && !seen.has(key)) {
+              seen.add(key);
+              deduped.push(p);
+            }
+          });
+          setProducts(deduped);
         }
       })
       .catch(() => {});
@@ -165,10 +174,32 @@ export default function ProductsSection() {
                   <div className="project-overlay-link">
                     <button
                       type="button"
-                      onClick={() => setSelectedProduct(prod)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProduct(prod);
+                      }}
                       className="btn-preview-quick"
+                      style={{
+                        backgroundColor: 'rgba(255, 119, 0, 0.25)',
+                        border: '1px solid rgba(255, 119, 0, 0.7)',
+                        color: '#ffffff',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        padding: '8px 16px',
+                        borderRadius: '999px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 16px rgba(255, 119, 0, 0.35)',
+                        backdropFilter: 'blur(10px)'
+                      }}
                     >
-                      Inspect Template
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      Quick View
                     </button>
                   </div>
                 </div>

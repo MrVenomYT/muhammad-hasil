@@ -77,11 +77,6 @@ export default function AboutSection() {
           <p className="about-subtext">
             {aboutData.subtext}
           </p>
-          <div className="about-cta-row">
-            <a href={aboutData.ctaLink || 'https://pro.fiverr.com/users/venomdesigne613/'} target="_blank" rel="noopener noreferrer" className="btn-primary">
-              {aboutData.ctaText || 'Hire me on Fiverr'} <span className="arrow">↗</span>
-            </a>
-          </div>
 
           {/* 4 Core Offerings Cards */}
           <div className="about-features-grid">
@@ -171,13 +166,6 @@ export default function AboutSection() {
                   <h3 className="info-card-heading">{edu.degree}</h3>
                   <p className="info-card-subheading">{edu.institution}</p>
                   <p className="info-card-desc">{edu.description}</p>
-                  {edu.certificationLink && edu.certificationLink !== '#' && (
-                    <div style={{ marginTop: '12px' }}>
-                      <a href={edu.certificationLink} target="_blank" rel="noopener noreferrer" style={{ color: '#ff7700', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}>
-                        Institution / Verification Link ↗
-                      </a>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -197,13 +185,6 @@ export default function AboutSection() {
                   <h3 className="info-card-heading">{exp.role}</h3>
                   <p className="info-card-subheading">{exp.company}</p>
                   <p className="info-card-desc">{exp.description}</p>
-                  {exp.projectLink && exp.projectLink !== '#' && (
-                    <div style={{ marginTop: '12px' }}>
-                      <a href={exp.projectLink} target="_blank" rel="noopener noreferrer" style={{ color: '#ff7700', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}>
-                        Reference Project / Client Hub ↗
-                      </a>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -230,13 +211,8 @@ export default function AboutSection() {
                 }}>
                   <div>
                     <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase' }}>✦ {cert.issuer} · {cert.date}</span>
-                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: '8px 0 12px 0' }}>{cert.title}</h3>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: '8px 0 0 0' }}>{cert.title}</h3>
                   </div>
-                  {cert.link && (
-                    <a href={cert.link} target="_blank" rel="noopener noreferrer" style={{ color: '#ff7700', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}>
-                      Verify Credential ↗
-                    </a>
-                  )}
                 </div>
               ))}
             </div>

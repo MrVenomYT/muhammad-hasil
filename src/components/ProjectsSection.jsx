@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getCombinedProjects } from '../lib/storage';
@@ -58,11 +59,17 @@ export default function ProjectsSection() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Merge MongoDB API projects, Firestore projects, and baseline cache
-  const baseProjects = apiProjects.length > 0 ? apiProjects : getCombinedProjects(firestoreProjects);
-  const mergedProjects = apiProjects.length > 0 && firestoreProjects.length > 0
-    ? [...firestoreProjects, ...apiProjects.filter(ap => !firestoreProjects.some(fp => fp.id === ap.id || fp.title === ap.title))]
-    : baseProjects;
+  // Deduplicate strictly by unique id and title so each project is posted strictly once
+  const rawList = apiProjects.length > 0 ? apiProjects : getCombinedProjects(firestoreProjects);
+  const seenIds = new Set();
+  const mergedProjects = [];
+  rawList.forEach(p => {
+    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
+    if (key && !seenIds.has(key)) {
+      seenIds.add(key);
+      mergedProjects.push(p);
+    }
+  });
 
   // Filter counts
   const countFullstack = mergedProjects.filter(p => (p.category || '').includes('fullstack')).length;
@@ -168,24 +175,48 @@ export default function ProjectsSection() {
                       }}
                     />
                     <div className="project-overlay-link">
-                      {proj.liveDemoUrl && proj.liveDemoUrl !== '#' && (
-                        <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo">
-                          Live Demo ↗
-                        </a>
-                      )}
                       <button
                         type="button"
-                        onClick={() => setSelectedProject(proj)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProject(proj);
+                        }}
                         className="btn-preview-quick"
+                        style={{
+                          backgroundColor: 'rgba(255, 119, 0, 0.25)',
+                          border: '1px solid rgba(255, 119, 0, 0.7)',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          padding: '10px 22px',
+                          borderRadius: '999px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 18px rgba(255, 119, 0, 0.4)',
+                          backdropFilter: 'blur(10px)',
+                          transition: 'all 0.2s ease'
+                        }}
                       >
-                        Quick View
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <span>Quick View</span>
                       </button>
                     </div>
                   </div>
 
                   <div className="project-info">
                     <div className="project-info-header">
-                      <h3 className="project-title">{proj.title}</h3>
+                      <h3 
+                        className="project-title"
+                        onClick={() => setSelectedProject(proj)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {proj.title}
+                      </h3>
                       <span className="project-pill">{proj.pill || 'Full Stack'}</span>
                     </div>
                     <p className="project-desc">{proj.description}</p>
@@ -208,21 +239,60 @@ export default function ProjectsSection() {
                   </div>
 
                   {/* Actions Footer */}
-                  <div className="project-card-actions">
+                  <div className="project-card-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '16px' }}>
                     {proj.liveDemoUrl && proj.liveDemoUrl !== '#' ? (
-                      <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo-text">
-                        Launch Demo <span className="arrow">↗</span>
+                      <a 
+                        href={proj.liveDemoUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="btn-live-demo-text"
+                        style={{
+                          flex: 1,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          padding: '10px 14px',
+                          borderRadius: '10px',
+                          backgroundColor: '#ff7700',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          textDecoration: 'none',
+                          boxShadow: '0 4px 14px rgba(255, 119, 0, 0.35)',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <span>Live Demo</span> <span className="arrow">↗</span>
                       </a>
-                    ) : (
-                      <span style={{ fontSize: '13px', color: '#64748b' }}>Custom Platform</span>
-                    )}
+                    ) : null}
 
                     <button
                       type="button"
                       onClick={() => setSelectedProject(proj)}
                       className="btn-details-text"
+                      style={{
+                        flex: 1,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.16)',
+                        color: '#f3f4f6',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
                     >
-                      Case Details →
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      <span>Quick View</span>
                     </button>
                   </div>
                 </div>
@@ -275,28 +345,30 @@ export default function ProjectsSection() {
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.88)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px'
+            padding: '20px'
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              backgroundColor: '#12100e',
-              border: '1px solid rgba(255, 119, 0, 0.3)',
+              backgroundColor: 'rgba(16, 14, 12, 0.94)',
+              backdropFilter: 'blur(28px)',
+              WebkitBackdropFilter: 'blur(28px)',
+              border: '1px solid rgba(255, 119, 0, 0.35)',
               borderRadius: '24px',
-              maxWidth: '720px',
+              maxWidth: '740px',
               width: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
               padding: '32px',
-              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.9)',
+              boxShadow: '0 28px 80px rgba(0, 0, 0, 0.95), 0 0 50px rgba(255, 119, 0, 0.18)',
               position: 'relative',
               animation: 'fadeIn 0.2s ease-out'
             }}
@@ -307,23 +379,27 @@ export default function ProjectsSection() {
                 position: 'absolute',
                 top: '20px',
                 right: '20px',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
                 color: '#fff',
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '50%',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '16px'
+                fontSize: '18px',
+                transition: 'all 0.2s ease',
+                zIndex: 10
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 119, 0, 0.3)'; e.currentTarget.style.borderColor = '#ff7700'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)'; }}
             >
               ✕
             </button>
 
-            <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '24px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ borderRadius: '18px', overflow: 'hidden', marginBottom: '24px', border: '1px solid rgba(255, 255, 255, 0.12)', boxShadow: '0 12px 30px rgba(0,0,0,0.6)', maxHeight: '340px' }}>
               <img
                 src={formatImageUrl(selectedProject.imageUrl)}
                 alt={selectedProject.title}
@@ -331,17 +407,20 @@ export default function ProjectsSection() {
               />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#ff7700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', color: '#ff7700', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', backgroundColor: 'rgba(255, 119, 0, 0.15)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(255, 119, 0, 0.3)' }}>
                 {selectedProject.category}
               </span>
               <span style={{ color: '#64748b' }}>·</span>
-              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                {selectedProject.pill || 'Full-Stack'}
+              <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 600 }}>
+                {selectedProject.pill || 'Full-Stack Web App'}
+              </span>
+              <span style={{ color: '#10b981', fontSize: '12px', fontWeight: 700, marginLeft: 'auto' }}>
+                ● Live Production Architecture
               </span>
             </div>
 
-            <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', margin: '0 0 14px 0', letterSpacing: '-0.5px' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#ffffff', margin: '0 0 14px 0', letterSpacing: '-0.5px' }}>
               {selectedProject.title}
             </h2>
 
@@ -351,8 +430,8 @@ export default function ProjectsSection() {
 
             {/* Technologies */}
             <div style={{ marginBottom: '28px' }}>
-              <strong style={{ fontSize: '13px', color: '#94a3b8', display: 'block', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Architecture & Tech Stack
+              <strong style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Architecture & Core Tech Stack
               </strong>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {(Array.isArray(selectedProject.technologies)
@@ -363,10 +442,10 @@ export default function ProjectsSection() {
                     key={idx}
                     style={{
                       fontSize: '12px',
-                      padding: '5px 12px',
+                      padding: '6px 14px',
                       borderRadius: '8px',
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
                       color: '#f3f4f6',
                       fontWeight: 600
                     }}
@@ -378,7 +457,7 @@ export default function ProjectsSection() {
             </div>
 
             {/* Modal CTAs */}
-            <div style={{ display: 'flex', gap: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '20px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '22px' }}>
               {selectedProject.liveDemoUrl && selectedProject.liveDemoUrl !== '#' && (
                 <a
                   href={selectedProject.liveDemoUrl}
@@ -387,7 +466,7 @@ export default function ProjectsSection() {
                   style={{
                     backgroundColor: '#ff7700',
                     color: '#ffffff',
-                    padding: '12px 24px',
+                    padding: '12px 26px',
                     borderRadius: '999px',
                     fontWeight: 700,
                     fontSize: '14px',
@@ -395,13 +474,14 @@ export default function ProjectsSection() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 20px rgba(255, 119, 0, 0.4)'
+                    boxShadow: '0 4px 20px rgba(255, 119, 0, 0.45)',
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  Open Live Application ↗
+                  <span>Open Live Application</span> <span className="arrow">↗</span>
                 </a>
               )}
-              {selectedProject.githubUrl && (
+              {selectedProject.githubUrl ? (
                 <a
                   href={selectedProject.githubUrl}
                   target="_blank"
@@ -414,12 +494,35 @@ export default function ProjectsSection() {
                     fontWeight: 600,
                     fontSize: '14px',
                     textDecoration: 'none',
-                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px'
                   }}
                 >
-                  GitHub Repository ↗
+                  <span>GitHub Repository</span> <span className="arrow">↗</span>
                 </a>
-              )}
+              ) : null}
+              <Link
+                href="/contact"
+                onClick={() => setSelectedProject(null)}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#ff7700',
+                  padding: '12px 20px',
+                  borderRadius: '999px',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  textDecoration: 'none',
+                  border: '1px solid rgba(255, 119, 0, 0.4)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginLeft: 'auto'
+                }}
+              >
+                <span>Inquire About Similar Project</span> <span className="arrow">→</span>
+              </Link>
             </div>
           </div>
         </div>

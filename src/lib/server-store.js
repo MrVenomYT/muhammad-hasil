@@ -447,32 +447,43 @@ async function syncCollectionWithSeed(Model, seedItems, filename) {
 }
 
 // -------------------------------------------------------------
+// -------------------------------------------------------------
 // PROJECTS REPOSITORY
 // -------------------------------------------------------------
 export async function getProjects() {
   await connectToDatabase().catch(() => {});
   const disk = readJsonFile('projects.json', initialProjects);
 
+  let rawDocs = disk;
   try {
     if (Project.db && Project.db.readyState === 1) {
       await syncCollectionWithSeed(Project, disk, 'projects.json');
       const docs = await Project.find({}).sort({ order: 1, createdAt: -1 }).lean();
       if (docs && docs.length > 0) {
-        const normalized = docs.map(d => ({
+        rawDocs = docs.map(d => ({
           ...d,
           id: d._id ? d._id.toString() : d.id,
           _id: d._id ? d._id.toString() : undefined
         }));
-        // Update persistent disk backup
-        writeJsonFile('projects.json', normalized);
-        return normalized;
       }
     }
   } catch (err) {
     console.warn('Projects Mongo read note:', err.message);
   }
 
-  return disk;
+  // Deduplicate strictly by unique id and title so projects appear strictly once
+  const seen = new Set();
+  const deduped = [];
+  rawDocs.forEach(p => {
+    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      deduped.push(p);
+    }
+  });
+
+  writeJsonFile('projects.json', deduped);
+  return deduped;
 }
 
 export async function saveProject(projectData) {
@@ -486,14 +497,25 @@ export async function saveProject(projectData) {
     updatedAt: new Date().toISOString()
   };
 
-  // 1. Update persistent local storage first
-  const existingIndex = disk.findIndex(p => p.id === id || p._id === id);
+  // 1. Update persistent local storage first with deduplication
+  const existingIndex = disk.findIndex(p => p.id === id || p._id === id || (p.title && p.title.toLowerCase() === (itemToSave.title || '').toLowerCase()));
+  const isNewProject = existingIndex < 0;
   if (existingIndex >= 0) {
     disk[existingIndex] = { ...disk[existingIndex], ...itemToSave };
   } else {
     disk.unshift(itemToSave);
   }
-  writeJsonFile('projects.json', disk);
+
+  const seen = new Set();
+  const deduped = [];
+  disk.forEach(p => {
+    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      deduped.push(p);
+    }
+  });
+  writeJsonFile('projects.json', deduped);
 
   // 2. Update MongoDB if connected
   try {
@@ -501,7 +523,12 @@ export async function saveProject(projectData) {
       if (projectData._id) {
         await Project.findByIdAndUpdate(projectData._id, itemToSave, { upsert: true });
       } else {
-        const existing = await Project.findOne({ title: projectData.title });
+        const existing = await Project.findOne({ 
+          $or: [
+            { id: itemToSave.id },
+            { title: itemToSave.title }
+          ]
+        });
         if (existing) {
           await Project.findByIdAndUpdate(existing._id, itemToSave);
         } else {
@@ -511,6 +538,29 @@ export async function saveProject(projectData) {
     }
   } catch (err) {
     console.warn('Projects Mongo save note:', err.message);
+  }
+
+  // 3. User Requirement: "if a project is added from dashboard a product will be also uploaded auto on the behalf of that xyz project"
+  try {
+    const companionProductId = 'prod-' + String(itemToSave.id || itemToSave.title).toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+    const companionProduct = {
+      id: companionProductId,
+      title: itemToSave.title,
+      category: itemToSave.category && itemToSave.category.toLowerCase().includes('react') ? 'Web Apps' : 'Templates',
+      price: '$29',
+      badge: isNewProject ? 'New Project' : 'Featured',
+      description: itemToSave.description || `Production-ready application template and architecture for ${itemToSave.title}.`,
+      imageUrl: itemToSave.imageUrl || '/assets/muhammad-hasil.png',
+      buyUrl: 'https://pro.fiverr.com/users/venomdesigne613/',
+      demoUrl: itemToSave.liveDemoUrl || '#',
+      features: Array.isArray(itemToSave.technologies) && itemToSave.technologies.length > 0
+        ? itemToSave.technologies
+        : ['React & Next.js', 'Clean Architecture', 'Full Source Code', 'Production Ready'],
+      linkedProjectId: itemToSave.id
+    };
+    await saveProduct(companionProduct);
+  } catch (prodErr) {
+    console.warn('Auto companion product creation notice:', prodErr.message);
   }
 
   return itemToSave;
@@ -524,11 +574,16 @@ export async function deleteProject(id) {
 
   try {
     if (Project.db && Project.db.readyState === 1) {
-      await Project.deleteOne({ $or: [{ _id: id }, { slug: id }, { title: id }] });
+      await Project.deleteOne({ $or: [{ _id: id }, { slug: id }, { title: id }, { id: id }] });
     }
   } catch (err) {
     console.warn('Projects Mongo delete note:', err.message);
   }
+
+  try {
+    const companionProductId = 'prod-' + String(id).toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+    await deleteProduct(companionProductId);
+  } catch (err) {}
 
   return { success: true };
 }
@@ -540,25 +595,36 @@ export async function getProducts() {
   await connectToDatabase().catch(() => {});
   const disk = readJsonFile('products.json', initialProducts);
 
+  let rawDocs = disk;
   try {
     if (Product.db && Product.db.readyState === 1) {
       await syncCollectionWithSeed(Product, disk, 'products.json');
       const docs = await Product.find({}).sort({ order: 1, createdAt: -1 }).lean();
       if (docs && docs.length > 0) {
-        const normalized = docs.map(d => ({
+        rawDocs = docs.map(d => ({
           ...d,
           id: d._id ? d._id.toString() : d.id,
           _id: d._id ? d._id.toString() : undefined
         }));
-        writeJsonFile('products.json', normalized);
-        return normalized;
       }
     }
   } catch (err) {
     console.warn('Products Mongo read note:', err.message);
   }
 
-  return disk;
+  // Deduplicate strictly by id and title
+  const seen = new Set();
+  const deduped = [];
+  rawDocs.forEach(p => {
+    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      deduped.push(p);
+    }
+  });
+
+  writeJsonFile('products.json', deduped);
+  return deduped;
 }
 
 export async function saveProduct(productData) {

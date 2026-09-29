@@ -7,12 +7,15 @@ const FRAME_DIR = '/frames';
 // Route base frame targets for page transitions
 const pageFrameTargets = {
   '/': 0,
-  '/about': 40,
-  '/projects': 80,
+  '/about': 35,
+  '/projects': 70,
+  '/products': 95,
   '/services': 120,
-  '/contact': 160,
-  '/admin/login': 0,
-  '/admin/dashboard': 0
+  '/contact': 150,
+  '/faq': 60,
+  '/privacy': 130,
+  '/admin/login': 20,
+  '/admin/dashboard': 45
 };
 
 // Global in-memory cache for all 192 image frames
@@ -233,12 +236,18 @@ export default function CanvasAnimation({ currentPath }) {
       animState.current.reqId = requestAnimationFrame(tick);
     };
 
-    const handleScroll = () => {
-      const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-      const docHeight = document.documentElement.scrollHeight || document.body.scrollHeight || 1;
-      const winHeight = window.innerHeight || 1;
-      const maxScroll = Math.max(1, docHeight - winHeight);
+    const handleScroll = (e) => {
+      let scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+      let docHeight = document.documentElement.scrollHeight || document.body.scrollHeight || 1;
+      let winHeight = window.innerHeight || 1;
 
+      if (e && e.target && e.target !== document && e.target !== window && e.target.scrollHeight > e.target.clientHeight) {
+        scrollY = e.target.scrollTop || 0;
+        docHeight = e.target.scrollHeight || 1;
+        winHeight = e.target.clientHeight || 1;
+      }
+
+      const maxScroll = Math.max(1, docHeight - winHeight);
       const scrollPercent = Math.max(0, Math.min(1, scrollY / maxScroll));
       
       const pageStart = pageFrameTargets[activePath] !== undefined ? pageFrameTargets[activePath] : 0;
@@ -253,16 +262,16 @@ export default function CanvasAnimation({ currentPath }) {
       renderCanvas(animState.current.currentFrame);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    document.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
+    document.addEventListener('scroll', handleScroll, { passive: true, capture: true });
     window.addEventListener('resize', handleResize, { passive: true });
 
     animState.current.reqId = requestAnimationFrame(tick);
     renderCanvas(animState.current.currentFrame);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      document.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll, { capture: true });
+      document.removeEventListener('scroll', handleScroll, { capture: true });
       window.removeEventListener('resize', handleResize);
       if (animState.current.reqId) {
         cancelAnimationFrame(animState.current.reqId);

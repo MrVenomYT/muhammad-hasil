@@ -1,5 +1,21 @@
 [
   {
+    "_id": "6abbdf80946d167c28fa4863",
+    "authorName": "James Allen",
+    "authorRole": "Client",
+    "company": "",
+    "authorAvatar": "",
+    "rating": 5,
+    "badge": "Verified Client",
+    "quote": "Hasil is highly skilled, creative, and dedicated to delivering exceptional work. His attention to detail, technical expertise, and ability to turn ideas into effective solutions truly stand out. It was a pleasure working with him, and I would confidently recommend Hasil for any development project.",
+    "verified": true,
+    "featured": true,
+    "order": 0,
+    "createdAt": "2026-09-29T15:55:44.377Z",
+    "__v": 0,
+    "id": "6abbdf80946d167c28fa4863"
+  },
+  {
     "_id": "6abbd8bc57df84cc42addd99",
     "authorName": "Brandon P.",
     "authorRole": "Product Manager",

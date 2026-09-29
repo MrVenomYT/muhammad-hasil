@@ -1,5 +1,29 @@
 [
   {
+    "_id": "6abbdb3323131d20f5e719a8",
+    "title": "Papers Bank",
+    "category": "fullstack react",
+    "pill": "Full Stack Web App",
+    "description": "A paper bank web app for the perp for students",
+    "longDescription": "",
+    "liveDemoUrl": "https://venom-papers.vercel.app/",
+    "githubUrl": "",
+    "imageUrl": "/assets/papers-bank.jpg",
+    "technologies": [
+      "React",
+      "Next.js",
+      "Node.js"
+    ],
+    "featured": true,
+    "order": 0,
+    "views": 0,
+    "likes": 0,
+    "updatedAt": "2026-09-29T15:43:01.329Z",
+    "createdAt": "2026-09-29T15:37:23.299Z",
+    "__v": 0,
+    "id": "6abbdb3323131d20f5e719a8"
+  },
+  {
     "_id": "6abbd8bb57df84cc42addd92",
     "title": "Venomous Studio",
     "category": "design react",

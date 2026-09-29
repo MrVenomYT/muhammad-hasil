@@ -1,0 +1,83 @@
+{
+  "_id": "6abbe223b095e8e372b6d5d4",
+  "headline": "Clean web experiences with personality and purpose.",
+  "subtext": "I am Muhammad Hasil, a full-stack developer who builds clean portfolio websites, interactive dashboards, scalable backend APIs, and responsive project experiences. I care about simple layouts, strong visual hierarchy, and interfaces that feel professional on every screen.",
+  "ctaText": "Hire me on Fiverr",
+  "ctaLink": "https://pro.fiverr.com/users/venomdesigne613/",
+  "skills": [
+    {
+      "name": "React.js",
+      "percentage": 94,
+      "category": "Frontend",
+      "_id": "6abbe223b095e8e372b6d5d5"
+    },
+    {
+      "name": "Next.js",
+      "percentage": 91,
+      "category": "Frontend",
+      "_id": "6abbe223b095e8e372b6d5d6"
+    },
+    {
+      "name": "Node.js",
+      "percentage": 88,
+      "category": "Backend",
+      "_id": "6abbe223b095e8e372b6d5d7"
+    },
+    {
+      "name": "Tailwind CSS",
+      "percentage": 96,
+      "category": "Styling",
+      "_id": "6abbe223b095e8e372b6d5d8"
+    },
+    {
+      "name": "Discord API & Bots",
+      "percentage": 95,
+      "category": "Integration",
+      "_id": "6abbe223b095e8e372b6d5d9"
+    },
+    {
+      "name": "Minecraft Development",
+      "percentage": 90,
+      "category": "Gaming",
+      "_id": "6abbe223b095e8e372b6d5da"
+    },
+    {
+      "name": "MongoDB & Mongoose",
+      "percentage": 92,
+      "category": "Database",
+      "_id": "6abbe223b095e8e372b6d5db"
+    }
+  ],
+  "education": [
+    {
+      "degree": "BS Business & Information Technology (BBIT)",
+      "institution": "Virtual University of Pakistan",
+      "period": "2025 - Present",
+      "description": "Currently pursuing BBIT, combining Information Technology and enterprise software systems. Focused on full-stack web engineering, database architecture, software development, and modern web application deployment.",
+      "certificationLink": "https://www.vu.edu.pk",
+      "_id": "6abbe223b095e8e372b6d5dc"
+    }
+  ],
+  "experience": [
+    {
+      "role": "Full Stack Developer",
+      "company": "Freelance & Client Systems",
+      "period": "2024 - Present",
+      "description": "Built responsive web apps, full-stack portfolio systems, interactive dashboards, custom APIs, Discord bots, Minecraft/Roblox integrations, and high-performance UI flows.",
+      "projectLink": "https://pro.fiverr.com/users/venomdesigne613/",
+      "_id": "6abbe223b095e8e372b6d5dd"
+    }
+  ],
+  "certifications": [
+    {
+      "title": "Full-Stack Software Engineering & Modern Web Architecture",
+      "issuer": "Verified Credential",
+      "date": "2024",
+      "link": "https://www.linkedin.com/in/muhammad-hasil/",
+      "_id": "6abbe223b095e8e372b6d5de"
+    }
+  ],
+  "updatedAt": "2026-09-29T16:06:59.282Z",
+  "__v": 0,
+  "id": "6abbe223b095e8e372b6d5d4"
+}

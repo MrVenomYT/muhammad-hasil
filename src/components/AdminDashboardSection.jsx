@@ -617,7 +617,7 @@ export default function AdminDashboardSection() {
   });
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#070605', color: '#f3f4f6', fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'transparent', color: '#f3f4f6', fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)' }}>
       {/* Toast Notification */}
       {toast.show && (
         <div style={{
@@ -646,8 +646,9 @@ export default function AdminDashboardSection() {
       <header style={{
         height: '64px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        backgroundColor: 'rgba(12, 11, 10, 0.95)',
-        backdropFilter: 'blur(12px)',
+        backgroundColor: 'rgba(14, 12, 11, 0.78)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         padding: '0 28px',
         display: 'flex',
         alignItems: 'center',
@@ -658,8 +659,8 @@ export default function AdminDashboardSection() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <img src="/assets/muhammad-hasil.png" alt="iHasil" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #ff7700' }} />
-            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>iHasil <span style={{ color: '#ff7700' }}>Admin</span></span>
+            <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #ff7700' }} />
+            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>Muhammad Hasil <span style={{ color: '#ff7700' }}>Admin</span></span>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
             <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: stats.dbStatus === 'connected' ? '#10b981' : '#f59e0b' }}></span>
@@ -700,7 +701,9 @@ export default function AdminDashboardSection() {
         <aside style={{
           width: '260px',
           borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: '#0c0a09',
+          backgroundColor: 'rgba(16, 14, 12, 0.78)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           padding: '24px 16px',
           display: 'flex',
           flexDirection: 'column',
@@ -859,33 +862,6 @@ export default function AdminDashboardSection() {
           >
             <span>⚙ Profile & Availability</span>
           </button>
-
-          <button
-            onClick={() => { setActiveTab('about'); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'about' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'about' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>🎓 About, Exp & Edu</span>
-          </button>
-
-          <div style={{ marginTop: 'auto', padding: '14px', backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#e2e8f0', marginBottom: '4px' }}>Permanent DB Shield</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.5 }}>
-              All database schemas auto-sync with MongoDB and persistent disk storage. No reloads or server refreshes can erase your content.
-            </div>
-          </div>
         </aside>
 
         {/* Content Area */}
