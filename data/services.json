@@ -67,7 +67,7 @@
     "title": "API Integration & Database Architecture",
     "category": "Backend Architecture",
     "icon": "Database",
-    "description": "High-performance database modeling with MongoDB Mongoose schemas, Firebase real-time data sync, and third-party API webhooks.",
+    "description": "High-performance database modeling with MongoDB & PostgreSQL schemas, Firebase real-time data sync, and third-party API webhooks.",
     "features": [],
     "deliverables": [
       "MongoDB Database Schemas",

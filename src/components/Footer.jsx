@@ -12,17 +12,17 @@ export default function Footer() {
           <span className="brand-logo-text">iHasil</span>
         </Link>
         <div className="footer-socials">
-          <a href="https://www.linkedin.com/in/muhammad-hasil/" target="_blank" rel="noopener noreferrer" className="footer-social-link">
+          <a href="https://www.linkedin.com/in/muhammad-hasil/" target="_blank" rel="noopener noreferrer" className="footer-social-link" style={{ color: '#ffffff' }}>
             LinkedIn ↗
           </a>
-          <a href="https://www.patreon.com/MrVenomYT" target="_blank" rel="noopener noreferrer" className="footer-social-link">
+          <a href="https://www.patreon.com/MrVenomYT" target="_blank" rel="noopener noreferrer" className="footer-social-link" style={{ color: '#ffffff' }}>
             Patreon ↗
           </a>
-          <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" className="footer-social-link">
+          <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" className="footer-social-link" style={{ color: '#ffffff' }}>
             Fiverr Pro ↗
           </a>
         </div>
-        <p className="footer-copy">© 2026 iHasil. All rights reserved.</p>
+        <p className="footer-copy" style={{ color: '#ffffff', opacity: 0.9 }}>© 2026 iHasil. All rights reserved.</p>
       </div>
     </footer>
   );

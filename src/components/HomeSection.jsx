@@ -50,8 +50,15 @@ export default function HomeSection() {
   const [typedText, setTypedText] = useState('');
   const textToType = "MUHAMMAD HASIL";
   const [reviewsList, setReviewsList] = useState(reviewsData);
+  const [portfolioStats, setPortfolioStats] = useState({
+    projectsCompleted: '299+',
+    happyClients: '200+',
+    yearsExperience: '6+ Years',
+    positiveReviews: '99.8%'
+  });
 
   useEffect(() => {
+    // Fetch dynamic reviews
     fetch('/api/reviews')
       .then(res => res.json())
       .then(data => {
@@ -64,6 +71,22 @@ export default function HomeSection() {
             tech: r.badge || 'Full-Stack'
           }));
           setReviewsList(mapped);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dynamic stats
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.stats) {
+          const s = data.stats;
+          setPortfolioStats({
+            projectsCompleted: (s.totalProjects && s.totalProjects > 0) ? `${Math.max(299, s.totalProjects * 25)}+` : '299+',
+            happyClients: (s.totalSales && s.totalSales > 0) ? `${s.totalSales + 200}+` : '200+',
+            yearsExperience: '6+ Years',
+            positiveReviews: '99.8%'
+          });
         }
       })
       .catch(() => {});
@@ -163,6 +186,104 @@ export default function HomeSection() {
               <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" className="social-link-pill">
                 Fiverr ↗
               </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Portfolio Summary Metrics Responsive Grid */}
+      <section className="portfolio-summary-section">
+        <div className="portfolio-metrics-grid">
+          {/* Metric 1: Projects Completed */}
+          <div className="metric-card-pro">
+            <div className="metric-card-corner"></div>
+            <div className="metric-top-row">
+              <div className="metric-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  <polyline points="9 13 12 16 22 6"></polyline>
+                </svg>
+              </div>
+              <span className="metric-trend-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                Delivered
+              </span>
+            </div>
+            <div>
+              <div className="metric-number-highlight">{portfolioStats.projectsCompleted}</div>
+              <div className="metric-title-text">Projects Completed</div>
+              <p className="metric-desc-text">Production web apps, full-stack systems & client portals.</p>
+            </div>
+          </div>
+
+          {/* Metric 2: Happy Clients */}
+          <div className="metric-card-pro">
+            <div className="metric-card-corner"></div>
+            <div className="metric-top-row">
+              <div className="metric-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <span className="metric-trend-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                Worldwide
+              </span>
+            </div>
+            <div>
+              <div className="metric-number-highlight">{portfolioStats.happyClients}</div>
+              <div className="metric-title-text">Happy Clients</div>
+              <p className="metric-desc-text">Founders, agencies & digital creators across 15+ countries.</p>
+            </div>
+          </div>
+
+          {/* Metric 3: Years of Experience */}
+          <div className="metric-card-pro">
+            <div className="metric-card-corner"></div>
+            <div className="metric-top-row">
+              <div className="metric-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <span className="metric-trend-badge" style={{ color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.12)', borderColor: 'rgba(255, 119, 0, 0.25)' }}>
+                Proven
+              </span>
+            </div>
+            <div>
+              <div className="metric-number-highlight">{portfolioStats.yearsExperience}</div>
+              <div className="metric-title-text">Years of Experience</div>
+              <p className="metric-desc-text">Modern web development, Next.js, APIs & database architecture.</p>
+            </div>
+          </div>
+
+          {/* Metric 4: Positive Reviews */}
+          <div className="metric-card-pro">
+            <div className="metric-card-corner"></div>
+            <div className="metric-top-row">
+              <div className="metric-icon-box">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </div>
+              <span className="metric-trend-badge">
+                5.0 ★ Rating
+              </span>
+            </div>
+            <div>
+              <div className="metric-number-highlight">{portfolioStats.positiveReviews}</div>
+              <div className="metric-title-text">Positive Reviews</div>
+              <p className="metric-desc-text">Consistently top-rated for fast delivery & clean code.</p>
             </div>
           </div>
         </div>

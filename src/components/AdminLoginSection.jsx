@@ -56,7 +56,7 @@ export default function AdminLoginSection() {
       >
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginBottom: '22px' }}>
           <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" width="46" height="46" style={{ borderRadius: '50%', border: '2px solid #ff7700' }} />
-          <span style={{ fontSize: '26px', fontWeight: '800', fontFamily: 'Syne, sans-serif', color: '#fff', letterSpacing: '-0.5px' }}>Muhammad Hasil</span>
+          <span style={{ fontSize: '26px', fontWeight: '800', fontFamily: 'var(--font-display, "Outfit", sans-serif)', color: '#fff', letterSpacing: '-0.5px' }}>Muhammad Hasil</span>
         </div>
 
         <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#fff', marginBottom: '8px', letterSpacing: '-0.5px' }}>

@@ -42,13 +42,29 @@
       "_id": "6abbe223b095e8e372b6d5da"
     },
     {
-      "name": "MongoDB & Mongoose",
+      "name": "MongoDB & PostgreSQL",
       "percentage": 92,
       "category": "Database",
       "_id": "6abbe223b095e8e372b6d5db"
     }
   ],
   "education": [
+    {
+      "degree": "Matric (Computer Science)",
+      "institution": "Al-Qalam High School",
+      "period": "2010 - 2012",
+      "description": "Completed Matric in computer science",
+      "certificationLink": "",
+      "_id": "6abc008fcb970af861a20871"
+    },
+    {
+      "degree": "Intermediate (Ics)",
+      "institution": "CIMS (Central Group Of Colleges",
+      "period": "2014 - 2016",
+      "description": "Completed Intermediate in ICS",
+      "certificationLink": "",
+      "_id": "6abc008fcb970af861a20872"
+    },
     {
       "degree": "BS Business & Information Technology (BBIT)",
       "institution": "Virtual University of Pakistan",
@@ -59,6 +75,38 @@
     }
   ],
   "experience": [
+    {
+      "role": "Wordpress Developer",
+      "company": "Freelance",
+      "period": "2016 - 2018",
+      "description": "Complete 500+ private project with multiple clients",
+      "projectLink": "",
+      "_id": "6abc008fcb970af861a20874"
+    },
+    {
+      "role": "Sales Engineer / B2B Leads",
+      "company": "Esp Inspire",
+      "period": "2024 - Present",
+      "description": "Working as Sales Eng / B2B Lead Generation / Email Automation / Data Miner",
+      "projectLink": "",
+      "_id": "6abc008fcb970af861a20875"
+    },
+    {
+      "role": "Computer Operater (Inventory Managment)",
+      "company": "Kamal Limited",
+      "period": "3 Months",
+      "description": "Manage Inventory",
+      "projectLink": "",
+      "_id": "6abc008fcb970af861a20876"
+    },
+    {
+      "role": "Customer Support / Data Miner / Backend Manager",
+      "company": "Quantum LHE",
+      "period": "2019 - 2021",
+      "description": "Manage Shopify Store , Customer Support etc",
+      "projectLink": "",
+      "_id": "6abc008fcb970af861a20877"
+    },
     {
       "role": "Full Stack Developer",
       "company": "Freelance & Client Systems",
@@ -77,7 +125,7 @@
       "_id": "6abbe223b095e8e372b6d5de"
     }
   ],
-  "updatedAt": "2026-09-29T16:06:59.282Z",
+  "updatedAt": "2026-09-29T18:16:47.309Z",
   "__v": 0,
   "id": "6abbe223b095e8e372b6d5d4"
 }

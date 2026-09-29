@@ -14,22 +14,20 @@ export function formatImageUrl(url) {
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [apiProjects, setApiProjects] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('app_projects_cache_v2');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch (e) {}
-    }
-    return [];
-  });
+  const [apiProjects, setApiProjects] = useState([]);
   const [firestoreProjects, setFirestoreProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
   useEffect(() => {
+    // 0. Cache hydration
+    try {
+      const cached = localStorage.getItem('app_projects_cache_v2');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) setApiProjects(parsed);
+      }
+    } catch (e) {}
+
     // 1. Fetch from MongoDB API
     fetch('/api/projects')
       .then(res => res.json())
@@ -99,9 +97,108 @@ export default function ProjectsSection() {
     return matchesFilter && matchesSearch;
   });
 
+  // Popular tags for quick filter chips
+  const popularTags = ['All', 'React', 'Next.js', 'Full Stack', 'Node.js', 'MongoDB', 'PostgreSQL', 'Tailwind', 'API'];
+
+  // Handle Tag Chip Click
+  const handleTagClick = (tag) => {
+    if (tag === 'All') {
+      setSearchQuery('');
+      setFilter('all');
+    } else {
+      setSearchQuery(tag);
+    }
+  };
+
   return (
     <div id="page-projects" className="page-view active">
       <section className="projects-section">
+        {/* Top Summary Metrics Responsive Grid */}
+        <div className="portfolio-summary-section" style={{ margin: '0 0 36px 0', padding: 0 }}>
+          <div className="portfolio-metrics-grid">
+            <div className="metric-card-pro">
+              <div className="metric-card-corner"></div>
+              <div className="metric-top-row">
+                <div className="metric-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    <polyline points="9 13 12 16 22 6"></polyline>
+                  </svg>
+                </div>
+                <span className="metric-trend-badge">
+                  {mergedProjects.length} Active
+                </span>
+              </div>
+              <div>
+                <div className="metric-number-highlight">299+</div>
+                <div className="metric-title-text">Projects Completed</div>
+                <p className="metric-desc-text">Production full-stack platforms & scalable web applications.</p>
+              </div>
+            </div>
+
+            <div className="metric-card-pro">
+              <div className="metric-card-corner"></div>
+              <div className="metric-top-row">
+                <div className="metric-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <span className="metric-trend-badge">
+                  Worldwide
+                </span>
+              </div>
+              <div>
+                <div className="metric-number-highlight">200+</div>
+                <div className="metric-title-text">Happy Clients</div>
+                <p className="metric-desc-text">Founders, agencies & digital creators with 99.6% satisfaction.</p>
+              </div>
+            </div>
+
+            <div className="metric-card-pro">
+              <div className="metric-card-corner"></div>
+              <div className="metric-top-row">
+                <div className="metric-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+                <span className="metric-trend-badge" style={{ color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.12)', borderColor: 'rgba(255, 119, 0, 0.25)' }}>
+                  Full-Time
+                </span>
+              </div>
+              <div>
+                <div className="metric-number-highlight">6+ Years</div>
+                <div className="metric-title-text">Years of Experience</div>
+                <p className="metric-desc-text">Architecture, React, Next.js, Node.js & modern database systems.</p>
+              </div>
+            </div>
+
+            <div className="metric-card-pro">
+              <div className="metric-card-corner"></div>
+              <div className="metric-top-row">
+                <div className="metric-icon-box">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </div>
+                <span className="metric-trend-badge">
+                  5.0 ★ Rating
+                </span>
+              </div>
+              <div>
+                <div className="metric-number-highlight">99.8%</div>
+                <div className="metric-title-text">Client Satisfaction</div>
+                <p className="metric-desc-text">Top rated for fast turnarounds, clean architecture & support.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="projects-header">
           <div className="section-tag">
             <span className="orange-dot"></span>
@@ -109,65 +206,141 @@ export default function ProjectsSection() {
           </div>
           <h2 className="section-title">Production Web Applications & UI Systems</h2>
           <p style={{ color: '#a1a1aa', maxWidth: '680px', margin: '0 0 24px 0', fontSize: '15px', lineHeight: 1.6 }}>
-            Explore custom full-stack solutions built with React, Next.js, Node.js, and persistent MongoDB database architecture.
+            Explore custom full-stack solutions built with React, Next.js, Node.js, MongoDB & PostgreSQL database architecture.
           </p>
 
-          {/* Filter Tabs & Search Row */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '32px' }}>
-            <div className="projects-tabs-row" id="projects-tabs" style={{ margin: 0 }}>
-              <button
-                className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`}
-                onClick={() => setFilter('all')}
-              >
-                All Projects ({mergedProjects.length})
-              </button>
-              <button
-                className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`}
-                onClick={() => setFilter('fullstack')}
-              >
-                Full Stack ({countFullstack})
-              </button>
-              <button
-                className={`project-tab-btn ${filter === 'react' ? 'active' : ''}`}
-                onClick={() => setFilter('react')}
-              >
-                React & Next.js ({countReact})
-              </button>
-              <button
-                className={`project-tab-btn ${filter === 'design' ? 'active' : ''}`}
-                onClick={() => setFilter('design')}
-              >
-                UI/UX & Design ({countDesign})
-              </button>
-            </div>
-
-            <div style={{ position: 'relative', minWidth: '240px' }}>
+          {/* Real-Time Search & Interactive Filter Wrapper */}
+          <div className="search-filter-wrapper">
+            {/* Input Row */}
+            <div className="search-input-box">
+              <div className="search-icon-left">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
               <input
                 type="text"
-                placeholder="Search projects by tech, title..."
+                placeholder="Search projects in real-time by title, tech stack (e.g. React, Next.js, MongoDB), or tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  backgroundColor: 'rgba(20, 18, 16, 0.7)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '999px',
-                  padding: '9px 18px 9px 36px',
-                  fontSize: '13px',
-                  color: '#ffffff',
-                  outline: 'none',
-                  transition: 'border-color 0.2s ease'
-                }}
+                className="search-input-field"
               />
-              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '13px' }}>
-                🔍
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="search-clear-btn"
+                  title="Clear search (Esc)"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Quick Filter Tag Chips */}
+            <div className="search-tags-row">
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginRight: '4px' }}>
+                Filter by Tags:
               </span>
+              {popularTags.map((tag, idx) => {
+                const isSelected = (tag === 'All' && !searchQuery && filter === 'all') ||
+                  (searchQuery.toLowerCase() === tag.toLowerCase());
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleTagClick(tag)}
+                    className={`search-tag-chip ${isSelected ? 'active' : ''}`}
+                  >
+                    {tag === 'All' ? '✦ All Tech' : `#${tag}`}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Category Tabs & Dynamic Counter Bar */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '6px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+              <div className="projects-tabs-row" id="projects-tabs" style={{ margin: 0 }}>
+                <button
+                  className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`}
+                  onClick={() => setFilter('all')}
+                >
+                  All Projects ({mergedProjects.length})
+                </button>
+                <button
+                  className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`}
+                  onClick={() => setFilter('fullstack')}
+                >
+                  Full Stack ({countFullstack})
+                </button>
+                <button
+                  className={`project-tab-btn ${filter === 'react' ? 'active' : ''}`}
+                  onClick={() => setFilter('react')}
+                >
+                  React & Next.js ({countReact})
+                </button>
+                <button
+                  className={`project-tab-btn ${filter === 'design' ? 'active' : ''}`}
+                  onClick={() => setFilter('design')}
+                >
+                  UI/UX & Design ({countDesign})
+                </button>
+              </div>
+
+              <div className="search-feedback-bar">
+                <span>
+                  Showing <strong className="search-count-badge">{filteredProjects.length}</strong> of {mergedProjects.length} projects
+                  {searchQuery && (
+                    <span> matching &ldquo;<span style={{ color: '#fff' }}>{searchQuery}</span>&rdquo;</span>
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Optimized Projects Grid */}
-        <div className="projects-grid" id="projects-grid">
+        {/* Optimized Projects Grid or Empty State */}
+        {filteredProjects.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '60px 20px',
+            backgroundColor: 'rgba(18, 16, 14, 0.65)',
+            borderRadius: '20px',
+            border: '1px dashed rgba(255, 255, 255, 0.15)',
+            margin: '20px 0'
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔍</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
+              No projects found matching &ldquo;{searchQuery}&rdquo;
+            </h3>
+            <p style={{ color: '#94a3b8', fontSize: '14px', maxWidth: '440px', margin: '0 auto 20px auto' }}>
+              Try searching with a different technology keyword like React, Next.js, Node.js, or fullstack.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setFilter('all');
+              }}
+              style={{
+                backgroundColor: '#ff7700',
+                color: '#ffffff',
+                border: 'none',
+                padding: '10px 24px',
+                borderRadius: '999px',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(255, 119, 0, 0.35)'
+              }}
+            >
+              Reset Search & Show All Projects
+            </button>
+          </div>
+        ) : (
+          <div className="projects-grid" id="projects-grid">
           {filteredProjects.map((proj) => {
             const techList = Array.isArray(proj.technologies)
               ? proj.technologies
@@ -309,17 +482,6 @@ export default function ProjectsSection() {
             );
           })}
         </div>
-
-        {filteredProjects.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-            <p style={{ fontSize: '16px', margin: '0 0 12px 0' }}>No projects found matching your search.</p>
-            <button
-              onClick={() => { setFilter('all'); setSearchQuery(''); }}
-              style={{ background: 'none', border: '1px solid rgba(255,119,0,0.4)', color: '#ff7700', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
-            >
-              Reset Filters
-            </button>
-          </div>
         )}
       </section>
 

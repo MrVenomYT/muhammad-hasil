@@ -340,7 +340,7 @@ const initialServices = [
     title: 'API Integration & Database Architecture',
     category: 'Backend Architecture',
     icon: 'Database',
-    description: 'High-performance database modeling with MongoDB Mongoose schemas, Firebase real-time data sync, and third-party API webhooks.',
+    description: 'High-performance database modeling with MongoDB & PostgreSQL schemas, Firebase real-time data sync, and third-party API webhooks.',
     deliverables: ['MongoDB Database Schemas', 'Authentication & Session Handling', 'Stripe / PayPal Payment Gates', 'EmailJS Webhooks'],
     startingPrice: '$450',
     deliveryTime: '3-5 Days',
@@ -362,7 +362,7 @@ const initialProfile = {
   skills: [
     { name: 'React & Next.js', category: 'Frontend', level: 95 },
     { name: 'Node.js & Express', category: 'Backend', level: 90 },
-    { name: 'MongoDB & Mongoose', category: 'Database', level: 92 },
+    { name: 'MongoDB & PostgreSQL', category: 'Database', level: 92 },
     { name: 'Firebase & Firestore', category: 'Cloud', level: 88 },
     { name: 'Tailwind CSS & UI/UX', category: 'Styling', level: 94 },
     { name: 'REST APIs & Webhooks', category: 'Integration', level: 90 }
@@ -390,7 +390,7 @@ const initialAbout = {
     { name: 'Tailwind CSS', percentage: 96, category: 'Styling' },
     { name: 'Discord API & Bots', percentage: 95, category: 'Integration' },
     { name: 'Minecraft Development', percentage: 90, category: 'Gaming' },
-    { name: 'MongoDB & Mongoose', percentage: 92, category: 'Database' }
+    { name: 'MongoDB & PostgreSQL', percentage: 92, category: 'Database' }
   ],
   education: [
     {

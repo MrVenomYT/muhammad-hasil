@@ -10,24 +10,22 @@ export function formatImageUrl(url) {
 }
 
 export default function ProductsSection() {
-  const [products, setProducts] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('app_products_cache_v2');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch (e) {}
-    }
-    return getCombinedProducts([]);
-  });
+  const [products, setProducts] = useState(getCombinedProducts([]));
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
+    // Cache hydration
+    try {
+      const cached = localStorage.getItem('app_products_cache_v2');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) setProducts(parsed);
+      }
+    } catch (e) {}
+
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {

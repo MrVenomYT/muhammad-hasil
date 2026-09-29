@@ -12,7 +12,7 @@ const defaultAboutData = {
     { name: 'Tailwind CSS', percentage: 96, category: 'Styling' },
     { name: 'Discord API & Bots', percentage: 95, category: 'Integration' },
     { name: 'Minecraft Development', percentage: 90, category: 'Gaming' },
-    { name: 'MongoDB & Mongoose', percentage: 92, category: 'Database' }
+    { name: 'MongoDB & PostgreSQL', percentage: 92, category: 'Database' }
   ],
   education: [
     {
@@ -46,30 +46,45 @@ const defaultAboutData = {
 };
 
 export default function AboutSection() {
-  const [aboutData, setAboutData] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('app_about_cache_v2');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed && typeof parsed === 'object') return { ...defaultAboutData, ...parsed };
-        }
-      } catch (e) {}
-    }
-    return defaultAboutData;
-  });
+  const [aboutData, setAboutData] = useState(defaultAboutData);
 
   useEffect(() => {
+    // 1. Safe hydration from local cache
+    try {
+      const cached = localStorage.getItem('app_about_cache_v2');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === 'object') {
+          // Normalize skills to ensure MongoDB & PostgreSQL
+          if (Array.isArray(parsed.skills)) {
+            parsed.skills = parsed.skills.map(s => {
+              if (s.name === 'MongoDB & Mongoose') return { ...s, name: 'MongoDB & PostgreSQL' };
+              return s;
+            });
+          }
+          setAboutData(prev => ({ ...prev, ...parsed }));
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fresh fetch from API
     fetch('/api/about')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {
+          const fresh = { ...data.data };
+          if (Array.isArray(fresh.skills)) {
+            fresh.skills = fresh.skills.map(s => {
+              if (s.name === 'MongoDB & Mongoose') return { ...s, name: 'MongoDB & PostgreSQL' };
+              return s;
+            });
+          }
           setAboutData({
             ...defaultAboutData,
-            ...data.data
+            ...fresh
           });
           try {
-            localStorage.setItem('app_about_cache_v2', JSON.stringify(data.data));
+            localStorage.setItem('app_about_cache_v2', JSON.stringify(fresh));
           } catch (e) {}
         }
       })
@@ -158,7 +173,7 @@ export default function AboutSection() {
           </div>
         </div>
 
-        {/* Education & Experience Stack */}
+        {/* Education, Experience & Credentials Grid Sections */}
         <div className="info-blocks-container">
           {/* Education Block */}
           <div className="info-block">
@@ -166,22 +181,58 @@ export default function AboutSection() {
               <span className="badge-pill">EDUCATION & ACADEMICS</span>
               <h2 className="info-block-title">Education</h2>
             </div>
-            <div className="experience-cards-stack">
-              {(aboutData.education || []).map((edu, idx) => (
-                <div key={edu.id || idx} className="info-card">
-                  <div className="info-card-corner-shape"></div>
-                  <div className="info-icon-wrapper">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
+            <div className="info-cards-grid">
+              {(aboutData.education || []).map((edu, idx) => {
+                const hasLink = Boolean(edu.certificationLink && edu.certificationLink.trim());
+                return (
+                  <div 
+                    key={edu.id || idx} 
+                    className="info-card"
+                    style={{ cursor: hasLink ? 'pointer' : 'default' }}
+                    onClick={() => {
+                      if (hasLink) {
+                        window.open(edu.certificationLink, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
+                  >
+                    <div className="info-card-corner-shape"></div>
+                    <div className="info-card-top">
+                      <div className="info-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                      </div>
+                      <div className="info-badge-year">{edu.period || '2025 - Present'}</div>
+                    </div>
+                    <h3 className="info-card-heading">{edu.degree}</h3>
+                    <p className="info-card-subheading">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+                        <path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M16 11h2M16 15h2M10 21V11h4v10M12 3l9 4H3l9-4z"/>
+                      </svg>
+                      <span>{edu.institution}</span>
+                    </p>
+                    <p className="info-card-desc">{edu.description}</p>
+                    
+                    {hasLink && (
+                      <div className="info-card-footer">
+                        <a 
+                          href={edu.certificationLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="btn-info-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span>Visit Institution</span>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                          </svg>
+                        </a>
+                      </div>
+                    )}
                   </div>
-                  <div className="info-badge-year">{edu.period || '2025 - Present'}</div>
-                  <h3 className="info-card-heading">{edu.degree}</h3>
-                  <p className="info-card-subheading">{edu.institution}</p>
-                  <p className="info-card-desc">{edu.description}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -191,47 +242,128 @@ export default function AboutSection() {
               <span className="badge-pill">EXPERIENCE TIMELINE</span>
               <h2 className="info-block-title">Professional Experience</h2>
             </div>
-            <div className="experience-cards-stack">
-              {(aboutData.experience || []).map((exp, idx) => (
-                <div key={exp.id || idx} className="info-card">
-                  <div className="info-card-corner-shape"></div>
-                  <div className="info-badge-year">{exp.period || '2024 - Present'}</div>
-                  <h3 className="info-card-heading">{exp.role}</h3>
-                  <p className="info-card-subheading">{exp.company}</p>
-                  <p className="info-card-desc">{exp.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Certifications & Credentials Section */}
-        {aboutData.certifications && aboutData.certifications.length > 0 && (
-          <div style={{ marginTop: '60px' }}>
-            <div className="section-badge-center">
-              <span className="badge-pill">CERTIFICATIONS & LICENSES</span>
-            </div>
-            <h2 className="skills-title" style={{ textAlign: 'center' }}>Professional Credentials</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '28px' }}>
-              {aboutData.certifications.map((cert, idx) => (
-                <div key={cert.id || idx} style={{
-                  backgroundColor: 'rgba(18, 16, 14, 0.75)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between'
-                }}>
-                  <div>
-                    <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase' }}>✦ {cert.issuer} · {cert.date}</span>
-                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: '8px 0 0 0' }}>{cert.title}</h3>
+            <div className="info-cards-grid">
+              {(aboutData.experience || []).map((exp, idx) => {
+                const hasLink = Boolean(exp.projectLink && exp.projectLink.trim());
+                return (
+                  <div 
+                    key={exp.id || idx} 
+                    className="info-card"
+                    style={{ cursor: hasLink ? 'pointer' : 'default' }}
+                    onClick={() => {
+                      if (hasLink) {
+                        window.open(exp.projectLink, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
+                  >
+                    <div className="info-card-corner-shape"></div>
+                    <div className="info-card-top">
+                      <div className="info-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                        </svg>
+                      </div>
+                      <div className="info-badge-year">{exp.period || '2024 - Present'}</div>
+                    </div>
+                    <h3 className="info-card-heading">{exp.role}</h3>
+                    <p className="info-card-subheading">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                      <span>{exp.company}</span>
+                    </p>
+                    <p className="info-card-desc">{exp.description}</p>
+                    
+                    {hasLink && (
+                      <div className="info-card-footer">
+                        <a 
+                          href={exp.projectLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="btn-info-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span>View Reference</span>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                          </svg>
+                        </a>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
-        )}
+
+          {/* Certifications & Credentials Block */}
+          {aboutData.certifications && aboutData.certifications.length > 0 && (
+            <div className="info-block">
+              <div className="info-header-row">
+                <span className="badge-pill">CERTIFICATIONS & LICENSES</span>
+                <h2 className="info-block-title">Professional Credentials</h2>
+              </div>
+              <div className="info-cards-grid">
+                {aboutData.certifications.map((cert, idx) => {
+                  const hasLink = Boolean(cert.link && cert.link.trim());
+                  return (
+                    <div 
+                      key={cert.id || idx} 
+                      className="info-card"
+                      style={{ cursor: hasLink ? 'pointer' : 'default' }}
+                      onClick={() => {
+                        if (hasLink) {
+                          window.open(cert.link, '_blank', 'noopener,noreferrer');
+                        }
+                      }}
+                    >
+                      <div className="info-card-corner-shape"></div>
+                      <div className="info-card-top">
+                        <div className="info-icon-wrapper" style={{ background: 'rgba(16, 185, 129, 0.14)', borderColor: 'rgba(16, 185, 129, 0.3)', color: '#10b981' }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 15l-2 5l4 -2l4 2l-2 -5"></path>
+                            <circle cx="12" cy="9" r="6"></circle>
+                          </svg>
+                        </div>
+                        <div className="info-badge-year" style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
+                          ✦ {cert.issuer} · {cert.date}
+                        </div>
+                      </div>
+                      
+                      <h3 className="info-card-heading" style={{ fontSize: '1.2rem', marginBottom: '8px' }}>
+                        {cert.title}
+                      </h3>
+                      
+                      <p className="info-card-desc" style={{ fontSize: '0.86rem', color: '#94a3b8' }}>
+                        Officially issued and verified credential in modern software architecture, engineering standards, and web systems.
+                      </p>
+
+                      {hasLink && (
+                        <div className="info-card-footer">
+                          <a 
+                            href={cert.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="btn-info-link"
+                            style={{ color: '#10b981' }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span>Verify Credential</span>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                            </svg>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
