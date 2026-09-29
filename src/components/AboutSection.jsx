@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useAbout } from '../lib/usePortfolioData';
+import { InfoGridSkeleton, GlobalLoadingBar } from './SkeletonLoader';
 
 const defaultAboutData = {
   headline: 'Sales Engineer | Lead Generation and Data Mining | Hindi Translator | Discord Mod Expert | Skilled in Discord.js and Custom Integrations | Mern Stack Developer | Freelancer | AI Vibe Coding',
@@ -136,50 +138,8 @@ const defaultAboutData = {
 };
 
 export default function AboutSection() {
-  const [aboutData, setAboutData] = useState(defaultAboutData);
-
-  useEffect(() => {
-    // 1. Safe hydration from local cache
-    try {
-      const cached = localStorage.getItem('app_about_cache_v2');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed && typeof parsed === 'object') {
-          // Normalize skills to ensure MongoDB & PostgreSQL
-          if (Array.isArray(parsed.skills)) {
-            parsed.skills = parsed.skills.map(s => {
-              if (s.name === 'MongoDB & Mongoose') return { ...s, name: 'MongoDB & PostgreSQL' };
-              return s;
-            });
-          }
-          setAboutData(prev => ({ ...prev, ...parsed }));
-        }
-      }
-    } catch (e) {}
-
-    // 2. Fresh fetch from API
-    fetch('/api/about')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data) {
-          const fresh = { ...data.data };
-          if (Array.isArray(fresh.skills)) {
-            fresh.skills = fresh.skills.map(s => {
-              if (s.name === 'MongoDB & Mongoose') return { ...s, name: 'MongoDB & PostgreSQL' };
-              return s;
-            });
-          }
-          setAboutData({
-            ...defaultAboutData,
-            ...fresh
-          });
-          try {
-            localStorage.setItem('app_about_cache_v2', JSON.stringify(fresh));
-          } catch (e) {}
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const { about, isValidating, isLoading } = useAbout(defaultAboutData);
+  const aboutData = about || defaultAboutData;
 
   // Format headline gracefully if user supplied multiple piped titles
   const headlineText = aboutData.headline || defaultAboutData.headline;
@@ -452,7 +412,7 @@ export default function AboutSection() {
                         {cert.title}
                       </h3>
                       
-                      <p className="info-card-desc" style={{ fontSize: '0.86rem', color: '#94a3b8' }}>
+                      <p className="info-card-desc" style={{ fontSize: '0.86rem', color: '#f4f4f5', opacity: 0.95 }}>
                         Officially issued and verified credential in modern software architecture, engineering standards, and web systems.
                       </p>
 
@@ -481,6 +441,9 @@ export default function AboutSection() {
           )}
         </div>
       </section>
+
+      {/* SWR Background Syncing Indicator */}
+      <GlobalLoadingBar active={isValidating} />
     </div>
   );
 }

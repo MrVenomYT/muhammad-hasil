@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getCombinedProjects, initialSeedProjects } from '../lib/storage';
+import { useProjects } from '../lib/usePortfolioData';
+import { ProjectsGridSkeleton, GlobalLoadingBar } from './SkeletonLoader';
 
 export function formatImageUrl(url) {
   if (!url) return '/assets/muhammad-hasil.png';
@@ -14,34 +16,14 @@ export function formatImageUrl(url) {
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [apiProjects, setApiProjects] = useState(initialSeedProjects);
   const [firestoreProjects, setFirestoreProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
+  // SWR caching layer: instant cached display + background revalidation
+  const { projects: swrProjects, isLoading, isValidating } = useProjects();
+
   useEffect(() => {
-    // 0. Cache hydration
-    try {
-      const cached = localStorage.getItem('app_projects_cache_v2');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) setApiProjects(parsed);
-      }
-    } catch (e) {}
-
-    // 1. Fetch from MongoDB API
-    fetch('/api/projects')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          setApiProjects(data.data);
-          try {
-            localStorage.setItem('app_projects_cache_v2', JSON.stringify(data.data));
-          } catch (e) {}
-        }
-      })
-      .catch(err => console.warn('Projects API note:', err));
-
-    // 2. Optional Firestore sync
+    // Optional Firestore sync
     let unsubProjects = () => { };
     try {
       if (db) {
@@ -72,7 +54,7 @@ export default function ProjectsSection() {
   }, []);
 
   // Deduplicate strictly by title and unique id so each project is posted strictly once
-  const rawList = apiProjects && apiProjects.length > 0 ? apiProjects : getCombinedProjects(firestoreProjects);
+  const rawList = swrProjects && swrProjects.length > 0 ? swrProjects : getCombinedProjects(firestoreProjects);
   const seenKeys = new Set();
   const mergedProjects = [];
   rawList.forEach(p => {
@@ -301,8 +283,10 @@ export default function ProjectsSection() {
           </div>
         </div>
 
-        {/* Optimized Projects Grid or Empty State */}
-        {filteredProjects.length === 0 ? (
+        {/* Optimized Projects Grid, Skeleton Loading or Empty State */}
+        {isLoading && mergedProjects.length === 0 ? (
+          <ProjectsGridSkeleton count={6} />
+        ) : filteredProjects.length === 0 ? (
           <div style={{
             textAlign: 'center',
             padding: '60px 20px',
@@ -698,6 +682,9 @@ export default function ProjectsSection() {
           </div>
         </div>
       )}
+
+      {/* Background SWR Revalidation Syncing Indicator */}
+      <GlobalLoadingBar active={isValidating} />
     </div>
   );
 }

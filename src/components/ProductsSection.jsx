@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getCombinedProducts } from '../lib/storage';
+import { getCombinedProducts, seedProductsList } from '../lib/storage';
+import { useProducts } from '../lib/usePortfolioData';
+import { ProductCardSkeleton, GlobalLoadingBar } from './SkeletonLoader';
 
 export function formatImageUrl(url) {
   if (!url) return '/assets/muhammad-hasil.png';
@@ -10,43 +12,12 @@ export function formatImageUrl(url) {
 }
 
 export default function ProductsSection() {
-  const [products, setProducts] = useState(getCombinedProducts([]));
+  const { products: swrProducts, isLoading, isValidating } = useProducts();
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  useEffect(() => {
-    // Cache hydration
-    try {
-      const cached = localStorage.getItem('app_products_cache_v2');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) setProducts(parsed);
-      }
-    } catch (e) {}
-
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const seen = new Set();
-          const deduped = [];
-          data.data.forEach(p => {
-            const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
-            if (key && !seen.has(key)) {
-              seen.add(key);
-              deduped.push(p);
-            }
-          });
-          setProducts(deduped);
-          try {
-            localStorage.setItem('app_products_cache_v2', JSON.stringify(deduped));
-          } catch (e) {}
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const products = swrProducts && swrProducts.length > 0 ? swrProducts : seedProductsList;
 
   // Keyboard shortcut: close modal on Escape
   useEffect(() => {
@@ -123,13 +94,20 @@ export default function ProductsSection() {
           </div>
         </div>
 
-        {/* Optimized Products Grid */}
-        <div className="products-grid">
-          {filteredProducts.map((prod) => (
-            <div
-              key={prod._id || prod.id || prod.title}
-              className="project-card"
-            >
+        {/* Products Grid, Skeleton Loading or Empty State */}
+        {isLoading && products.length === 0 ? (
+          <div className="products-grid">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <ProductCardSkeleton key={idx} />
+            ))}
+          </div>
+        ) : (
+          <div className="products-grid">
+            {filteredProducts.map((prod) => (
+              <div
+                key={prod._id || prod.id || prod.title}
+                className="project-card"
+              >
               <div>
                 {/* Image Container with floating price & badge */}
                 <div className="project-image-box">
@@ -271,8 +249,9 @@ export default function ProductsSection() {
             </div>
           ))}
         </div>
+        )}
 
-        {filteredProducts.length === 0 && (
+        {filteredProducts.length === 0 && !isLoading && (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
             <p style={{ fontSize: '16px', margin: '0 0 12px 0' }}>No digital products found in this category.</p>
             <button
@@ -460,6 +439,9 @@ export default function ProductsSection() {
           </div>
         </div>
       )}
+
+      {/* SWR Background Syncing Indicator */}
+      <GlobalLoadingBar active={isValidating} />
     </div>
   );
 }

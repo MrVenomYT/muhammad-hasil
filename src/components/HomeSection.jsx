@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useReviews, useStats } from '../lib/usePortfolioData';
+import { GlobalLoadingBar } from './SkeletonLoader';
 
 const reviewsData = [
   {
@@ -49,48 +51,20 @@ const reviewsData = [
 export default function HomeSection() {
   const [typedText, setTypedText] = useState('MUHAMMAD HASIL');
   const textToType = "MUHAMMAD HASIL";
-  const [reviewsList, setReviewsList] = useState(reviewsData);
-  const [portfolioStats, setPortfolioStats] = useState({
-    projectsCompleted: '299+',
-    happyClients: '200+',
-    yearsExperience: '6+ Years',
-    positiveReviews: '99.8%'
-  });
 
-  useEffect(() => {
-    // Fetch dynamic reviews
-    fetch('/api/reviews')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped = data.data.map(r => ({
-            quote: r.quote,
-            author: r.authorName,
-            role: r.authorRole || (r.company ? `Client at ${r.company}` : 'Verified Client'),
-            initials: (r.authorName || 'CL').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
-            tech: r.badge || 'Full-Stack'
-          }));
-          setReviewsList(mapped);
-        }
-      })
-      .catch(() => {});
+  // SWR caching hooks for instant cached display & background revalidation
+  const { reviews: swrReviews, isValidating: reviewsValidating } = useReviews(reviewsData);
+  const { stats: portfolioStats, isValidating: statsValidating } = useStats();
 
-    // Fetch dynamic stats
-    fetch('/api/stats')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.stats) {
-          const s = data.stats;
-          setPortfolioStats({
-            projectsCompleted: (s.totalProjects && s.totalProjects > 0) ? `${Math.max(299, s.totalProjects * 25)}+` : '299+',
-            happyClients: (s.totalSales && s.totalSales > 0) ? `${s.totalSales + 200}+` : '200+',
-            yearsExperience: '6+ Years',
-            positiveReviews: '99.8%'
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const reviewsList = Array.isArray(swrReviews) && swrReviews.length > 0
+    ? swrReviews.map(r => ({
+        quote: r.quote,
+        author: r.authorName || r.author,
+        role: r.authorRole || r.role || (r.company ? `Client at ${r.company}` : 'Verified Client'),
+        initials: (r.authorName || r.author || 'CL').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
+        tech: r.badge || r.tech || 'Full-Stack'
+      }))
+    : reviewsData;
 
   // Typewriter effect (starts with full text, retypes smoothly)
   useEffect(() => {
@@ -407,6 +381,9 @@ export default function HomeSection() {
           </div>
         </div>
       </section>
+
+      {/* Real-Time SWR Background Syncing Indicator */}
+      <GlobalLoadingBar active={reviewsValidating || statsValidating} />
     </div>
   );
 }
