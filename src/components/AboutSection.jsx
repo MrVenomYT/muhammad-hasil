@@ -46,7 +46,18 @@ const defaultAboutData = {
 };
 
 export default function AboutSection() {
-  const [aboutData, setAboutData] = useState(defaultAboutData);
+  const [aboutData, setAboutData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('app_about_cache_v2');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed === 'object') return { ...defaultAboutData, ...parsed };
+        }
+      } catch (e) {}
+    }
+    return defaultAboutData;
+  });
 
   useEffect(() => {
     fetch('/api/about')
@@ -57,6 +68,9 @@ export default function AboutSection() {
             ...defaultAboutData,
             ...data.data
           });
+          try {
+            localStorage.setItem('app_about_cache_v2', JSON.stringify(data.data));
+          } catch (e) {}
         }
       })
       .catch(() => {});

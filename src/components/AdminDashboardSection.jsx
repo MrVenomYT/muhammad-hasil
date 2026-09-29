@@ -60,6 +60,7 @@ export default function AdminDashboardSection() {
   });
 
   const [loadingData, setLoadingData] = useState(true);
+  const [initialHydrated, setInitialHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, type: 'success', text: '' });
 
@@ -153,8 +154,27 @@ export default function AdminDashboardSection() {
     }
   }, [user, authLoading, router]);
 
-  // Initial Load
+  // Initial Load with Instant Cache Hydration
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('admin_dashboard_cache_v2');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.stats) setStats(parsed.stats);
+          if (Array.isArray(parsed.projects) && parsed.projects.length > 0) setProjects(parsed.projects);
+          if (Array.isArray(parsed.products) && parsed.products.length > 0) setProducts(parsed.products);
+          if (Array.isArray(parsed.inquiries)) setInquiries(parsed.inquiries);
+          if (Array.isArray(parsed.reviews) && parsed.reviews.length > 0) setReviews(parsed.reviews);
+          if (Array.isArray(parsed.services) && parsed.services.length > 0) setServices(parsed.services);
+          if (parsed.profile) setProfile(parsed.profile);
+          if (parsed.about) setAbout(parsed.about);
+          setInitialHydrated(true);
+        }
+      } catch (e) {
+        console.warn('Cache parse notice:', e);
+      }
+    }
     fetchAllData();
   }, []);
 
@@ -164,27 +184,43 @@ export default function AdminDashboardSection() {
   };
 
   const fetchAllData = async () => {
-    setLoadingData(true);
     try {
       const [statsRes, projRes, prodRes, inqRes, revRes, srvRes, profRes, aboutRes] = await Promise.all([
-        fetch('/api/stats').then(r => r.json()),
-        fetch('/api/projects').then(r => r.json()),
-        fetch('/api/products').then(r => r.json()),
-        fetch('/api/inquiries').then(r => r.json()),
-        fetch('/api/reviews').then(r => r.json()),
-        fetch('/api/services').then(r => r.json()),
-        fetch('/api/profile').then(r => r.json()),
-        fetch('/api/about').then(r => r.json())
+        fetch('/api/stats').then(r => r.json()).catch(() => ({})),
+        fetch('/api/projects').then(r => r.json()).catch(() => ({})),
+        fetch('/api/products').then(r => r.json()).catch(() => ({})),
+        fetch('/api/inquiries').then(r => r.json()).catch(() => ({})),
+        fetch('/api/reviews').then(r => r.json()).catch(() => ({})),
+        fetch('/api/services').then(r => r.json()).catch(() => ({})),
+        fetch('/api/profile').then(r => r.json()).catch(() => ({})),
+        fetch('/api/about').then(r => r.json()).catch(() => ({}))
       ]);
 
-      if (statsRes.success) setStats(statsRes.stats);
-      if (projRes.success) setProjects(projRes.data);
-      if (prodRes.success) setProducts(prodRes.data);
-      if (inqRes.success) setInquiries(inqRes.data);
-      if (revRes.success) setReviews(revRes.data);
-      if (srvRes.success) setServices(srvRes.data);
-      if (profRes.success && profRes.data) setProfile(profRes.data);
-      if (aboutRes.success && aboutRes.data) setAbout(aboutRes.data);
+      if (statsRes && statsRes.success) setStats(statsRes.stats);
+      if (projRes && projRes.success && Array.isArray(projRes.data)) setProjects(projRes.data);
+      if (prodRes && prodRes.success && Array.isArray(prodRes.data)) setProducts(prodRes.data);
+      if (inqRes && inqRes.success && Array.isArray(inqRes.data)) setInquiries(inqRes.data);
+      if (revRes && revRes.success && Array.isArray(revRes.data)) setReviews(revRes.data);
+      if (srvRes && srvRes.success && Array.isArray(srvRes.data)) setServices(srvRes.data);
+      if (profRes && profRes.success && profRes.data) setProfile(profRes.data);
+      if (aboutRes && aboutRes.success && aboutRes.data) setAbout(aboutRes.data);
+
+      setInitialHydrated(true);
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('admin_dashboard_cache_v2', JSON.stringify({
+            stats: statsRes?.success ? statsRes.stats : null,
+            projects: projRes?.success ? projRes.data : [],
+            products: prodRes?.success ? prodRes.data : [],
+            inquiries: inqRes?.success ? inqRes.data : [],
+            reviews: revRes?.success ? revRes.data : [],
+            services: srvRes?.success ? srvRes.data : [],
+            profile: profRes?.success ? profRes.data : null,
+            about: aboutRes?.success ? aboutRes.data : null
+          }));
+        } catch (e) {}
+      }
     } catch (err) {
       console.error('Error fetching admin data:', err);
       showToast('Error syncing with database', 'error');
@@ -771,6 +807,19 @@ export default function AdminDashboardSection() {
     const matchesCat = filterCategory === 'all' || i.status === filterCategory;
     return matchesSearch && matchesCat;
   });
+
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', backgroundColor: 'transparent' }}>
+        <div style={{ width: '38px', height: '38px', border: '3px solid rgba(255, 119, 0, 0.2)', borderTopColor: '#ff7700', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+        <span style={{ color: '#94a3b8', fontSize: '14px', fontWeight: 600 }}>Loading Dashboard...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'transparent', color: '#f3f4f6', fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)' }}>

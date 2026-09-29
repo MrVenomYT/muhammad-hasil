@@ -14,7 +14,18 @@ export function formatImageUrl(url) {
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [apiProjects, setApiProjects] = useState([]);
+  const [apiProjects, setApiProjects] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('app_projects_cache_v2');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return [];
+  });
   const [firestoreProjects, setFirestoreProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
@@ -25,6 +36,9 @@ export default function ProjectsSection() {
       .then(data => {
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           setApiProjects(data.data);
+          try {
+            localStorage.setItem('app_projects_cache_v2', JSON.stringify(data.data));
+          } catch (e) {}
         }
       })
       .catch(err => console.warn('Projects API note:', err));

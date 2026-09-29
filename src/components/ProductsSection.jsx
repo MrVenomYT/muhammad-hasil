@@ -10,26 +10,31 @@ export function formatImageUrl(url) {
 }
 
 export default function ProductsSection() {
-  const [products, setProducts] = useState(() => getCombinedProducts([]));
+  const [products, setProducts] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('app_products_cache_v2');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return getCombinedProducts([]);
+  });
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
-    // 1. Immediately ensure local/seed products are loaded
-    const initialLocal = getCombinedProducts([]);
-    setProducts(initialLocal);
-
-    // 2. Fetch API products in background
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const combined = getCombinedProducts(data.data);
           const seen = new Set();
           const deduped = [];
-          combined.forEach(p => {
+          data.data.forEach(p => {
             const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
             if (key && !seen.has(key)) {
               seen.add(key);
@@ -37,6 +42,9 @@ export default function ProductsSection() {
             }
           });
           setProducts(deduped);
+          try {
+            localStorage.setItem('app_products_cache_v2', JSON.stringify(deduped));
+          } catch (e) {}
         }
       })
       .catch(() => {});
