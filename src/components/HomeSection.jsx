@@ -198,47 +198,82 @@ export default function HomeSection() {
         </div>
         <h2 className="reviews-title-center">What Clients Say About Working With Me</h2>
 
-        <div className="reviews-marquee-container" style={{ overflow: 'hidden', width: '100%', padding: '16px 0' }}>
+        <div className="reviews-marquee-container" style={{ overflow: "hidden", width: "100%", padding: "16px 0" }}>
           <div className="reviews-marquee-track">
             {[...reviewsList, ...reviewsList].map((rev, idx) => (
-              <div key={idx} className="review-marquee-item">
+              <div 
+                key={idx} 
+                className="review-marquee-item"
+                style={{
+                  flex: "0 0 380px",
+                  width: "380px",
+                  minWidth: "380px",
+                  maxWidth: "380px",
+                  height: "270px",
+                  minHeight: "270px",
+                  maxHeight: "270px",
+                  boxSizing: "border-box"
+                }}
+              >
                 <div 
                   className="review-card-pro" 
                   style={{ 
-                    backgroundColor: 'rgba(20, 18, 16, 0.85)', 
-                    backdropFilter: 'blur(20px)', 
-                    WebkitBackdropFilter: 'blur(20px)', 
-                    border: '1px solid rgba(255, 119, 0, 0.25)', 
-                    borderRadius: '22px', 
-                    padding: '28px', 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justify: 'space-between', 
-                    width: '360px',
-                    height: '260px',
-                    boxShadow: '0 16px 40px rgba(0, 0, 0, 0.7)',
-                    transition: 'all 0.3s ease'
+                    backgroundColor: "rgba(20, 18, 16, 0.85)", 
+                    backdropFilter: "blur(20px)", 
+                    WebkitBackdropFilter: "blur(20px)", 
+                    border: "1px solid rgba(255, 119, 0, 0.25)", 
+                    borderRadius: "22px", 
+                    padding: "24px 26px", 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    justifyContent: "space-between", 
+                    width: "380px",
+                    minWidth: "380px",
+                    maxWidth: "380px",
+                    height: "270px",
+                    minHeight: "270px",
+                    maxHeight: "270px",
+                    boxSizing: "border-box",
+                    overflow: "hidden",
+                    boxShadow: "0 16px 40px rgba(0, 0, 0, 0.7)",
+                    transition: "all 0.3s ease"
                   }}
                 >
-                  <div>
-                    <div className="review-card-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <div className="stars-row" style={{ color: '#f59e0b', fontSize: '16px', letterSpacing: '2px' }}>★★★★★</div>
-                      <span className="verified-badge" style={{ fontSize: '10px', color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '3px 10px', borderRadius: '20px', fontWeight: '700' }}>
+                  <div style={{ height: "135px", display: "flex", flexDirection: "column", justifyContent: "flex-start", overflow: "hidden" }}>
+                    <div className="review-card-top" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", height: "24px", minHeight: "24px" }}>
+                      <div className="stars-row" style={{ color: "#f59e0b", fontSize: "15px", letterSpacing: "2px" }}>★★★★★</div>
+                      <span className="verified-badge" style={{ fontSize: "10px", color: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", padding: "3px 10px", borderRadius: "20px", fontWeight: "700" }}>
                         ✓ {rev.tech}
                       </span>
                     </div>
-                    <p className="review-quote-text" style={{ fontSize: '14px', color: '#e2e8f0', lineHeight: '1.65', fontStyle: 'italic', marginBottom: '20px' }}>
-                      "{rev.quote}"
+                    <p 
+                      className="review-quote-text" 
+                      style={{ 
+                        fontSize: "14px", 
+                        color: "#e2e8f0", 
+                        lineHeight: "1.6", 
+                        fontStyle: "italic", 
+                        margin: 0,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 4,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        height: "90px",
+                        maxHeight: "90px"
+                      }}
+                    >
+                      &ldquo;{rev.quote}&rdquo;
                     </p>
                   </div>
 
-                  <div className="review-author-box" style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                    <div className="author-avatar-initials" style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: 'rgba(249, 115, 22, 0.15)', border: '1.5px solid #ff7700', color: '#ff7700', fontWeight: '800', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div className="review-author-box" style={{ display: "flex", alignItems: "center", gap: "12px", paddingTop: "14px", borderTop: "1px solid rgba(255, 255, 255, 0.1)", height: "54px", minHeight: "54px", boxSizing: "border-box" }}>
+                    <div className="author-avatar-initials" style={{ width: "38px", height: "38px", minWidth: "38px", borderRadius: "50%", backgroundColor: "rgba(249, 115, 22, 0.15)", border: "1.5px solid #ff7700", color: "#ff7700", fontWeight: "800", fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {rev.initials}
                     </div>
-                    <div className="author-info">
-                      <strong className="author-name" style={{ color: '#ffffff', fontSize: '15px', fontWeight: '700', display: 'block' }}>{rev.author}</strong>
-                      <span className="author-role" style={{ fontSize: '12px', color: '#a1a1aa' }}>{rev.role}</span>
+                    <div className="author-info" style={{ overflow: "hidden" }}>
+                      <strong className="author-name" style={{ color: "#ffffff", fontSize: "14px", fontWeight: "700", display: "block", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{rev.author}</strong>
+                      <span className="author-role" style={{ fontSize: "12px", color: "#a1a1aa", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden", display: "block" }}>{rev.role}</span>
                     </div>
                   </div>
                 </div>

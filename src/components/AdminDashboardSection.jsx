@@ -48,6 +48,17 @@ export default function AdminDashboardSection() {
     }
   });
 
+  const [about, setAbout] = useState({
+    headline: '',
+    subtext: '',
+    ctaText: 'Hire me on Fiverr',
+    ctaLink: 'https://pro.fiverr.com/users/venomdesigne613/',
+    skills: [],
+    education: [],
+    experience: [],
+    certifications: []
+  });
+
   const [loadingData, setLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, type: 'success', text: '' });
@@ -129,14 +140,15 @@ export default function AdminDashboardSection() {
   const fetchAllData = async () => {
     setLoadingData(true);
     try {
-      const [statsRes, projRes, prodRes, inqRes, revRes, srvRes, profRes] = await Promise.all([
+      const [statsRes, projRes, prodRes, inqRes, revRes, srvRes, profRes, aboutRes] = await Promise.all([
         fetch('/api/stats').then(r => r.json()),
         fetch('/api/projects').then(r => r.json()),
         fetch('/api/products').then(r => r.json()),
         fetch('/api/inquiries').then(r => r.json()),
         fetch('/api/reviews').then(r => r.json()),
         fetch('/api/services').then(r => r.json()),
-        fetch('/api/profile').then(r => r.json())
+        fetch('/api/profile').then(r => r.json()),
+        fetch('/api/about').then(r => r.json())
       ]);
 
       if (statsRes.success) setStats(statsRes.stats);
@@ -146,6 +158,7 @@ export default function AdminDashboardSection() {
       if (revRes.success) setReviews(revRes.data);
       if (srvRes.success) setServices(srvRes.data);
       if (profRes.success && profRes.data) setProfile(profRes.data);
+      if (aboutRes.success && aboutRes.data) setAbout(aboutRes.data);
     } catch (err) {
       console.error('Error fetching admin data:', err);
       showToast('Error syncing with database', 'error');
@@ -514,6 +527,32 @@ export default function AdminDashboardSection() {
   };
 
   // -------------------------------------------------------------
+  // ABOUT SECTION & CREDENTIALS ACTIONS (PERMANENT MONGODB)
+  // -------------------------------------------------------------
+  const handleSaveAbout = async (updatedAbout) => {
+    setIsSubmitting(true);
+    const dataToSave = updatedAbout || about;
+    try {
+      const res = await fetch('/api/about', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSave)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAbout(data.data);
+        showToast('About section, experience, & education saved permanently in MongoDB!');
+      } else {
+        showToast(data.error || 'Failed to save about section', 'error');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // -------------------------------------------------------------
   // MANUAL DELETE EXECUTION (PROTECTED BY CONFIRMATION MODAL)
   // -------------------------------------------------------------
   const triggerDeleteConfirm = (type, item) => {
@@ -819,6 +858,26 @@ export default function AdminDashboardSection() {
             }}
           >
             <span>⚙ Profile & Availability</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('about'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'about' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'about' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>🎓 About, Exp & Edu</span>
           </button>
 
           <div style={{ marginTop: 'auto', padding: '14px', backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
@@ -1236,16 +1295,45 @@ export default function AdminDashboardSection() {
                 <div>
                   <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Client Inquiries & Proposals</h1>
                   <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
-                    Direct inbound client proposals submitted from the website contact section.
+                    Real-time inbound inquiries submitted through the public contact form (Zero dummy data).
                   </p>
                 </div>
+                <button
+                  onClick={() => {
+                    fetch('/api/inquiries').then(r => r.json()).then(d => {
+                      if (d.success) {
+                        setInquiries(d.data);
+                        showToast('Inquiries refreshed in real time!');
+                      }
+                    });
+                  }}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>⟳ Refresh Live Inquiries</span>
+                </button>
               </div>
 
               {/* Inquiries List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {filteredInquiries.length === 0 ? (
-                  <div style={{ padding: '60px', backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', textAlign: 'center', color: '#64748b' }}>
-                    No client inquiries in database yet.
+                  <div style={{ padding: '60px', backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '10px' }}>📬</div>
+                    <div style={{ color: '#fff', fontSize: '16px', fontWeight: 700, marginBottom: '6px' }}>Inbox is Clean — 0 Dummy Inquiries</div>
+                    <div style={{ color: '#64748b', fontSize: '13px', maxWidth: '420px', margin: '0 auto' }}>
+                      Real client proposals and inquiries submitted via the live website contact form will appear here in real time.
+                    </div>
                   </div>
                 ) : (
                   filteredInquiries.map((inq) => (
@@ -1371,20 +1459,51 @@ export default function AdminDashboardSection() {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                 {reviews.map((rev) => (
-                  <div key={rev.id || rev._id} style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div 
+                    key={rev.id || rev._id} 
+                    style={{ 
+                      backgroundColor: '#131110', 
+                      border: '1px solid rgba(255, 255, 255, 0.08)', 
+                      borderRadius: '12px', 
+                      padding: '22px', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      justifyContent: 'space-between',
+                      height: '240px',
+                      minHeight: '240px',
+                      maxHeight: '240px',
+                      boxSizing: 'border-box',
+                      overflow: 'hidden'
+                    }}
+                  >
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', height: '22px' }}>
                         <span style={{ color: '#f59e0b', fontSize: '14px', letterSpacing: '2px' }}>★★★★★</span>
                         <span style={{ fontSize: '11px', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: '4px' }}>
                           {rev.badge || 'Verified Client'}
                         </span>
                       </div>
-                      <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6, fontStyle: 'italic', margin: '0 0 16px 0' }}>
-                        "{rev.quote}"
+                      <p 
+                        style={{ 
+                          fontSize: '13px', 
+                          color: '#cbd5e1', 
+                          lineHeight: 1.6, 
+                          fontStyle: 'italic', 
+                          margin: 0,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          height: '64px',
+                          maxHeight: '64px'
+                        }}
+                      >
+                        &ldquo;{rev.quote}&rdquo;
                       </p>
                     </div>
 
-                    <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '50px', boxSizing: 'border-box' }}>
                       <div>
                         <strong style={{ color: '#ffffff', fontSize: '14px', display: 'block' }}>{rev.authorName}</strong>
                         <span style={{ color: '#94a3b8', fontSize: '12px' }}>{rev.authorRole} {rev.company && `· ${rev.company}`}</span>

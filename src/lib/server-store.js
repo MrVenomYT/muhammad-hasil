@@ -7,6 +7,8 @@ import Inquiry from '../models/Inquiry';
 import Review from '../models/Review';
 import Service from '../models/Service';
 import Profile from '../models/Profile';
+import About from '../models/About';
+import Faq from '../models/Faq';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 
@@ -374,22 +376,52 @@ const initialProfile = {
   }
 };
 
-const initialInquiries = [
-  {
-    id: 'inq-sample-1',
-    name: 'Julian Sterling',
-    email: 'julian@apexventures.io',
-    subject: 'Full-Stack SaaS Platform Architecture',
-    message: 'Hi Muhammad, we reviewed your StayPilot and VScheduler portfolio projects. We want to commission a custom booking and member portal for our executive coworking spaces. Let us know your availability!',
-    budget: '$3,000 - $5,000',
-    timeline: '2-4 Weeks',
-    serviceType: 'Full-Stack Web App Development',
-    status: 'new',
-    starred: true,
-    notes: 'High priority inbound lead from Fiverr / Portfolio',
-    createdAt: new Date('2026-09-28T14:20:00Z').toISOString()
-  }
-];
+const initialInquiries = [];
+
+const initialAbout = {
+  headline: 'Clean web experiences with personality and purpose.',
+  subtext: 'I am Muhammad Hasil, a full-stack developer who builds clean portfolio websites, interactive dashboards, scalable backend APIs, and responsive project experiences. I care about simple layouts, strong visual hierarchy, and interfaces that feel professional on every screen.',
+  ctaText: 'Hire me on Fiverr',
+  ctaLink: 'https://pro.fiverr.com/users/venomdesigne613/',
+  skills: [
+    { name: 'React.js', percentage: 94, category: 'Frontend' },
+    { name: 'Next.js', percentage: 91, category: 'Frontend' },
+    { name: 'Node.js', percentage: 88, category: 'Backend' },
+    { name: 'Tailwind CSS', percentage: 96, category: 'Styling' },
+    { name: 'Discord API & Bots', percentage: 95, category: 'Integration' },
+    { name: 'Minecraft Development', percentage: 90, category: 'Gaming' },
+    { name: 'MongoDB & Mongoose', percentage: 92, category: 'Database' }
+  ],
+  education: [
+    {
+      id: 'edu-1',
+      degree: 'BS Business & Information Technology (BBIT)',
+      institution: 'Virtual University of Pakistan',
+      period: '2025 - Present',
+      description: 'Currently pursuing BBIT, combining Information Technology and enterprise software systems. Focused on full-stack web engineering, database architecture, software development, and modern web application deployment.',
+      certificationLink: 'https://www.vu.edu.pk'
+    }
+  ],
+  experience: [
+    {
+      id: 'exp-1',
+      role: 'Full Stack Developer',
+      company: 'Freelance & Client Systems',
+      period: '2024 - Present',
+      description: 'Built responsive web apps, full-stack portfolio systems, interactive dashboards, custom APIs, Discord bots, Minecraft/Roblox integrations, and high-performance UI flows.',
+      projectLink: 'https://pro.fiverr.com/users/venomdesigne613/'
+    }
+  ],
+  certifications: [
+    {
+      id: 'cert-1',
+      title: 'Full-Stack Software Engineering & Modern Web Architecture',
+      issuer: 'Verified Credential',
+      date: '2024',
+      link: 'https://www.linkedin.com/in/muhammad-hasil/'
+    }
+  ]
+};
 
 // Seed/Sync helper for MongoDB
 async function syncCollectionWithSeed(Model, seedItems, filename) {
@@ -872,4 +904,174 @@ export async function saveProfile(profileData) {
   }
 
   return updated;
+}
+
+// -------------------------------------------------------------
+// ABOUT & CREDENTIALS REPOSITORY (EDUCATION, EXP, CERTS)
+// -------------------------------------------------------------
+export async function getAbout() {
+  await connectToDatabase().catch(() => {});
+  const disk = readJsonFile('about.json', initialAbout);
+
+  try {
+    if (About.db && About.db.readyState === 1) {
+      const doc = await About.findOne({}).lean();
+      if (doc) {
+        const normalized = {
+          ...doc,
+          id: doc._id ? doc._id.toString() : 'about',
+        };
+        writeJsonFile('about.json', normalized);
+        return normalized;
+      } else {
+        await About.create(disk);
+      }
+    }
+  } catch (err) {
+    console.warn('About Mongo read note:', err.message);
+  }
+
+  return disk;
+}
+
+export async function saveAbout(aboutData) {
+  await connectToDatabase().catch(() => {});
+  const disk = readJsonFile('about.json', initialAbout);
+  const updated = {
+    ...disk,
+    ...aboutData,
+    updatedAt: new Date().toISOString()
+  };
+  writeJsonFile('about.json', updated);
+
+  try {
+    if (About.db && About.db.readyState === 1) {
+      const existing = await About.findOne({});
+      if (existing) {
+        await About.findByIdAndUpdate(existing._id, updated);
+      } else {
+        await About.create(updated);
+      }
+    }
+  } catch (err) {
+    console.warn('About Mongo save note:', err.message);
+  }
+
+  return updated;
+}
+
+// -------------------------------------------------------------
+// FAQS REPOSITORY
+// -------------------------------------------------------------
+const initialFaqs = [
+  {
+    id: 'faq-1',
+    question: 'What core technologies do you specialize in?',
+    answer: 'I specialize in production-grade Full-Stack JavaScript & TypeScript development: React.js, Next.js, Node.js, Express, MongoDB Atlas, Firebase Firestore, and Tailwind CSS.',
+    category: 'Technical',
+    order: 1
+  },
+  {
+    id: 'faq-2',
+    question: 'How do project pricing, milestones, and hiring work?',
+    answer: 'Projects are structured with clear deliverables, fixed prices, and milestones. You can hire me securely through Fiverr Pro or via custom contract agreements with initial milestone deposits.',
+    category: 'Pricing',
+    order: 2
+  },
+  {
+    id: 'faq-3',
+    question: 'Do I get full commercial rights and source code?',
+    answer: 'Yes! All client projects and purchased digital templates include 100% full source code ownership, documentation, and perpetual commercial rights with zero recurring licensing fees.',
+    category: 'Licensing',
+    order: 3
+  },
+  {
+    id: 'faq-4',
+    question: 'Can you deploy and configure the database for me?',
+    answer: 'Absolutely. Every production delivery includes full deployment on Vercel, AWS, Google Cloud, or DigitalOcean with custom SSL domains, environment variables, and MongoDB Atlas provisioning.',
+    category: 'Deployment',
+    order: 4
+  },
+  {
+    id: 'faq-5',
+    question: 'What is your typical project delivery timeline?',
+    answer: 'Landing pages and interactive UI kits typically deliver in 3–5 business days. Complex full-stack web applications with authentication, databases, and admin dashboards take 7–14 business days.',
+    category: 'Turnaround',
+    order: 5
+  }
+];
+
+export async function getFaqs() {
+  await connectToDatabase().catch(() => {});
+  const disk = readJsonFile('faqs.json', initialFaqs);
+
+  try {
+    if (Faq.db && Faq.db.readyState === 1) {
+      await syncCollectionWithSeed(Faq, disk, 'faqs.json');
+      const docs = await Faq.find({}).sort({ order: 1, createdAt: -1 }).lean();
+      if (docs && docs.length > 0) {
+        const normalized = docs.map(d => ({
+          ...d,
+          id: d._id ? d._id.toString() : d.id,
+          _id: d._id ? d._id.toString() : undefined
+        }));
+        writeJsonFile('faqs.json', normalized);
+        return normalized;
+      }
+    }
+  } catch (err) {
+    console.warn('FAQ Mongo read note:', err.message);
+  }
+
+  return disk;
+}
+
+export async function saveFaq(faqData) {
+  await connectToDatabase().catch(() => {});
+  const disk = readJsonFile('faqs.json', initialFaqs);
+  const id = faqData.id || faqData._id || 'faq-' + Date.now();
+
+  const itemToSave = {
+    ...faqData,
+    id
+  };
+
+  const existingIndex = disk.findIndex(f => f.id === id || f._id === id);
+  if (existingIndex >= 0) {
+    disk[existingIndex] = { ...disk[existingIndex], ...itemToSave };
+  } else {
+    disk.push(itemToSave);
+  }
+  writeJsonFile('faqs.json', disk);
+
+  try {
+    if (Faq.db && Faq.db.readyState === 1) {
+      if (faqData._id) {
+        await Faq.findByIdAndUpdate(faqData._id, itemToSave, { upsert: true });
+      } else {
+        await Faq.create(itemToSave);
+      }
+    }
+  } catch (err) {
+    console.warn('FAQ Mongo save note:', err.message);
+  }
+
+  return itemToSave;
+}
+
+export async function deleteFaq(id) {
+  await connectToDatabase().catch(() => {});
+  const disk = readJsonFile('faqs.json', initialFaqs);
+  const filtered = disk.filter(f => f.id !== id && f._id !== id);
+  writeJsonFile('faqs.json', filtered);
+
+  try {
+    if (Faq.db && Faq.db.readyState === 1) {
+      await Faq.deleteOne({ $or: [{ _id: id }, { id }] });
+    }
+  } catch (err) {
+    console.warn('FAQ Mongo delete note:', err.message);
+  }
+
+  return { success: true };
 }

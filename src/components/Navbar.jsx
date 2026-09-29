@@ -38,6 +38,7 @@ export default function Navbar() {
     { href: '/projects', label: 'Projects' },
     { href: '/products', label: 'Products' },
     { href: '/services', label: 'Services' },
+    { href: '/faq', label: 'FAQ' },
     { href: '/contact', label: 'Contact' },
   ];
 
@@ -72,11 +73,6 @@ export default function Navbar() {
           )}
         </nav>
 
-        {/* Desktop CTA Button */}
-        <Link href="/contact" className="btn-primary btn-nav desktop-only-cta" style={{ textDecoration: 'none' }}>
-          Start a Project <span className="arrow">↗</span>
-        </Link>
-
         {/* Mobile Hamburger Menu Toggle Button */}
         <button 
           className={`hamburger-btn ${mobileMenuOpen ? 'open' : ''}`} 
@@ -110,7 +106,7 @@ export default function Navbar() {
         <nav className="mobile-nav-links">
           {navLinks.map((link) => {
             const active = link.isExactHome 
-              ? (isActive('/') && !pathname.includes('about') && !pathname.includes('projects') && !pathname.includes('products') && !pathname.includes('services') && !pathname.includes('contact') && !pathname.includes('admin'))
+              ? (isActive('/') && !pathname.includes('about') && !pathname.includes('projects') && !pathname.includes('products') && !pathname.includes('services') && !pathname.includes('faq') && !pathname.includes('contact') && !pathname.includes('admin'))
               : isActive(link.href);
             return (
               <Link 
@@ -143,17 +139,6 @@ export default function Navbar() {
             </Link>
           )}
         </nav>
-
-        <div className="mobile-drawer-footer">
-          <Link 
-            href="/contact" 
-            className="btn-primary" 
-            style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Start a Project <span className="arrow">↗</span>
-          </Link>
-        </div>
       </div>
     </>
   );

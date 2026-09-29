@@ -10,24 +10,33 @@ import '../../style.css';
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
+  const isAdmin = router.pathname.startsWith('/admin');
 
   return (
     <AuthProvider>
       <Head>
-        <title>Muhammad Hasil - Full Stack Developer & UI/UX Designer</title>
-        <meta name="description" content="Muhammad Hasil is a Full Stack Developer & UI/UX Designer specializing in React, Next.js, Node.js, custom APIs, Discord bots, and gaming platforms." />
+        <title>Muhammad Hasil Portfolio</title>
+        <meta name="description" content="Professional portfolio and SaaS showcase for Muhammad Hasil featuring projects, products, services, admin dashboard, and contact capabilities." />
+        <meta property="og:title" content="Muhammad Hasil Portfolio" />
+        <meta property="og:description" content="Professional portfolio and SaaS showcase for Muhammad Hasil featuring projects, products, services, admin dashboard, and contact capabilities." />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
-      <div style={{ position: 'relative', minHeight: '100vh' }}>
-        <CanvasAnimation currentPath={router.pathname} />
-        <div className="portfolio-container">
-          <Navbar />
-          <main id="pages-wrapper">
-            <Component {...pageProps} />
-          </main>
-          <Footer />
+      {isAdmin ? (
+        <main id="admin-wrapper" style={{ minHeight: '100vh', backgroundColor: '#070605' }}>
+          <Component {...pageProps} />
+        </main>
+      ) : (
+        <div style={{ position: 'relative', minHeight: '100vh' }}>
+          <CanvasAnimation currentPath={router.pathname} />
+          <div className="portfolio-container">
+            <Navbar />
+            <main id="pages-wrapper">
+              <Component {...pageProps} />
+            </main>
+            <Footer />
+          </div>
         </div>
-      </div>
+      )}
     </AuthProvider>
   );
 }

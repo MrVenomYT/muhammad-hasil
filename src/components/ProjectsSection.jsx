@@ -12,8 +12,10 @@ export function formatImageUrl(url) {
 
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [apiProjects, setApiProjects] = useState([]);
   const [firestoreProjects, setFirestoreProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   useEffect(() => {
     // 1. Fetch from MongoDB API
@@ -47,15 +49,33 @@ export default function ProjectsSection() {
     };
   }, []);
 
+  // Keyboard shortcut: close modal on Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setSelectedProject(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Merge MongoDB API projects, Firestore projects, and baseline cache
   const baseProjects = apiProjects.length > 0 ? apiProjects : getCombinedProjects(firestoreProjects);
   const mergedProjects = apiProjects.length > 0 && firestoreProjects.length > 0
     ? [...firestoreProjects, ...apiProjects.filter(ap => !firestoreProjects.some(fp => fp.id === ap.id || fp.title === ap.title))]
     : baseProjects;
 
+  // Filter counts
+  const countFullstack = mergedProjects.filter(p => (p.category || '').includes('fullstack')).length;
+  const countReact = mergedProjects.filter(p => (p.category || '').includes('react')).length;
+  const countDesign = mergedProjects.filter(p => (p.category || '').includes('design')).length;
+
   const filteredProjects = mergedProjects.filter(p => {
-    if (filter === 'all') return true;
-    return (p.category || '').includes(filter);
+    const matchesFilter = filter === 'all' ? true : (p.category || '').includes(filter);
+    const matchesSearch = searchQuery === '' ? true :
+      (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (Array.isArray(p.technologies) ? p.technologies.join(' ') : (p.technologies || '')).toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
 
   return (
@@ -64,79 +84,164 @@ export default function ProjectsSection() {
         <div className="projects-header">
           <div className="section-tag">
             <span className="orange-dot"></span>
-            <span>Some Recent Projects</span>
+            <span>Featured Engineering Work</span>
           </div>
-          <h2 className="section-title">Selected Work & Featured Projects</h2>
+          <h2 className="section-title">Production Web Applications & UI Systems</h2>
+          <p style={{ color: '#a1a1aa', maxWidth: '680px', margin: '0 0 24px 0', fontSize: '15px', lineHeight: 1.6 }}>
+            Explore custom full-stack solutions built with React, Next.js, Node.js, and persistent MongoDB database architecture.
+          </p>
 
-          {/* Filter Tabs */}
-          <div className="projects-tabs-row" id="projects-tabs">
-            <button
-              className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              All Projects ({mergedProjects.length})
-            </button>
-            <button
-              className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`}
-              onClick={() => setFilter('fullstack')}
-            >
-              Full Stack
-            </button>
-            <button
-              className={`project-tab-btn ${filter === 'react' ? 'active' : ''}`}
-              onClick={() => setFilter('react')}
-            >
-              React & Next.js
-            </button>
-            <button
-              className={`project-tab-btn ${filter === 'design' ? 'active' : ''}`}
-              onClick={() => setFilter('design')}
-            >
-              UI/UX & Web Design
-            </button>
+          {/* Filter Tabs & Search Row */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '32px' }}>
+            <div className="projects-tabs-row" id="projects-tabs" style={{ margin: 0 }}>
+              <button
+                className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`}
+                onClick={() => setFilter('all')}
+              >
+                All Projects ({mergedProjects.length})
+              </button>
+              <button
+                className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`}
+                onClick={() => setFilter('fullstack')}
+              >
+                Full Stack ({countFullstack})
+              </button>
+              <button
+                className={`project-tab-btn ${filter === 'react' ? 'active' : ''}`}
+                onClick={() => setFilter('react')}
+              >
+                React & Next.js ({countReact})
+              </button>
+              <button
+                className={`project-tab-btn ${filter === 'design' ? 'active' : ''}`}
+                onClick={() => setFilter('design')}
+              >
+                UI/UX & Design ({countDesign})
+              </button>
+            </div>
+
+            <div style={{ position: 'relative', minWidth: '240px' }}>
+              <input
+                type="text"
+                placeholder="Search projects by tech, title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  backgroundColor: 'rgba(20, 18, 16, 0.7)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '999px',
+                  padding: '9px 18px 9px 36px',
+                  fontSize: '13px',
+                  color: '#ffffff',
+                  outline: 'none',
+                  transition: 'border-color 0.2s ease'
+                }}
+              />
+              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '13px' }}>
+                🔍
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Web Projects Grid */}
+        {/* Optimized Projects Grid */}
         <div className="projects-grid" id="projects-grid">
-          {filteredProjects.map((proj) => (
-            <article key={proj.id} className="project-card" data-category={proj.category}>
-              <div className="project-image-box">
-                <img
-                  src={formatImageUrl(proj.imageUrl)}
-                  alt={proj.title}
-                  className="project-img"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/assets/muhammad-hasil.png';
-                  }}
-                />
-                {proj.liveDemoUrl && (
-                  <div className="project-overlay-link">
-                    <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo">
-                      Live Demo <span className="arrow">↗</span>
-                    </a>
+          {filteredProjects.map((proj) => {
+            const techList = Array.isArray(proj.technologies)
+              ? proj.technologies
+              : (proj.technologies ? proj.technologies.split(',').map(t => t.trim()) : ['React', 'Next.js']);
+
+            return (
+              <article key={proj.id || proj._id} className="project-card" data-category={proj.category}>
+                <div>
+                  <div className="project-image-box">
+                    <img
+                      src={formatImageUrl(proj.imageUrl)}
+                      alt={proj.title}
+                      className="project-img"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/assets/muhammad-hasil.png';
+                      }}
+                    />
+                    <div className="project-overlay-link">
+                      {proj.liveDemoUrl && proj.liveDemoUrl !== '#' && (
+                        <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo">
+                          Live Demo ↗
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProject(proj)}
+                        className="btn-preview-quick"
+                      >
+                        Quick View
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="project-info">
-                <div className="project-info-header">
-                  <h3 className="project-title">{proj.title}</h3>
-                  <span className="project-pill">{proj.pill || 'Full Stack'}</span>
+
+                  <div className="project-info">
+                    <div className="project-info-header">
+                      <h3 className="project-title">{proj.title}</h3>
+                      <span className="project-pill">{proj.pill || 'Full Stack'}</span>
+                    </div>
+                    <p className="project-desc">{proj.description}</p>
+                  </div>
                 </div>
-                <p className="project-desc">{proj.description}</p>
-                <div className="project-card-actions">
-                  {proj.liveDemoUrl && (
-                    <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo-text">
-                      Live Demo <span className="arrow">↗</span>
-                    </a>
-                  )}
+
+                <div>
+                  {/* Tech stack badges */}
+                  <div className="project-tech-tags">
+                    {techList.slice(0, 4).map((tech, idx) => (
+                      <span key={idx} className="project-tech-tag">
+                        {tech}
+                      </span>
+                    ))}
+                    {techList.length > 4 && (
+                      <span className="project-tech-tag" style={{ color: '#ff7700' }}>
+                        +{techList.length - 4}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Actions Footer */}
+                  <div className="project-card-actions">
+                    {proj.liveDemoUrl && proj.liveDemoUrl !== '#' ? (
+                      <a href={proj.liveDemoUrl} target="_blank" rel="noopener noreferrer" className="btn-live-demo-text">
+                        Launch Demo <span className="arrow">↗</span>
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: '13px', color: '#64748b' }}>Custom Platform</span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProject(proj)}
+                      className="btn-details-text"
+                    >
+                      Case Details →
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
+
+        {filteredProjects.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
+            <p style={{ fontSize: '16px', margin: '0 0 12px 0' }}>No projects found matching your search.</p>
+            <button
+              onClick={() => { setFilter('all'); setSearchQuery(''); }}
+              style={{ background: 'none', border: '1px solid rgba(255,119,0,0.4)', color: '#ff7700', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Tech Stack Marquee Banner */}
@@ -145,24 +250,180 @@ export default function ProjectsSection() {
           <div className="tech-marquee-content">
             <span className="tech-brand-item"><span className="tech-star">✦</span> REACT.JS</span>
             <span className="tech-brand-item"><span className="tech-star">✦</span> NEXT.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> FIREBASE AUTH</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> FIRESTORE DB</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> MONGODB ATLAS</span>
             <span className="tech-brand-item"><span className="tech-star">✦</span> NODE.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> DISCORD API</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> MINECRAFT JAVA</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> FIREBASE AUTH</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> TAILWIND CSS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> RESTFUL APIS</span>
           </div>
           <div className="tech-marquee-content" aria-hidden="true">
             <span className="tech-brand-item"><span className="tech-star">✦</span> REACT.JS</span>
             <span className="tech-brand-item"><span className="tech-star">✦</span> NEXT.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> FIREBASE AUTH</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> FIRESTORE DB</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> MONGODB ATLAS</span>
             <span className="tech-brand-item"><span className="tech-star">✦</span> NODE.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> DISCORD API</span>
-            <span className="tech-brand-item"><span className="tech-star">✦</span> MINECRAFT JAVA</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> FIREBASE AUTH</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> TAILWIND CSS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> RESTFUL APIS</span>
           </div>
         </div>
       </section>
+
+      {/* Quick View Modal Lightbox */}
+      {selectedProject && (
+        <div
+          onClick={() => setSelectedProject(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#12100e',
+              border: '1px solid rgba(255, 119, 0, 0.3)',
+              borderRadius: '24px',
+              maxWidth: '720px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '32px',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.9)',
+              position: 'relative',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+          >
+            <button
+              onClick={() => setSelectedProject(null)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#fff',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px'
+              }}
+            >
+              ✕
+            </button>
+
+            <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '24px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <img
+                src={formatImageUrl(selectedProject.imageUrl)}
+                alt={selectedProject.title}
+                style={{ width: '100%', height: '320px', objectFit: 'cover' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', color: '#ff7700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                {selectedProject.category}
+              </span>
+              <span style={{ color: '#64748b' }}>·</span>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                {selectedProject.pill || 'Full-Stack'}
+              </span>
+            </div>
+
+            <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', margin: '0 0 14px 0', letterSpacing: '-0.5px' }}>
+              {selectedProject.title}
+            </h2>
+
+            <p style={{ color: '#d1d5db', fontSize: '15px', lineHeight: 1.7, margin: '0 0 24px 0' }}>
+              {selectedProject.description}
+            </p>
+
+            {/* Technologies */}
+            <div style={{ marginBottom: '28px' }}>
+              <strong style={{ fontSize: '13px', color: '#94a3b8', display: 'block', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Architecture & Tech Stack
+              </strong>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {(Array.isArray(selectedProject.technologies)
+                  ? selectedProject.technologies
+                  : (selectedProject.technologies ? selectedProject.technologies.split(',').map(t => t.trim()) : ['React', 'Next.js', 'Node.js', 'MongoDB'])
+                ).map((t, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      fontSize: '12px',
+                      padding: '5px 12px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: '#f3f4f6',
+                      fontWeight: 600
+                    }}
+                  >
+                    ✦ {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal CTAs */}
+            <div style={{ display: 'flex', gap: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '20px' }}>
+              {selectedProject.liveDemoUrl && selectedProject.liveDemoUrl !== '#' && (
+                <a
+                  href={selectedProject.liveDemoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: '#ff7700',
+                    color: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 20px rgba(255, 119, 0, 0.4)'
+                  }}
+                >
+                  Open Live Application ↗
+                </a>
+              )}
+              {selectedProject.githubUrl && (
+                <a
+                  href={selectedProject.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: '#ffffff',
+                    padding: '12px 22px',
+                    borderRadius: '999px',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                  }}
+                >
+                  GitHub Repository ↗
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
