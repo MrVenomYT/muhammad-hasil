@@ -174,37 +174,32 @@ export default function ProjectsSection() {
                         e.target.src = '/assets/muhammad-hasil.png';
                       }}
                     />
-                    <div className="project-overlay-link">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedProject(proj);
-                        }}
-                        className="btn-preview-quick"
+                    <div 
+                      className="project-overlay-link" 
+                      onClick={() => setSelectedProject(proj)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <span
                         style={{
-                          backgroundColor: 'rgba(255, 119, 0, 0.25)',
-                          border: '1px solid rgba(255, 119, 0, 0.7)',
+                          backgroundColor: 'rgba(16, 14, 12, 0.8)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
                           color: '#ffffff',
-                          fontWeight: 700,
-                          fontSize: '13px',
-                          padding: '10px 22px',
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          padding: '6px 14px',
                           borderRadius: '999px',
+                          backdropFilter: 'blur(8px)',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          cursor: 'pointer',
-                          boxShadow: '0 4px 18px rgba(255, 119, 0, 0.4)',
-                          backdropFilter: 'blur(10px)',
-                          transition: 'all 0.2s ease'
+                          gap: '6px'
                         }}
                       >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                           <circle cx="12" cy="12" r="3"></circle>
                         </svg>
-                        <span>Quick View</span>
-                      </button>
+                        <span>Click to View</span>
+                      </span>
                     </div>
                   </div>
 

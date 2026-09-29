@@ -80,7 +80,7 @@ export default function AdminLoginSection() {
               type="email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
-              placeholder="admin@ihasil.com" 
+              placeholder="admin@muhammadhasil.com" 
               required 
               className="form-input" 
               style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#fff', fontSize: '14px', boxSizing: 'border-box' }} 

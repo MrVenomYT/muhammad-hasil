@@ -688,18 +688,29 @@ export async function deleteProduct(id) {
 // -------------------------------------------------------------
 export async function getInquiries() {
   await connectToDatabase().catch(() => {});
-  const disk = readJsonFile('inquiries.json', initialInquiries);
+  const disk = readJsonFile('inquiries.json', initialInquiries).filter(i => 
+    !i.email?.includes('cyberdyne') && !i.email?.includes('apexventures') && !i.name?.includes('Sarah Connor') && !i.name?.includes('Julian Sterling')
+  );
 
   try {
     if (Inquiry.db && Inquiry.db.readyState === 1) {
-      await syncCollectionWithSeed(Inquiry, disk, 'inquiries.json');
+      // Purge any legacy dummy seed inquiries from MongoDB
+      await Inquiry.deleteMany({
+        $or: [
+          { email: { $regex: /cyberdyne|apexventures/i } },
+          { name: { $in: ['Sarah Connor', 'Julian Sterling'] } }
+        ]
+      }).catch(() => {});
+
       const docs = await Inquiry.find({}).sort({ createdAt: -1 }).lean();
-      if (docs && docs.length > 0) {
-        const normalized = docs.map(d => ({
-          ...d,
-          id: d._id ? d._id.toString() : d.id,
-          _id: d._id ? d._id.toString() : undefined
-        }));
+      if (docs) {
+        const normalized = docs
+          .filter(d => !d.email?.includes('cyberdyne') && !d.email?.includes('apexventures') && d.name !== 'Sarah Connor' && d.name !== 'Julian Sterling')
+          .map(d => ({
+            ...d,
+            id: d._id ? d._id.toString() : d.id,
+            _id: d._id ? d._id.toString() : undefined
+          }));
         writeJsonFile('inquiries.json', normalized);
         return normalized;
       }
@@ -708,6 +719,7 @@ export async function getInquiries() {
     console.warn('Inquiries Mongo read note:', err.message);
   }
 
+  writeJsonFile('inquiries.json', disk);
   return disk;
 }
 

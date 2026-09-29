@@ -70,6 +70,32 @@ export default function AdminDashboardSection() {
   const [serviceModal, setServiceModal] = useState({ isOpen: false, mode: 'create', data: null });
   const [inquiryModal, setInquiryModal] = useState({ isOpen: false, data: null });
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, type: '', id: null, title: '' });
+  const [experienceModal, setExperienceModal] = useState({ isOpen: false, mode: 'create', index: -1, data: null });
+  const [educationModal, setEducationModal] = useState({ isOpen: false, mode: 'create', index: -1, data: null });
+  const [certificationModal, setCertificationModal] = useState({ isOpen: false, mode: 'create', index: -1, data: null });
+
+  const [experienceForm, setExperienceForm] = useState({
+    role: '',
+    company: '',
+    period: '2024 - Present',
+    description: '',
+    projectLink: ''
+  });
+
+  const [educationForm, setEducationForm] = useState({
+    degree: '',
+    institution: '',
+    period: '2025 - Present',
+    description: '',
+    certificationLink: ''
+  });
+
+  const [certificationForm, setCertificationForm] = useState({
+    title: '',
+    issuer: '',
+    date: '2025',
+    link: ''
+  });
 
   // Forms
   const [projectForm, setProjectForm] = useState({
@@ -552,6 +578,136 @@ export default function AdminDashboardSection() {
     }
   };
 
+  // Experience Handlers
+  const openExperienceModal = (mode = 'create', index = -1, item = null) => {
+    if (mode === 'edit' && item) {
+      setExperienceForm({
+        role: item.role || '',
+        company: item.company || '',
+        period: item.period || '',
+        description: item.description || '',
+        projectLink: item.projectLink || ''
+      });
+      setExperienceModal({ isOpen: true, mode: 'edit', index, data: item });
+    } else {
+      setExperienceForm({
+        role: '',
+        company: '',
+        period: '2024 - Present',
+        description: '',
+        projectLink: ''
+      });
+      setExperienceModal({ isOpen: true, mode: 'create', index: -1, data: null });
+    }
+  };
+
+  const handleSaveExperience = async (e) => {
+    e.preventDefault();
+    const updatedList = [...(about.experience || [])];
+    if (experienceModal.mode === 'edit' && experienceModal.index >= 0) {
+      updatedList[experienceModal.index] = { ...updatedList[experienceModal.index], ...experienceForm };
+    } else {
+      updatedList.unshift({ id: 'exp-' + Date.now(), ...experienceForm });
+    }
+    const updatedAbout = { ...about, experience: updatedList };
+    setAbout(updatedAbout);
+    setExperienceModal({ isOpen: false, mode: 'create', index: -1, data: null });
+    await handleSaveAbout(updatedAbout);
+  };
+
+  const handleDeleteExperience = async (index) => {
+    const updatedList = (about.experience || []).filter((_, idx) => idx !== index);
+    const updatedAbout = { ...about, experience: updatedList };
+    setAbout(updatedAbout);
+    await handleSaveAbout(updatedAbout);
+  };
+
+  // Education Handlers
+  const openEducationModal = (mode = 'create', index = -1, item = null) => {
+    if (mode === 'edit' && item) {
+      setEducationForm({
+        degree: item.degree || '',
+        institution: item.institution || '',
+        period: item.period || '',
+        description: item.description || '',
+        certificationLink: item.certificationLink || ''
+      });
+      setEducationModal({ isOpen: true, mode: 'edit', index, data: item });
+    } else {
+      setEducationForm({
+        degree: '',
+        institution: '',
+        period: '2025 - Present',
+        description: '',
+        certificationLink: ''
+      });
+      setEducationModal({ isOpen: true, mode: 'create', index: -1, data: null });
+    }
+  };
+
+  const handleSaveEducation = async (e) => {
+    e.preventDefault();
+    const updatedList = [...(about.education || [])];
+    if (educationModal.mode === 'edit' && educationModal.index >= 0) {
+      updatedList[educationModal.index] = { ...updatedList[educationModal.index], ...educationForm };
+    } else {
+      updatedList.unshift({ id: 'edu-' + Date.now(), ...educationForm });
+    }
+    const updatedAbout = { ...about, education: updatedList };
+    setAbout(updatedAbout);
+    setEducationModal({ isOpen: false, mode: 'create', index: -1, data: null });
+    await handleSaveAbout(updatedAbout);
+  };
+
+  const handleDeleteEducation = async (index) => {
+    const updatedList = (about.education || []).filter((_, idx) => idx !== index);
+    const updatedAbout = { ...about, education: updatedList };
+    setAbout(updatedAbout);
+    await handleSaveAbout(updatedAbout);
+  };
+
+  // Certification Handlers
+  const openCertificationModal = (mode = 'create', index = -1, item = null) => {
+    if (mode === 'edit' && item) {
+      setCertificationForm({
+        title: item.title || '',
+        issuer: item.issuer || '',
+        date: item.date || '',
+        link: item.link || ''
+      });
+      setCertificationModal({ isOpen: true, mode: 'edit', index, data: item });
+    } else {
+      setCertificationForm({
+        title: '',
+        issuer: '',
+        date: '2025',
+        link: ''
+      });
+      setCertificationModal({ isOpen: true, mode: 'create', index: -1, data: null });
+    }
+  };
+
+  const handleSaveCertification = async (e) => {
+    e.preventDefault();
+    const updatedList = [...(about.certifications || [])];
+    if (certificationModal.mode === 'edit' && certificationModal.index >= 0) {
+      updatedList[certificationModal.index] = { ...updatedList[certificationModal.index], ...certificationForm };
+    } else {
+      updatedList.unshift({ id: 'cert-' + Date.now(), ...certificationForm });
+    }
+    const updatedAbout = { ...about, certifications: updatedList };
+    setAbout(updatedAbout);
+    setCertificationModal({ isOpen: false, mode: 'create', index: -1, data: null });
+    await handleSaveAbout(updatedAbout);
+  };
+
+  const handleDeleteCertification = async (index) => {
+    const updatedList = (about.certifications || []).filter((_, idx) => idx !== index);
+    const updatedAbout = { ...about, certifications: updatedList };
+    setAbout(updatedAbout);
+    await handleSaveAbout(updatedAbout);
+  };
+
   // -------------------------------------------------------------
   // MANUAL DELETE EXECUTION (PROTECTED BY CONFIRMATION MODAL)
   // -------------------------------------------------------------
@@ -660,12 +816,8 @@ export default function AdminDashboardSection() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
             <img src="/assets/muhammad-hasil.png" alt="Muhammad Hasil" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #ff7700' }} />
-            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>Muhammad Hasil <span style={{ color: '#ff7700' }}>Admin</span></span>
+            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>Muhammad Hasil</span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#94a3b8' }}>
-            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: stats.dbStatus === 'connected' ? '#10b981' : '#f59e0b' }}></span>
-            <span>MongoDB: <strong>{stats.dbStatus === 'connected' ? 'Atlas Connected & Persistent' : 'Local Disk Persistent'}</strong></span>
-          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -842,6 +994,26 @@ export default function AdminDashboardSection() {
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '20px', marginBottom: '8px', paddingLeft: '12px' }}>
             Site Settings
           </div>
+
+          <button
+            onClick={() => { setActiveTab('about'); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'about' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
+              color: activeTab === 'about' ? '#ff7700' : '#94a3b8',
+              textAlign: 'left'
+            }}
+          >
+            <span>📖 About Us</span>
+          </button>
 
           <button
             onClick={() => { setActiveTab('profile'); }}
@@ -1709,6 +1881,335 @@ export default function AdminDashboardSection() {
               </form>
             </div>
           )}
+
+          {/* TAB 8: ABOUT US, WORK EXPERIENCE & EDUCATION */}
+          {activeTab === 'about' && (
+            <div style={{ maxWidth: '960px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                    About Us & Credentials
+                  </h1>
+                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
+                    Manage public bio, education background, work experiences, and verified credentials stored permanently in MongoDB.
+                  </p>
+                </div>
+              </div>
+
+              {/* SECTION A: ABOUT HEADLINE & BIO */}
+              <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>👤</span> About Headline & Biography
+                </h2>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveAbout(about);
+                  }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+                >
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                      Headline *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={about.headline || ''}
+                      onChange={(e) => setAbout({ ...about, headline: e.target.value })}
+                      placeholder="Clean web experiences with personality and purpose."
+                      style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '14px' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+                      About Bio / Summary *
+                    </label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={about.subtext || ''}
+                      onChange={(e) => setAbout({ ...about, subtext: e.target.value })}
+                      placeholder="I am Muhammad Hasil, a full-stack developer..."
+                      style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '14px', lineHeight: 1.5 }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      style={{
+                        backgroundColor: '#ff7700',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '10px 22px',
+                        borderRadius: '8px',
+                        fontWeight: 700,
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isSubmitting ? 'Saving...' : 'Save Bio Changes'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* SECTION B: WORK EXPERIENCE STACK */}
+              <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>💼</span> Work Experience ({about.experience?.length || 0})
+                    </h2>
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Professional engineering background & roles</span>
+                  </div>
+                  <button
+                    onClick={() => openExperienceModal('create')}
+                    style={{
+                      backgroundColor: 'rgba(255, 119, 0, 0.15)',
+                      border: '1px solid rgba(255, 119, 0, 0.4)',
+                      color: '#ff7700',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>+</span> Add Work Experience
+                  </button>
+                </div>
+
+                {(!about.experience || about.experience.length === 0) ? (
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#64748b', backgroundColor: '#070605', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                    No work experience items yet. Click "+ Add Work Experience" to add one.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {about.experience.map((exp, idx) => (
+                      <div
+                        key={exp.id || idx}
+                        style={{
+                          backgroundColor: '#070605',
+                          border: '1px solid rgba(255, 255, 255, 0.06)',
+                          borderRadius: '10px',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          gap: '16px'
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>{exp.role}</h3>
+                            <span style={{ fontSize: '11px', color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.1)', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                              {exp.period || '2024 - Present'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#38bdf8', fontWeight: 600, marginBottom: '6px' }}>
+                            {exp.company}
+                          </div>
+                          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+                            {exp.description}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => openExperienceModal('edit', idx, exp)}
+                            style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteExperience(idx)}
+                            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION C: EDUCATION HISTORY STACK */}
+              <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>🎓</span> Education ({about.education?.length || 0})
+                    </h2>
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Academic degrees and programs</span>
+                  </div>
+                  <button
+                    onClick={() => openEducationModal('create')}
+                    style={{
+                      backgroundColor: 'rgba(255, 119, 0, 0.15)',
+                      border: '1px solid rgba(255, 119, 0, 0.4)',
+                      color: '#ff7700',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>+</span> Add Education
+                  </button>
+                </div>
+
+                {(!about.education || about.education.length === 0) ? (
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#64748b', backgroundColor: '#070605', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                    No education items yet. Click "+ Add Education" to add one.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {about.education.map((edu, idx) => (
+                      <div
+                        key={edu.id || idx}
+                        style={{
+                          backgroundColor: '#070605',
+                          border: '1px solid rgba(255, 255, 255, 0.06)',
+                          borderRadius: '10px',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          gap: '16px'
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>{edu.degree}</h3>
+                            <span style={{ fontSize: '11px', color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                              {edu.period || '2025 - Present'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#a78bfa', fontWeight: 600, marginBottom: '6px' }}>
+                            {edu.institution}
+                          </div>
+                          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+                            {edu.description}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => openEducationModal('edit', idx, edu)}
+                            style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEducation(idx)}
+                            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION D: CERTIFICATIONS STACK */}
+              <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>📜</span> Professional Certifications ({about.certifications?.length || 0})
+                    </h2>
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Licenses, badges, and verified credentials</span>
+                  </div>
+                  <button
+                    onClick={() => openCertificationModal('create')}
+                    style={{
+                      backgroundColor: 'rgba(255, 119, 0, 0.15)',
+                      border: '1px solid rgba(255, 119, 0, 0.4)',
+                      color: '#ff7700',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>+</span> Add Certification
+                  </button>
+                </div>
+
+                {(!about.certifications || about.certifications.length === 0) ? (
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#64748b', backgroundColor: '#070605', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                    No certifications yet. Click "+ Add Certification" to add one.
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                    {about.certifications.map((cert, idx) => (
+                      <div
+                        key={cert.id || idx}
+                        style={{
+                          backgroundColor: '#070605',
+                          border: '1px solid rgba(255, 255, 255, 0.06)',
+                          borderRadius: '10px',
+                          padding: '16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase' }}>
+                              ✦ {cert.issuer}
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>
+                              {cert.date}
+                            </span>
+                          </div>
+                          <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: '0 0 8px 0' }}>
+                            {cert.title}
+                          </h3>
+                          {cert.link && (
+                            <a href={cert.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#ff7700', textDecoration: 'none' }}>
+                              View Credential ↗
+                            </a>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '14px' }}>
+                          <button
+                            onClick={() => openCertificationModal('edit', idx, cert)}
+                            style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCertification(idx)}
+                            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -2164,6 +2665,267 @@ export default function AdminDashboardSection() {
                   style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
                 >
                   {isSubmitting ? 'Saving...' : 'Save Service'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 7: WORK EXPERIENCE MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {experienceModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '28px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 16px 0' }}>
+              {experienceModal.mode === 'edit' ? 'Edit Work Experience' : 'Add Work Experience'}
+            </h2>
+            <form onSubmit={handleSaveExperience} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Role / Job Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Full Stack Developer"
+                  value={experienceForm.role}
+                  onChange={(e) => setExperienceForm({ ...experienceForm, role: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Company / Client *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Freelance & Client Systems"
+                    value={experienceForm.company}
+                    onChange={(e) => setExperienceForm({ ...experienceForm, company: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Period *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 2024 - Present"
+                    value={experienceForm.period}
+                    onChange={(e) => setExperienceForm({ ...experienceForm, period: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Experience Description *</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Describe your responsibilities, architectural accomplishments, and key technologies..."
+                  value={experienceForm.description}
+                  onChange={(e) => setExperienceForm({ ...experienceForm, description: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Project Link / Reference URL</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={experienceForm.projectLink}
+                  onChange={(e) => setExperienceForm({ ...experienceForm, projectLink: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setExperienceModal({ isOpen: false, mode: 'create', index: -1, data: null })}
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Experience'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 8: EDUCATION MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {educationModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '28px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 16px 0' }}>
+              {educationModal.mode === 'edit' ? 'Edit Education' : 'Add Education'}
+            </h2>
+            <form onSubmit={handleSaveEducation} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Degree / Program *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. BS Business & Information Technology (BBIT)"
+                  value={educationForm.degree}
+                  onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Institution / University *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Virtual University of Pakistan"
+                    value={educationForm.institution}
+                    onChange={(e) => setEducationForm({ ...educationForm, institution: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Period *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 2025 - Present"
+                    value={educationForm.period}
+                    onChange={(e) => setEducationForm({ ...educationForm, period: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Description *</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Describe your academic coursework, field of focus, or certifications..."
+                  value={educationForm.description}
+                  onChange={(e) => setEducationForm({ ...educationForm, description: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Institution / Link URL</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={educationForm.certificationLink}
+                  onChange={(e) => setEducationForm({ ...educationForm, certificationLink: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEducationModal({ isOpen: false, mode: 'create', index: -1, data: null })}
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Education'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL 9: CERTIFICATION MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {certificationModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', width: '100%', maxWidth: '540px', padding: '28px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', margin: '0 0 16px 0' }}>
+              {certificationModal.mode === 'edit' ? 'Edit Certification' : 'Add Certification'}
+            </h2>
+            <form onSubmit={handleSaveCertification} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Certification Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Full-Stack Software Engineering & Modern Web Architecture"
+                  value={certificationForm.title}
+                  onChange={(e) => setCertificationForm({ ...certificationForm, title: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Issuer / Authority *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Verified Credential"
+                    value={certificationForm.issuer}
+                    onChange={(e) => setCertificationForm({ ...certificationForm, issuer: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Year / Date *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 2024"
+                    value={certificationForm.date}
+                    onChange={(e) => setCertificationForm({ ...certificationForm, date: e.target.value })}
+                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Verification Link</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={certificationForm.link}
+                  onChange={(e) => setCertificationForm({ ...certificationForm, link: e.target.value })}
+                  style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setCertificationModal({ isOpen: false, mode: 'create', index: -1, data: null })}
+                  style={{ backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#ff7700', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Certification'}
                 </button>
               </div>
             </form>
