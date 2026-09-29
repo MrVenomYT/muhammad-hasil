@@ -9,13 +9,39 @@ export const DELETED_PRODUCTS_KEY = 'app_deleted_products_cache';
 
 export const initialSeedProjects = [
   {
+    id: 'apexmotors',
+    _id: '6abbfcf5de05124ca18a5c7d',
+    title: 'Apex Motors',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'A car selling/buying or renting out web-app',
+    liveDemoUrl: 'https://apex-motors-mu.vercel.app/',
+    imageUrl: '/assets/Apex-motors.jpg',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true
+  },
+  {
+    id: 'papersbank',
+    _id: '6abbdb3323131d20f5e719a8',
+    title: 'Papers Bank',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'A paper bank web app for the perp for students',
+    liveDemoUrl: 'https://venom-papers.vercel.app/',
+    imageUrl: '/assets/papers-bank.jpg',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true
+  },
+  {
     id: 'takumisushi',
     title: 'Takumi Sushi',
     category: 'fullstack react design',
     pill: 'React / Japanese Dining UI',
     description: 'Authentic Japanese dining and sushi ordering web application featuring interactive menus, sleek dark aesthetic UI, and seamless food ordering experience.',
     liveDemoUrl: 'https://takumi-psi.vercel.app/',
-    imageUrl: '/assets/thumbnail.png'
+    imageUrl: '/assets/thumbnail.png',
+    technologies: ['React', 'Next.js', 'Tailwind CSS', 'Framer Motion'],
+    featured: true
   },
   {
     id: 'staypilot',
@@ -24,7 +50,9 @@ export const initialSeedProjects = [
     pill: 'Full Stack Web App',
     description: 'All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.',
     liveDemoUrl: 'https://stay-pilot-liard.vercel.app/',
-    imageUrl: '/assets/StayPilot.png'
+    imageUrl: '/assets/StayPilot.png',
+    technologies: ['React', 'Next.js', 'Firebase', 'Node.js', 'Stripe'],
+    featured: true
   },
   {
     id: 'vscheduler',
@@ -33,7 +61,9 @@ export const initialSeedProjects = [
     pill: 'React / Web App',
     description: 'Interactive appointment booking and automated scheduling system built for seamless workflow management.',
     liveDemoUrl: 'https://vscheduler-five.vercel.app/',
-    imageUrl: '/assets/VScheduler.png'
+    imageUrl: '/assets/VScheduler.png',
+    technologies: ['React', 'FullCalendar', 'EmailJS', 'Tailwind CSS'],
+    featured: true
   },
   {
     id: 'sushiman',
@@ -42,7 +72,9 @@ export const initialSeedProjects = [
     pill: 'Web Design & UI',
     description: 'High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.',
     liveDemoUrl: 'https://vanilla-food-website.vercel.app/',
-    imageUrl: '/assets/shushiman.png'
+    imageUrl: '/assets/shushiman.png',
+    technologies: ['HTML5 Canvas', 'CSS3 Glassmorphism', 'Vanilla JS'],
+    featured: true
   },
   {
     id: 'coffee',
@@ -51,7 +83,9 @@ export const initialSeedProjects = [
     pill: 'Artisanal Cafe Shop',
     description: 'Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.',
     liveDemoUrl: 'https://coffee-theme.vercel.app/',
-    imageUrl: '/assets/coffee.png'
+    imageUrl: '/assets/coffee.png',
+    technologies: ['React', 'Responsive Design', 'Tailwind CSS'],
+    featured: false
   },
   {
     id: 'studyhub',
@@ -60,7 +94,9 @@ export const initialSeedProjects = [
     pill: 'Learning Portal',
     description: 'Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.',
     liveDemoUrl: 'https://study-app-steel.vercel.app/',
-    imageUrl: '/assets/Study-hub.png'
+    imageUrl: '/assets/Study-hub.png',
+    technologies: ['React', 'Next.js', 'MongoDB', 'Node.js'],
+    featured: false
   },
   {
     id: 'venomousstudio',
@@ -69,7 +105,9 @@ export const initialSeedProjects = [
     pill: 'Digital Agency Showcase',
     description: 'Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.',
     liveDemoUrl: 'https://venomous-studio.vercel.app/',
-    imageUrl: '/assets/Venomous Studio.png'
+    imageUrl: '/assets/Venomous Studio.png',
+    technologies: ['React', 'Canvas 192-Frame Engine', 'CSS Glassmorphism'],
+    featured: true
   }
 ];
 

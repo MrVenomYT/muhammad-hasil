@@ -91,21 +91,47 @@ export default function AboutSection() {
       .catch(() => {});
   }, []);
 
+  // Format headline gracefully if user supplied multiple piped titles
+  const headlineText = aboutData.headline || defaultAboutData.headline;
+  const isPipedHeadline = headlineText.includes('|');
+  const headlineParts = isPipedHeadline ? headlineText.split('|').map(p => p.trim()).filter(Boolean) : [];
+  const primaryTitle = isPipedHeadline ? headlineParts.slice(0, 2).join(' & ') : headlineText;
+  const subRoles = isPipedHeadline ? headlineParts.slice(2) : [];
+
   return (
     <div id="page-about" className="page-view active">
       <section className="about-section">
-        {/* Main Intro Block */}
+        {/* Main Intro Block with Frosted Glass Backdrop */}
         <div className="about-hero">
+          <div className="about-hero-corner"></div>
           <div className="about-tag">
             <span className="orange-dot"></span>
             <span>ABOUT MUHAMMAD</span>
           </div>
-          <h2 className="about-headline">
-            {aboutData.headline}
-          </h2>
-          <p className="about-subtext">
-            {aboutData.subtext}
-          </p>
+
+          <h1 className="about-headline">
+            {primaryTitle}
+          </h1>
+
+          {subRoles.length > 0 && (
+            <div className="about-pills-row">
+              {subRoles.map((role, idx) => (
+                <span key={idx} className="about-role-pill">
+                  ✦ {role}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="about-subtext">
+            {(aboutData.subtext || defaultAboutData.subtext)
+              .split('\n\n')
+              .map((para, i) => (
+                <p key={i} style={{ margin: i > 0 ? '14px 0 0 0' : '0', color: '#ffffff', fontSize: '1.05rem', lineHeight: 1.8 }}>
+                  {para}
+                </p>
+              ))}
+          </div>
 
           {/* 4 Core Offerings Cards */}
           <div className="about-features-grid">

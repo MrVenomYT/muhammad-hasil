@@ -47,7 +47,7 @@ const reviewsData = [
 ];
 
 export default function HomeSection() {
-  const [typedText, setTypedText] = useState('');
+  const [typedText, setTypedText] = useState('MUHAMMAD HASIL');
   const textToType = "MUHAMMAD HASIL";
   const [reviewsList, setReviewsList] = useState(reviewsData);
   const [portfolioStats, setPortfolioStats] = useState({
@@ -92,10 +92,10 @@ export default function HomeSection() {
       .catch(() => {});
   }, []);
 
-  // Typewriter effect
+  // Typewriter effect (starts with full text, retypes smoothly)
   useEffect(() => {
-    let charIndex = 0;
-    let isDeleting = false;
+    let charIndex = textToType.length;
+    let isDeleting = true;
     let timer = null;
 
     function type() {
@@ -113,14 +113,18 @@ export default function HomeSection() {
         timer = setTimeout(() => {
           isDeleting = true;
           type();
-        }, 4500);
+        }, 5000);
       } else if (isDeleting && charIndex === 0) {
         isDeleting = false;
-        timer = setTimeout(type, 500);
+        timer = setTimeout(type, 400);
       }
     }
 
-    timer = setTimeout(type, 200);
+    timer = setTimeout(() => {
+      isDeleting = true;
+      type();
+    }, 5000);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -215,7 +219,7 @@ export default function HomeSection() {
             <div>
               <div className="metric-number-highlight">{portfolioStats.projectsCompleted}</div>
               <div className="metric-title-text">Projects Completed</div>
-              <p className="metric-desc-text">Production web apps, full-stack systems & client portals.</p>
+              <p className="metric-desc-text">Production web apps & full-stack platforms.</p>
             </div>
           </div>
 
@@ -242,7 +246,7 @@ export default function HomeSection() {
             <div>
               <div className="metric-number-highlight">{portfolioStats.happyClients}</div>
               <div className="metric-title-text">Happy Clients</div>
-              <p className="metric-desc-text">Founders, agencies & digital creators across 15+ countries.</p>
+              <p className="metric-desc-text">Global founders & digital creators.</p>
             </div>
           </div>
 
@@ -256,14 +260,14 @@ export default function HomeSection() {
                   <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
               </div>
-              <span className="metric-trend-badge" style={{ color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.12)', borderColor: 'rgba(255, 119, 0, 0.25)' }}>
-                Proven
+              <span className="metric-trend-badge" style={{ color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.15)', borderColor: 'rgba(255, 119, 0, 0.35)' }}>
+                Full-Stack
               </span>
             </div>
             <div>
               <div className="metric-number-highlight">{portfolioStats.yearsExperience}</div>
-              <div className="metric-title-text">Years of Experience</div>
-              <p className="metric-desc-text">Modern web development, Next.js, APIs & database architecture.</p>
+              <div className="metric-title-text">Years Experience</div>
+              <p className="metric-desc-text">React, Next.js, APIs & modern DBs.</p>
             </div>
           </div>
 
@@ -283,7 +287,7 @@ export default function HomeSection() {
             <div>
               <div className="metric-number-highlight">{portfolioStats.positiveReviews}</div>
               <div className="metric-title-text">Positive Reviews</div>
-              <p className="metric-desc-text">Consistently top-rated for fast delivery & clean code.</p>
+              <p className="metric-desc-text">Consistently top-rated for quality & clean code.</p>
             </div>
           </div>
         </div>

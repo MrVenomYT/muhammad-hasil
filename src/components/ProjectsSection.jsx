@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { getCombinedProjects } from '../lib/storage';
+import { getCombinedProjects, initialSeedProjects } from '../lib/storage';
 
 export function formatImageUrl(url) {
   if (!url) return '/assets/muhammad-hasil.png';
@@ -14,7 +14,7 @@ export function formatImageUrl(url) {
 export default function ProjectsSection() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [apiProjects, setApiProjects] = useState([]);
+  const [apiProjects, setApiProjects] = useState(initialSeedProjects);
   const [firestoreProjects, setFirestoreProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
@@ -132,7 +132,7 @@ export default function ProjectsSection() {
               <div>
                 <div className="metric-number-highlight">299+</div>
                 <div className="metric-title-text">Projects Completed</div>
-                <p className="metric-desc-text">Production full-stack platforms & scalable web applications.</p>
+                <p className="metric-desc-text">Production web apps & full-stack platforms.</p>
               </div>
             </div>
 
@@ -154,7 +154,7 @@ export default function ProjectsSection() {
               <div>
                 <div className="metric-number-highlight">200+</div>
                 <div className="metric-title-text">Happy Clients</div>
-                <p className="metric-desc-text">Founders, agencies & digital creators with 99.6% satisfaction.</p>
+                <p className="metric-desc-text">Global founders & creative digital agencies.</p>
               </div>
             </div>
 
@@ -167,14 +167,14 @@ export default function ProjectsSection() {
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                 </div>
-                <span className="metric-trend-badge" style={{ color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.12)', borderColor: 'rgba(255, 119, 0, 0.25)' }}>
-                  Full-Time
+                <span className="metric-trend-badge" style={{ color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.15)', borderColor: 'rgba(255, 119, 0, 0.35)' }}>
+                  Full-Stack
                 </span>
               </div>
               <div>
                 <div className="metric-number-highlight">6+ Years</div>
-                <div className="metric-title-text">Years of Experience</div>
-                <p className="metric-desc-text">Architecture, React, Next.js, Node.js & modern database systems.</p>
+                <div className="metric-title-text">Years Experience</div>
+                <p className="metric-desc-text">React, Next.js, Node.js & modern DBs.</p>
               </div>
             </div>
 
@@ -192,8 +192,8 @@ export default function ProjectsSection() {
               </div>
               <div>
                 <div className="metric-number-highlight">99.8%</div>
-                <div className="metric-title-text">Client Satisfaction</div>
-                <p className="metric-desc-text">Top rated for fast turnarounds, clean architecture & support.</p>
+                <div className="metric-title-text">Satisfaction Rate</div>
+                <p className="metric-desc-text">Clean architecture, fast turnarounds & support.</p>
               </div>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function ProjectsSection() {
             <span>Featured Engineering Work</span>
           </div>
           <h2 className="section-title">Production Web Applications & UI Systems</h2>
-          <p style={{ color: '#a1a1aa', maxWidth: '680px', margin: '0 0 24px 0', fontSize: '15px', lineHeight: 1.6 }}>
+          <p style={{ color: '#ffffff', opacity: 0.95, maxWidth: '680px', margin: '0 0 24px 0', fontSize: '15px', lineHeight: 1.6 }}>
             Explore custom full-stack solutions built with React, Next.js, Node.js, MongoDB & PostgreSQL database architecture.
           </p>
 
@@ -221,7 +221,7 @@ export default function ProjectsSection() {
               </div>
               <input
                 type="text"
-                placeholder="Search projects in real-time by title, tech stack (e.g. React, Next.js, MongoDB), or tags..."
+                placeholder="Search projects by title, tech stack (React, Next.js, MongoDB), or tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input-field"
@@ -241,7 +241,7 @@ export default function ProjectsSection() {
 
             {/* Quick Filter Tag Chips */}
             <div className="search-tags-row">
-              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginRight: '4px' }}>
+              <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: 600, marginRight: '6px' }}>
                 Filter by Tags:
               </span>
               {popularTags.map((tag, idx) => {
@@ -261,7 +261,7 @@ export default function ProjectsSection() {
             </div>
 
             {/* Category Tabs & Dynamic Counter Bar */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '6px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
               <div className="projects-tabs-row" id="projects-tabs" style={{ margin: 0 }}>
                 <button
                   className={`project-tab-btn ${filter === 'all' ? 'active' : ''}`}
@@ -306,16 +306,16 @@ export default function ProjectsSection() {
           <div style={{
             textAlign: 'center',
             padding: '60px 20px',
-            backgroundColor: 'rgba(18, 16, 14, 0.65)',
+            backgroundColor: 'rgba(16, 16, 22, 0.8)',
             borderRadius: '20px',
-            border: '1px dashed rgba(255, 255, 255, 0.15)',
+            border: '1px dashed rgba(255, 255, 255, 0.2)',
             margin: '20px 0'
           }}>
             <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔍</div>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
               No projects found matching &ldquo;{searchQuery}&rdquo;
             </h3>
-            <p style={{ color: '#94a3b8', fontSize: '14px', maxWidth: '440px', margin: '0 auto 20px auto' }}>
+            <p style={{ color: '#ffffff', opacity: 0.9, fontSize: '14px', maxWidth: '440px', margin: '0 auto 20px auto' }}>
               Try searching with a different technology keyword like React, Next.js, Node.js, or fullstack.
             </p>
             <button
