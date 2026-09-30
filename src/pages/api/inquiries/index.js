@@ -1,4 +1,5 @@
 import { getInquiries, saveInquiry } from '../../../lib/server-store';
+import { inquirySchema } from '../../../lib/validations';
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -14,10 +15,13 @@ export default async function handler(req, res) {
 
     case 'POST':
       try {
-        if (!req.body || !req.body.name || !req.body.email || !req.body.message) {
-          return res.status(400).json({ success: false, error: 'Name, email, and message are required.' });
+        const parseResult = inquirySchema.safeParse(req.body);
+        if (!parseResult.success) {
+          const errorMessage = parseResult.error.errors.map(err => err.message).join(', ');
+          return res.status(400).json({ success: false, error: errorMessage });
         }
-        const saved = await saveInquiry(req.body);
+        const validatedData = parseResult.data;
+        const saved = await saveInquiry(validatedData);
         return res.status(201).json({ success: true, data: saved });
       } catch (error) {
         return res.status(500).json({ success: false, error: error.message });

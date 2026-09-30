@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import emailjs from '@emailjs/browser';
+import { contactFormSchema } from '../lib/validations';
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -17,10 +18,16 @@ export default function ContactSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.from_name || !formData.from_email || !formData.subject || !formData.message) {
-      setStatus({ type: 'error', text: 'Please fill out all required fields.' });
+
+    // Perform strict Zod schema validation for email format and message length
+    const parseResult = contactFormSchema.safeParse(formData);
+    if (!parseResult.success) {
+      const errorMsg = parseResult.error.errors.map(err => err.message).join('. ');
+      setStatus({ type: 'error', text: `❌ ${errorMsg}` });
       return;
     }
+
+    const validated = parseResult.data;
 
     const serviceID = process.env.EMAILJS_SERVICE_ID;
     const templateID = process.env.EMAILJS_TEMPLATE_ID;
@@ -30,29 +37,34 @@ export default function ContactSection() {
     setStatus({ type: 'info', text: 'Sending your inquiry...' });
 
     try {
-      // 1. Store permanently in MongoDB via API
+      // 1. Store permanently in MongoDB via API with validated schema
       const res = await fetch('/api/inquiries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.from_name,
-          email: formData.from_email,
-          subject: formData.subject,
-          message: formData.message,
+          name: validated.from_name,
+          email: validated.from_email,
+          subject: validated.subject,
+          message: validated.message,
           serviceType: 'Full-Stack Web App Development',
         })
       });
 
-      // 2. Also send via EmailJS if configured
-      if (serviceID && templateID && publicKey) {
-        await emailjs.send(serviceID, templateID, formData, publicKey).catch((e) => console.warn('EmailJS note:', e));
+      const apiJson = await res.json();
+      if (!apiJson.success) {
+        throw new Error(apiJson.error || 'Server validation failed');
       }
 
-      setStatus({ type: 'success', text: '✓ Thank you! Your message has been saved and sent to Muhammad Hasil.' });
+      // 2. Also send via EmailJS if configured
+      if (serviceID && templateID && publicKey) {
+        await emailjs.send(serviceID, templateID, validated, publicKey).catch((e) => console.warn('EmailJS note:', e));
+      }
+
+      setStatus({ type: 'success', text: '✓ Thank you! Your message has been validated and sent to Muhammad Hasil.' });
       setFormData({ from_name: '', from_email: '', subject: '', message: '' });
     } catch (err) {
       console.error('Inquiry Submission Error:', err);
-      setStatus({ type: 'error', text: '❌ Unable to send inquiry right now. Please reach out directly on LinkedIn or Fiverr.' });
+      setStatus({ type: 'error', text: `❌ ${err.message || 'Unable to send inquiry right now. Please reach out directly on LinkedIn or Fiverr.'}` });
     } finally {
       setSending(false);
     }

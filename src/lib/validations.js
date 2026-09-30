@@ -17,3 +17,18 @@ export const projectSchema = z.object({
   views: z.number().optional().default(0),
   likes: z.number().optional().default(0)
 });
+
+export const contactFormSchema = z.object({
+  from_name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name cannot exceed 100 characters'),
+  from_email: z.string().trim().min(1, 'Email is required').email('Please enter a valid email address (e.g. name@domain.com)'),
+  subject: z.string().trim().min(3, 'Subject must be at least 3 characters').max(150, 'Subject cannot exceed 150 characters'),
+  message: z.string().trim().min(10, 'Message must be at least 10 characters long').max(2000, 'Message cannot exceed 2000 characters')
+});
+
+export const inquirySchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name cannot exceed 100 characters'),
+  email: z.string().trim().min(1, 'Email is required').email('Please enter a valid email address'),
+  subject: z.string().trim().min(3, 'Subject must be at least 3 characters').max(150, 'Subject cannot exceed 150 characters'),
+  message: z.string().trim().min(10, 'Message must be at least 10 characters long').max(2000, 'Message cannot exceed 2000 characters'),
+  serviceType: z.string().optional().default('Full-Stack Web App Development')
+});

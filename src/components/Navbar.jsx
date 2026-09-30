@@ -62,16 +62,20 @@ export default function Navbar() {
               </Link>
             );
           })}
+        </nav>
+
+        {/* Primary Action Button */}
+        <div className="nav-actions-zone" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {user ? (
-            <Link href="/admin/dashboard" className={`nav-link ${isActive('/admin') ? 'active' : ''}`} style={{ color: '#ff7700', fontWeight: 'bold' }}>
+            <Link href="/admin/dashboard" className="btn-secondary-nav" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, color: '#ff7700', border: '1px solid rgba(255, 119, 0, 0.3)', textDecoration: 'none', background: 'rgba(255, 119, 0, 0.1)' }}>
               ⚡ Dashboard
             </Link>
           ) : (
-            <Link href="/admin/login" className={`nav-link ${isActive('/admin') ? 'active' : ''}`} style={{ opacity: 0.8 }}>
-              🔒 Admin
-            </Link>
+            <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" className="btn-primary-nav" style={{ padding: '8px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, color: '#ffffff', backgroundColor: '#ff7700', textDecoration: 'none', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}>
+              Hire me ↗
+            </a>
           )}
-        </nav>
+        </div>
 
         {/* Mobile Hamburger Menu Toggle Button */}
         <button 
