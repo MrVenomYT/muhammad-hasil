@@ -15,7 +15,7 @@ export async function getServerSideProps() {
       title: 'Full Stack Engineering & Web Development Services',
       description,
       imageUrl: '/assets/muhammad-hasil.png',
-      url: 'https://ais-dev-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/services',
+      url: 'https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/services',
       category: 'Professional Software Services',
       schemaType: 'ItemList',
       schemaData: {
@@ -23,7 +23,7 @@ export async function getServerSideProps() {
           '@type': 'ListItem',
           position: idx + 1,
           name: s.title,
-          url: `https://ais-dev-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/services/${s.id || s._id}`
+          url: `https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/services`
         }))
       }
     });

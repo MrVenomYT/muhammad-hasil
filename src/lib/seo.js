@@ -1,4 +1,13 @@
-// Dynamic SEO Metadata Generator for Portfolio Projects, Services & Pages
+// Dynamic Global SEO & OpenGraph Metadata Generator for iHasil Portfolio
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app';
+
+export function getFullImageUrl(imageUrl) {
+  if (!imageUrl) return `${BASE_URL}/assets/muhammad-hasil.png`;
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+  const clean = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  return `${BASE_URL}${clean}`;
+}
 
 export function generateSEOMetadata({
   title,
@@ -7,53 +16,69 @@ export function generateSEOMetadata({
   url,
   type = 'website',
   category = 'Software Development',
-  keywords = [],
-  schemaType = 'WebApplication',
+  keywords = [
+    'Muhammad Hasil',
+    'iHasil',
+    'Full Stack Developer',
+    'React Developer',
+    'Next.js Engineer',
+    'UI/UX Designer',
+    'Node.js',
+    'MongoDB',
+    'Web Development Portfolio'
+  ],
+  schemaType = 'ProfessionalService',
   schemaData = {}
 }) {
-  const baseTitle = 'Muhammad Hasil – Full Stack Developer & UI/UX Specialist';
+  const brandName = 'iHasil';
+  const creatorName = 'Muhammad Hasil';
+  
   const pageTitle = title
-    ? `${title} | Muhammad Hasil Portfolio`
-    : baseTitle;
+    ? `${title} – ${brandName} | ${creatorName}`
+    : `${brandName} – ${creatorName} | Full Stack Developer & UI/UX Designer`;
 
-  const defaultDesc = 'Full Stack Software Engineer specializing in React, Next.js, Node.js, MongoDB, and high-performance dark glassmorphism web applications.';
+  const defaultDesc = 'Explore production full-stack web applications, React & Next.js systems, digital store products, and engineering services by Muhammad Hasil (iHasil).';
   const pageDescription = description
-    ? (description.length > 155 ? description.substring(0, 152) + '...' : description)
+    ? (description.length > 160 ? description.substring(0, 157) + '...' : description)
     : defaultDesc;
 
-  const defaultImage = 'https://ais-dev-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/assets/muhammad-hasil.png';
-  let pageImage = defaultImage;
-  if (imageUrl) {
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      pageImage = imageUrl;
-    } else {
-      const cleanPath = imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl;
-      pageImage = `https://ais-dev-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app${cleanPath}`;
-    }
-  }
+  const pageImage = getFullImageUrl(imageUrl);
+  const pageUrl = url || BASE_URL;
 
-  const pageUrl = url || 'https://ais-dev-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app';
-
-  // Schema.org JSON-LD Structured Data
+  // Rich Schema.org JSON-LD Structured Data
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': schemaType,
-    name: title || 'Muhammad Hasil Portfolio',
+    name: brandName,
+    alternateName: creatorName,
     description: pageDescription,
     image: pageImage,
     url: pageUrl,
-    applicationCategory: category,
-    operatingSystem: 'All Modern Browsers',
-    author: {
+    logo: `${BASE_URL}/assets/muhammad-hasil.png`,
+    sameAs: [
+      'https://www.linkedin.com/in/muhammad-hasil/',
+      'https://pro.fiverr.com/users/venomdesigne613/',
+      'https://www.patreon.com/MrVenomYT'
+    ],
+    knowsAbout: [
+      'React.js',
+      'Next.js',
+      'Node.js',
+      'MongoDB',
+      'PostgreSQL',
+      'TypeScript',
+      'UI/UX Architecture',
+      'REST APIs'
+    ],
+    founder: {
       '@type': 'Person',
-      name: 'Muhammad Hasil',
-      jobTitle: 'Full Stack Developer',
-      url: 'https://pro.fiverr.com/users/venomdesigne613/'
-    },
-    provider: {
-      '@type': 'Organization',
-      name: 'iHasil Studio',
-      url: pageUrl
+      name: creatorName,
+      jobTitle: 'Full Stack Developer & UI/UX Designer',
+      url: BASE_URL,
+      sameAs: [
+        'https://www.linkedin.com/in/muhammad-hasil/',
+        'https://pro.fiverr.com/users/venomdesigne613/'
+      ]
     },
     ...schemaData
   };
@@ -61,11 +86,13 @@ export function generateSEOMetadata({
   return {
     title: pageTitle,
     description: pageDescription,
+    keywords: keywords.join(', '),
     ogTitle: pageTitle,
     ogDescription: pageDescription,
     ogImage: pageImage,
     ogUrl: pageUrl,
     ogType: type,
+    ogSiteName: `${brandName} – ${creatorName}`,
     twitterCard: 'summary_large_image',
     twitterTitle: pageTitle,
     twitterDescription: pageDescription,

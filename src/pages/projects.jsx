@@ -15,7 +15,7 @@ export async function getServerSideProps() {
       title: 'Full Stack Projects & Web Portfolio',
       description,
       imageUrl: projects[0]?.imageUrl || '/assets/Apex-motors.jpg',
-      url: 'https://ais-dev-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/projects',
+      url: 'https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/projects',
       category: 'Software Projects',
       schemaType: 'ItemList',
       schemaData: {
@@ -23,7 +23,7 @@ export async function getServerSideProps() {
           '@type': 'ListItem',
           position: idx + 1,
           name: p.title,
-          url: `https://ais-dev-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/projects/${p.id || p._id}`
+          url: `https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/projects`
         }))
       }
     });
