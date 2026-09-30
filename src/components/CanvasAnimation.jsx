@@ -105,9 +105,16 @@ function initializeFramePreloader(initialFrame = 0, onInitialFrameReady) {
   setTimeout(loadNextStepBatch, 100);
 }
 
-export default function CanvasAnimation({ currentPath }) {
-  const router = useRouter();
-  const activePath = currentPath || (router ? router.pathname : '/');
+export default function CanvasAnimation({ currentPath = '/' }) {
+  let activePath = currentPath || '/';
+  try {
+    const router = useRouter();
+    if (router?.pathname) {
+      activePath = router.pathname;
+    }
+  } catch (e) {
+    // Safe fallback during SSG
+  }
   const canvasRef = useRef(null);
   const lastDrawnImgRef = useRef(null);
 
@@ -204,7 +211,7 @@ export default function CanvasAnimation({ currentPath }) {
       const offsetX = (canvas.width - drawW) / 2;
       const offsetY = (canvas.height - drawH) / 2;
 
-      ctx.fillStyle = '#070605';
+      ctx.fillStyle = '#0d0806';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
     };

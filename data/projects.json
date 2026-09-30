@@ -31,7 +31,7 @@
     "description": "Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.",
     "longDescription": "",
     "liveDemoUrl": "https://venomous-studio.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "",
     "imageUrl": "/assets/Venomous Studio.png",
     "technologies": [
       "React",
@@ -55,7 +55,7 @@
     "description": "Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.",
     "longDescription": "",
     "liveDemoUrl": "https://study-app-steel.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "",
     "imageUrl": "/assets/Study-hub.png",
     "technologies": [
       "React",
@@ -80,7 +80,7 @@
     "description": "Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.",
     "longDescription": "",
     "liveDemoUrl": "https://coffee-theme.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "",
     "imageUrl": "/assets/coffee.png",
     "technologies": [
       "React",
@@ -104,7 +104,7 @@
     "description": "High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.",
     "longDescription": "",
     "liveDemoUrl": "https://vanilla-food-website.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "",
     "imageUrl": "/assets/shushiman.png",
     "technologies": [
       "HTML5 Canvas",
@@ -128,7 +128,7 @@
     "description": "Interactive appointment booking and automated scheduling system built for seamless workflow management.",
     "longDescription": "",
     "liveDemoUrl": "https://vscheduler-five.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "",
     "imageUrl": "/assets/VScheduler.png",
     "technologies": [
       "React",
@@ -153,7 +153,7 @@
     "description": "All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.",
     "longDescription": "",
     "liveDemoUrl": "https://stay-pilot-liard.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "",
     "imageUrl": "/assets/StayPilot.png",
     "technologies": [
       "React",
@@ -179,7 +179,7 @@
     "description": "Authentic Japanese dining and sushi ordering web application featuring interactive menus, sleek dark aesthetic UI, and seamless food ordering experience.",
     "longDescription": "",
     "liveDemoUrl": "https://takumi-psi.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "",
     "imageUrl": "/assets/thumbnail.png",
     "technologies": [
       "React",
@@ -195,5 +195,78 @@
     "updatedAt": "2026-09-29T15:26:51.903Z",
     "__v": 0,
     "id": "6abbd8bb57df84cc42addd8c"
+  },
+  {
+    "_id": "6abc2297b173089d07a2d135",
+    "title": "Eshop",
+    "category": "fullstack react",
+    "pill": "Full Stack Web App",
+    "description": "A full stack webstore app",
+    "longDescription": "",
+    "liveDemoUrl": "https://eshop-pi-five.vercel.app/",
+    "githubUrl": "",
+    "imageUrl": "/assets/eshop.png",
+    "technologies": [
+      "React",
+      "Next.js",
+      "Node.js"
+    ],
+    "featured": true,
+    "order": 0,
+    "views": 0,
+    "likes": 0,
+    "updatedAt": "2026-09-30T15:31:29.140Z",
+    "createdAt": "2026-09-29T20:41:59.052Z",
+    "__v": 0,
+    "id": "6abc2297b173089d07a2d135",
+    "clicks": 0
+  },
+  {
+    "_id": "6abc1bb31f4649b944b2568a",
+    "title": "Veloce",
+    "category": "fullstack react",
+    "pill": "Full Stack Web App",
+    "description": "Hand-delivered to private aviation tarmacs, five-star residences, and executive offices in under 60 minutes. Guaranteed exact model reservations with zero-deductible coverage.",
+    "longDescription": "",
+    "liveDemoUrl": "https://veloce-five-murex.vercel.app/",
+    "githubUrl": "",
+    "imageUrl": "https://raw.githubusercontent.com/MrVenomYT/Veloce./refs/heads/main/src/assets/veloce.jpg",
+    "technologies": [
+      "React",
+      "Next.js",
+      "Node.js"
+    ],
+    "featured": true,
+    "order": 0,
+    "views": 0,
+    "likes": 0,
+    "updatedAt": "2026-09-29T20:16:11.576Z",
+    "createdAt": "2026-09-29T20:12:35.458Z",
+    "__v": 0,
+    "id": "6abc1bb31f4649b944b2568a"
+  },
+  {
+    "_id": "6abbfcf5de05124ca18a5c7d",
+    "title": "Apex Motors",
+    "category": "fullstack react",
+    "pill": "Full Stack Web App",
+    "description": "A car selling/buying or renting out web-app",
+    "longDescription": "",
+    "liveDemoUrl": "https://apex-motors-mu.vercel.app/",
+    "githubUrl": "",
+    "imageUrl": "/assets/Apex-motors.jpg",
+    "technologies": [
+      "React",
+      "Next.js",
+      "Node.js"
+    ],
+    "featured": true,
+    "order": 0,
+    "views": 0,
+    "likes": 0,
+    "updatedAt": "2026-09-29T18:36:54.137Z",
+    "createdAt": "2026-09-29T18:01:25.899Z",
+    "__v": 0,
+    "id": "6abbfcf5de05124ca18a5c7d"
   }
 ]

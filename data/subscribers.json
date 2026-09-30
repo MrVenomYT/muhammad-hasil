@@ -1,0 +1,11 @@
+[
+  {
+    "_id": "6abd2e531864ab5f2958c680",
+    "email": "test.subscriber@example.com",
+    "__v": 0,
+    "createdAt": "2026-09-30T15:44:19.931Z",
+    "source": "portfolio_newsletter",
+    "status": "active",
+    "id": "6abd2e531864ab5f2958c680"
+  }
+]

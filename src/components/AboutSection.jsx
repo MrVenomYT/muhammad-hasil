@@ -168,7 +168,7 @@ export default function AboutSection({ initialAbout = null }) {
             <div className="about-pills-row">
               {subRoles.map((role, idx) => (
                 <span key={idx} className="about-role-pill">
-                  ✦ {role}
+                  · {role}
                 </span>
               ))}
             </div>
@@ -405,7 +405,7 @@ export default function AboutSection({ initialAbout = null }) {
                           </svg>
                         </div>
                         <div className="info-badge-year" style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
-                          ✦ {cert.issuer} · {cert.date}
+                          {cert.issuer} · {cert.date}
                         </div>
                       </div>
                       

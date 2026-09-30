@@ -80,16 +80,13 @@ export default function ProductsSection({ initialProducts = [] }) {
                   backgroundColor: 'rgba(20, 18, 16, 0.7)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '999px',
-                  padding: '9px 18px 9px 36px',
+                  padding: '9px 18px',
                   fontSize: '13px',
                   color: '#ffffff',
                   outline: 'none',
                   transition: 'border-color 0.2s ease'
                 }}
               />
-              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '13px' }}>
-                🔍
-              </span>
             </div>
           </div>
         </div>
@@ -152,7 +149,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                       borderRadius: '8px',
                       backdropFilter: 'blur(8px)'
                     }}>
-                      ✦ {prod.badge}
+                      {prod.badge}
                     </div>
                   )}
                   <div className="project-overlay-link">
@@ -204,7 +201,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                   <div className="project-tech-tags" style={{ marginBottom: '14px' }}>
                     {prod.features.slice(0, 3).map((ft, idx) => (
                       <span key={idx} className="project-tech-tag">
-                        ✓ {ft}
+                        · {ft}
                       </span>
                     ))}
                     {prod.features.length > 3 && (
@@ -316,7 +313,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                 fontSize: '16px'
               }}
             >
-              ✕
+              Close
             </button>
 
             <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '24px', border: '1px solid rgba(255, 255, 255, 0.08)', position: 'relative' }}>
@@ -329,13 +326,12 @@ export default function ProductsSection({ initialProducts = [] }) {
                 position: 'absolute',
                 top: '16px',
                 right: '16px',
-                backgroundColor: '#ff7700',
+                backgroundColor: 'var(--accent-primary)',
                 color: '#ffffff',
                 fontWeight: '800',
                 fontSize: '16px',
                 padding: '6px 18px',
-                borderRadius: '999px',
-                boxShadow: '0 4px 18px rgba(255, 119, 0, 0.5)',
+                borderRadius: '8px',
                 fontFamily: 'monospace'
               }}>
                 {selectedProduct.price || '$29'}
@@ -343,14 +339,14 @@ export default function ProductsSection({ initialProducts = [] }) {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#ff7700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                 {selectedProduct.category || 'Digital Asset'}
               </span>
               {selectedProduct.badge && (
                 <>
                   <span style={{ color: '#64748b' }}>·</span>
-                  <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600 }}>
-                    ✦ {selectedProduct.badge}
+                  <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 600 }}>
+                    {selectedProduct.badge}
                   </span>
                 </>
               )}
@@ -386,7 +382,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                         gap: '8px'
                       }}
                     >
-                      <span style={{ color: '#10b981', fontWeight: 800 }}>✓</span>
+                      <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>·</span>
                       <span>{feat}</span>
                     </div>
                   ))}

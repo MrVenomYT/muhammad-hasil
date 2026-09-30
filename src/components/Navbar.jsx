@@ -1,13 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useProjects } from '../lib/usePortfolioData';
+import GlobalSearchBar from './GlobalSearchBar';
 
-export default function Navbar() {
-  const router = useRouter();
-  const pathname = router ? router.pathname : '/';
+export default function Navbar({ currentPath = '/' }) {
+  let pathname = currentPath || '/';
+  try {
+    const router = useRouter();
+    if (router?.pathname) {
+      pathname = router.pathname;
+    }
+  } catch (e) {
+    // Safe fallback during SSG
+  }
   const { user } = useAuth();
+  const { projects } = useProjects();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+
+  // Global keyboard shortcut: Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const isActive = (path) => {
     if (path === '/' && pathname === '/') return true;
@@ -65,14 +89,40 @@ export default function Navbar() {
         </nav>
 
         {/* Primary Action Button */}
-        <div className="nav-actions-zone" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="nav-actions-zone" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setSearchModalOpen(true)}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              color: '#cbd5e1',
+              fontSize: '13px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            title="Search Projects by Title or Tech Stack (Ctrl+K)"
+            aria-label="Search Projects"
+          >
+            <Search size={14} style={{ color: 'var(--accent-orange, #df6326)' }} />
+            <span style={{ fontSize: '12px' }}>Search</span>
+            <kbd style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)', padding: '1px 5px', borderRadius: '4px', fontSize: '10px', color: '#94a3b8' }}>
+              Ctrl K
+            </kbd>
+          </button>
+
           {user ? (
-            <Link href="/admin/dashboard" className="btn-secondary-nav" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, color: '#ff7700', border: '1px solid rgba(255, 119, 0, 0.3)', textDecoration: 'none', background: 'rgba(255, 119, 0, 0.1)' }}>
-              ⚡ Dashboard
+            <Link href="/admin/dashboard" className="btn-secondary-nav" style={{ padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--accent-primary)', border: '1px solid var(--accent-primary-border)', textDecoration: 'none', background: 'var(--accent-primary-light)' }}>
+              Dashboard
             </Link>
           ) : (
-            <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" className="btn-primary-nav" style={{ padding: '8px 18px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, color: '#ffffff', backgroundColor: '#ff7700', textDecoration: 'none', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}>
-              Hire me ↗
+            <a href="https://pro.fiverr.com/users/venomdesigne613/" target="_blank" rel="noopener noreferrer" className="btn-primary-nav" style={{ padding: '8px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: '#ffffff', backgroundColor: 'var(--accent-primary)', textDecoration: 'none', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}>
+              Hire me
             </a>
           )}
         </div>
@@ -103,7 +153,7 @@ export default function Navbar() {
             <span className="brand-logo-text">iHasil</span>
           </Link>
           <button className="mobile-close-btn" onClick={() => setMobileMenuOpen(false)}>
-            ✕
+            Close
           </button>
         </div>
 
@@ -127,10 +177,10 @@ export default function Navbar() {
             <Link 
               href="/admin/dashboard" 
               className={`mobile-nav-link ${isActive('/admin') ? 'active' : ''}`} 
-              style={{ color: '#ff7700', fontWeight: 'bold' }}
+              style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}
               onClick={() => setMobileMenuOpen(false)}
             >
-              ⚡ Dashboard
+              Dashboard
             </Link>
           ) : (
             <Link 
@@ -139,11 +189,19 @@ export default function Navbar() {
               style={{ opacity: 0.8 }}
               onClick={() => setMobileMenuOpen(false)}
             >
-              🔒 Admin Login
+              Admin Login
             </Link>
           )}
         </nav>
       </div>
+
+      {/* Global Search Bar Modal */}
+      <GlobalSearchBar
+        isModal={true}
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        projects={projects}
+      />
     </>
   );
 }

@@ -14,7 +14,10 @@ export default function AdminLoginSection() {
 
   useEffect(() => {
     if (user) {
-      router.replace('/admin/dashboard');
+      const target = (router.query.redirect && typeof router.query.redirect === 'string') 
+        ? router.query.redirect 
+        : '/admin/dashboard';
+      router.replace(target);
     }
   }, [user, router]);
 
@@ -25,7 +28,10 @@ export default function AdminLoginSection() {
 
     try {
       await login(email, password);
-      router.replace('/admin/dashboard');
+      const target = (router.query.redirect && typeof router.query.redirect === 'string') 
+        ? router.query.redirect 
+        : '/admin/dashboard';
+      router.replace(target);
     } catch (err) {
       console.error('Firebase Auth Error:', err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
@@ -36,6 +42,11 @@ export default function AdminLoginSection() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFillDemo = () => {
+    setEmail('admin@muhammadhasil.com');
+    setPassword('admin123456');
   };
 
   return (
@@ -122,6 +133,25 @@ export default function AdminLoginSection() {
             }}
           >
             <span>{loading ? 'Authenticating...' : 'Sign In To Dashboard'}</span> <span className="arrow">↗</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleFillDemo}
+            style={{
+              marginTop: '12px',
+              backgroundColor: 'transparent',
+              border: '1px dashed rgba(255, 119, 0, 0.35)',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              color: '#ff7700',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              textAlign: 'center'
+            }}
+          >
+            Use Demo Admin Credentials (admin@muhammadhasil.com)
           </button>
         </form>
 

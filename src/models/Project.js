@@ -44,6 +44,15 @@ const ProjectSchema = new mongoose.Schema({
     type: [String],
     default: ['React', 'Next.js', 'Node.js', 'Tailwind CSS'],
   },
+  projectType: {
+    type: String,
+    default: 'Web',
+    index: true,
+  },
+  tags: {
+    type: [String],
+    default: ['Web', 'Full-Stack'],
+  },
   featured: {
     type: Boolean,
     default: true,

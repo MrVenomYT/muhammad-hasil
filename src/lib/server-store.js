@@ -9,6 +9,7 @@ import Service from '../models/Service';
 import Profile from '../models/Profile';
 import About from '../models/About';
 import Faq from '../models/Faq';
+import Subscriber from '../models/Subscriber';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 
@@ -120,7 +121,7 @@ const initialProjects = [
     pill: 'React / Japanese Dining UI',
     description: 'Authentic Japanese dining and sushi ordering web application featuring interactive menus, sleek dark aesthetic UI, and seamless food ordering experience.',
     liveDemoUrl: 'https://takumi-psi.vercel.app/',
-    githubUrl: 'https://github.com/venomous-studio',
+    githubUrl: '',
     imageUrl: '/assets/thumbnail.png',
     technologies: ['React', 'Next.js', 'Tailwind CSS', 'Framer Motion'],
     featured: true,
@@ -135,7 +136,7 @@ const initialProjects = [
     pill: 'Full Stack Web App',
     description: 'All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.',
     liveDemoUrl: 'https://stay-pilot-liard.vercel.app/',
-    githubUrl: 'https://github.com/venomous-studio',
+    githubUrl: '',
     imageUrl: '/assets/StayPilot.png',
     technologies: ['React', 'Next.js', 'Firebase', 'Node.js', 'Stripe'],
     featured: true,
@@ -150,7 +151,7 @@ const initialProjects = [
     pill: 'React / Web App',
     description: 'Interactive appointment booking and automated scheduling system built for seamless workflow management.',
     liveDemoUrl: 'https://vscheduler-five.vercel.app/',
-    githubUrl: 'https://github.com/venomous-studio',
+    githubUrl: '',
     imageUrl: '/assets/VScheduler.png',
     technologies: ['React', 'FullCalendar', 'EmailJS', 'Tailwind CSS'],
     featured: true,
@@ -165,7 +166,7 @@ const initialProjects = [
     pill: 'Web Design & UI',
     description: 'High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.',
     liveDemoUrl: 'https://vanilla-food-website.vercel.app/',
-    githubUrl: 'https://github.com/venomous-studio',
+    githubUrl: '',
     imageUrl: '/assets/shushiman.png',
     technologies: ['HTML5 Canvas', 'CSS3 Glassmorphism', 'Vanilla JS'],
     featured: true,
@@ -180,7 +181,7 @@ const initialProjects = [
     pill: 'Artisanal Cafe Shop',
     description: 'Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.',
     liveDemoUrl: 'https://coffee-theme.vercel.app/',
-    githubUrl: 'https://github.com/venomous-studio',
+    githubUrl: '',
     imageUrl: '/assets/coffee.png',
     technologies: ['React', 'Responsive Design', 'Tailwind CSS'],
     featured: false,
@@ -195,7 +196,7 @@ const initialProjects = [
     pill: 'Learning Portal',
     description: 'Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.',
     liveDemoUrl: 'https://study-app-steel.vercel.app/',
-    githubUrl: 'https://github.com/venomous-studio',
+    githubUrl: '',
     imageUrl: '/assets/Study-hub.png',
     technologies: ['React', 'Next.js', 'MongoDB', 'Node.js'],
     featured: false,
@@ -210,7 +211,7 @@ const initialProjects = [
     pill: 'Digital Agency Showcase',
     description: 'Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.',
     liveDemoUrl: 'https://venomous-studio.vercel.app/',
-    githubUrl: 'https://github.com/venomous-studio',
+    githubUrl: '',
     imageUrl: '/assets/Venomous Studio.png',
     technologies: ['React', 'Canvas 192-Frame Engine', 'CSS Glassmorphism'],
     featured: true,
@@ -432,7 +433,7 @@ const initialProfile = {
     { name: 'REST APIs & Webhooks', category: 'Integration', level: 90 }
   ],
   socials: {
-    github: 'https://github.com/venomous-studio',
+    github: '',
     linkedin: 'https://www.linkedin.com/in/muhammad-hasil/',
     fiverr: 'https://pro.fiverr.com/users/venomdesigne613/',
     patreon: 'https://www.patreon.com/MrVenomYT',
@@ -1328,3 +1329,67 @@ export async function deleteFaq(id) {
 
   return { success: true };
 }
+
+// ------------------------------------------------------------------
+// NEWSLETTER SUBSCRIBERS
+// ------------------------------------------------------------------
+export async function getSubscribers() {
+  await connectToDatabase().catch(() => {});
+  const disk = readJsonFile('subscribers.json', []);
+
+  try {
+    if (Subscriber.db && Subscriber.db.readyState === 1) {
+      const mongoSubscribers = await Subscriber.find({}).sort({ createdAt: -1 }).lean();
+      if (mongoSubscribers && mongoSubscribers.length > 0) {
+        const normalized = mongoSubscribers.map(s => ({
+          ...s,
+          id: s._id.toString(),
+          _id: s._id.toString()
+        }));
+        writeJsonFile('subscribers.json', normalized);
+        return normalized;
+      }
+    }
+  } catch (err) {
+    console.warn('Subscribers Mongo read note:', err.message);
+  }
+
+  return disk;
+}
+
+export async function saveSubscriber(email, source = 'portfolio_newsletter') {
+  await connectToDatabase().catch(() => {});
+  const normalizedEmail = (email || '').trim().toLowerCase();
+  const disk = readJsonFile('subscribers.json', []);
+
+  const existing = disk.find(s => s.email === normalizedEmail);
+  if (existing) {
+    return { subscriber: existing, isNew: false };
+  }
+
+  const newSub = {
+    id: 'sub-' + Date.now(),
+    email: normalizedEmail,
+    status: 'active',
+    source,
+    createdAt: new Date().toISOString()
+  };
+
+  disk.unshift(newSub);
+  writeJsonFile('subscribers.json', disk);
+
+  try {
+    if (Subscriber.db && Subscriber.db.readyState === 1) {
+      await Subscriber.findOneAndUpdate(
+        { email: normalizedEmail },
+        { email: normalizedEmail, status: 'active', source, createdAt: new Date() },
+        { upsert: true, new: true }
+      );
+    }
+  } catch (err) {
+    console.warn('Subscriber Mongo save note:', err.message);
+  }
+
+  return { subscriber: newSub, isNew: true };
+}
+
