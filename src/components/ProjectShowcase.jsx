@@ -6,12 +6,31 @@ import { db } from '../../firebase';
 import { getCombinedProjects } from '../lib/storage';
 import { useProjects } from '../lib/usePortfolioData';
 import { ProjectsGridSkeleton, GlobalLoadingBar } from './SkeletonLoader';
+import ScrollProgressBar from './ScrollProgressBar';
 
 export function formatImageUrl(url) {
   if (!url) return '/assets/muhammad-hasil.png';
   if (url.startsWith('/')) return encodeURI(url);
   if (url.startsWith('http://') || url.startsWith('https://')) return encodeURI(url);
   return encodeURI('/' + url);
+}
+
+// Calculate estimated reading time for project card descriptions and architecture specifications
+export function calculateReadingTime(proj, wordsPerMinute = 200) {
+  if (!proj) return '1 min read';
+  const fullText = [
+    proj.title || '',
+    proj.description || '',
+    proj.longDescription || '',
+    Array.isArray(proj.technologies) ? proj.technologies.join(' ') : (proj.technologies || ''),
+    proj.pill || '',
+    proj.category || ''
+  ].join(' ');
+
+  const wordCount = fullText.trim().split(/\s+/).filter(Boolean).length;
+  if (wordCount <= 35) return '< 1 min read';
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+  return `${minutes} min read`;
 }
 
 // Interactive 3D Tilt Card using Framer Motion Spring Transforms
@@ -59,6 +78,8 @@ function TiltProjectCard({ proj, index, onQuickView }) {
   const techList = Array.isArray(proj.technologies)
     ? proj.technologies
     : (proj.technologies ? proj.technologies.split(',').map(t => t.trim()) : ['React', 'Next.js']);
+
+  const readingTime = calculateReadingTime(proj);
 
   return (
     <div style={{ perspective: 1100, width: '100%', height: '100%' }}>
@@ -186,6 +207,32 @@ function TiltProjectCard({ proj, index, onQuickView }) {
               </h3>
               <span className="project-pill">{proj.pill || 'Full Stack'}</span>
             </div>
+
+            {/* Estimated Reading Time Badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span 
+                style={{
+                  fontSize: '11px',
+                  color: '#a1a1aa',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  fontWeight: 500
+                }}
+                title="Estimated time to review description and architecture"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{readingTime}</span>
+              </span>
+            </div>
+
             <p className="project-desc">{proj.description}</p>
           </div>
         </div>
@@ -429,6 +476,9 @@ export default function ProjectShowcase({
 
   return (
     <section className="projects-section" style={{ width: '100%', position: 'relative' }}>
+      {/* Scroll Progress Bar at top of screen */}
+      <ScrollProgressBar />
+
       {/* Dynamic Summary Statistics Card at Top of Showcase */}
       {showMetrics && (
         <motion.div 
@@ -760,6 +810,14 @@ export default function ProjectShowcase({
                 <span style={{ color: '#64748b' }}>·</span>
                 <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 600 }}>
                   {selectedProject.pill || 'Full-Stack Web App'}
+                </span>
+                <span style={{ color: '#64748b' }}>·</span>
+                <span style={{ fontSize: '11px', color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(255, 255, 255, 0.06)', padding: '3px 8px', borderRadius: '5px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>{calculateReadingTime(selectedProject)}</span>
                 </span>
                 <span style={{ color: '#10b981', fontSize: '12px', fontWeight: 700, marginLeft: 'auto' }}>
                   ● Live Production Architecture
