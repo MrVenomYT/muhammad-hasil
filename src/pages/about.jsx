@@ -7,7 +7,7 @@ export async function getServerSideProps() {
   try {
     const about = await getAbout();
     const seo = generateSEOMetadata({
-      title: 'About Muhammad Hasil – Experience & Credentials',
+      title: 'About Muhammad Hasil | Experience & Credentials',
       description: 'Learn more about Muhammad Hasil: 6+ years building full-stack applications, academic background, certifications, and engineering philosophy.',
       url: 'https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/about'
     });

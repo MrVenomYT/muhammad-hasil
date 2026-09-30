@@ -35,8 +35,8 @@ export function generateSEOMetadata({
   const creatorName = 'Muhammad Hasil';
   
   const pageTitle = title
-    ? `${title} – ${brandName} | ${creatorName}`
-    : `${brandName} – ${creatorName} | Full Stack Developer & UI/UX Designer`;
+    ? `${title} | ${brandName} | ${creatorName}`
+    : `${brandName} | ${creatorName} | Full Stack Developer & UI/UX Designer`;
 
   const defaultDesc = 'Explore production full-stack web applications, React & Next.js systems, digital store products, and engineering services by Muhammad Hasil (iHasil).';
   const pageDescription = description
@@ -70,7 +70,7 @@ export function generateSEOMetadata({
     ogImage: pageImage,
     ogUrl: pageUrl,
     ogType: type,
-    ogSiteName: `${brandName} – ${creatorName}`,
+    ogSiteName: `${brandName} | ${creatorName}`,
     twitterCard: 'summary_large_image',
     twitterTitle: pageTitle,
     twitterDescription: pageDescription,

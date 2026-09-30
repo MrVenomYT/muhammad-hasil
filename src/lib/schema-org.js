@@ -18,7 +18,7 @@ export function getStructuredDataGraph(pageUrl = BASE_URL, customPageData = null
       image: {
         '@type': 'ImageObject',
         url: `${BASE_URL}/assets/muhammad-hasil.png`,
-        caption: 'Muhammad Hasil – Full Stack Developer & UI/UX Designer'
+        caption: 'Muhammad Hasil | Full Stack Developer & UI/UX Designer'
       },
       jobTitle: 'Full Stack Software Engineer & UI/UX Designer',
       email: 'mailto:esp.hasil.insight@gmail.com',
@@ -87,7 +87,7 @@ export function getStructuredDataGraph(pageUrl = BASE_URL, customPageData = null
       '@type': 'WebSite',
       '@id': websiteId,
       url: BASE_URL,
-      name: 'iHasil – Muhammad Hasil Portfolio',
+      name: 'iHasil | Muhammad Hasil Portfolio',
       alternateName: 'Muhammad Hasil Full-Stack Showcase',
       publisher: {
         '@id': orgId

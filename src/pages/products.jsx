@@ -12,7 +12,7 @@ export async function getServerSideProps() {
       : 'Browse premium digital products, source codes, and developer templates by Muhammad Hasil.';
 
     const seo = generateSEOMetadata({
-      title: 'Digital Store – Web Apps, Templates & UI Systems',
+      title: 'Digital Store | Web Apps, Templates & UI Systems',
       description,
       imageUrl: products[0]?.imageUrl || '/assets/thumbnail.png',
       url: 'https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/products',

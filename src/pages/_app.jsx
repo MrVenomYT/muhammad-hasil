@@ -44,8 +44,8 @@ export default function App({ Component, pageProps }) {
     },
   }));
 
-  const globalDefaultTitle = "iHasil – Muhammad Hasil | Full Stack Developer & UI/UX Designer";
-  const globalDefaultDesc = "Explore production full-stack web applications, React & Next.js systems, digital store products, and engineering services by Muhammad Hasil (iHasil).";
+  const globalDefaultTitle = "iHasil | Muhammad Hasil | Full Stack Developer & UI/UX Designer";
+  const globalDefaultDesc = "Explore production full-stack web applications, React and Next.js systems, digital store products, and engineering services by Muhammad Hasil (iHasil).";
   const globalDefaultImage = "https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/assets/muhammad-hasil.png";
   const globalCurrentUrl = `https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app${router.asPath === '/' ? '' : router.asPath.split('?')[0]}`;
 
@@ -78,8 +78,8 @@ export default function App({ Component, pageProps }) {
             <meta property="og:title" content={globalDefaultTitle} />
             <meta property="og:description" content={globalDefaultDesc} />
             <meta property="og:image" content={globalDefaultImage} />
-            <meta property="og:image:alt" content="Muhammad Hasil (iHasil) - Full Stack Developer & UI/UX Designer" />
-            <meta property="og:site_name" content="iHasil – Muhammad Hasil" />
+            <meta property="og:image:alt" content="Muhammad Hasil (iHasil) | Full Stack Developer & UI/UX Designer" />
+            <meta property="og:site_name" content="iHasil | Muhammad Hasil" />
             <meta property="og:locale" content="en_US" />
 
             {/* Twitter */}
@@ -88,7 +88,7 @@ export default function App({ Component, pageProps }) {
             <meta name="twitter:title" content={globalDefaultTitle} />
             <meta name="twitter:description" content={globalDefaultDesc} />
             <meta name="twitter:image" content={globalDefaultImage} />
-            <meta name="twitter:image:alt" content="Muhammad Hasil (iHasil) - Full Stack Developer & UI/UX Designer" />
+            <meta name="twitter:image:alt" content="Muhammad Hasil (iHasil) | Full Stack Developer & UI/UX Designer" />
 
             {/* Complete Schema.org JSON-LD Graph for Person, Organization & WebSite */}
             <script
@@ -99,9 +99,9 @@ export default function App({ Component, pageProps }) {
             />
           </Head>
           <div style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
-            <CanvasAnimation currentPath={router.pathname} />
+            {!isAdmin && <CanvasAnimation currentPath={router.pathname} />}
             {isAdmin ? (
-              <main id="admin-wrapper" style={{ position: 'relative', zIndex: 1, minHeight: '100vh', backgroundColor: 'transparent' }}>
+              <main id="admin-wrapper" style={{ position: 'relative', zIndex: 10, minHeight: '100vh', backgroundColor: '#0e0c0b' }}>
                 <Component {...pageProps} />
               </main>
             ) : (

@@ -4,8 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { mutate as globalSWRMutate } from 'swr';
 import Link from 'next/link';
-import ProjectEngagementCharts from './ProjectEngagementCharts';
-import AudienceGrowthAnalytics from './AudienceGrowthAnalytics';
 
 export default function AdminDashboardSection() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -107,8 +105,6 @@ export default function AdminDashboardSection() {
   const [projectForm, setProjectForm] = useState({
     title: '',
     category: 'fullstack react',
-    projectType: 'Web',
-    tags: 'Web, Full-Stack',
     pill: 'Full Stack Web App',
     description: '',
     liveDemoUrl: '',
@@ -245,8 +241,6 @@ export default function AdminDashboardSection() {
         id: proj.id || proj._id,
         title: proj.title || '',
         category: proj.category || 'fullstack react',
-        projectType: proj.projectType || 'Web',
-        tags: Array.isArray(proj.tags) ? proj.tags.join(', ') : (proj.tags || 'Web, Full-Stack'),
         pill: proj.pill || 'Full Stack Web App',
         description: proj.description || '',
         liveDemoUrl: proj.liveDemoUrl || '',
@@ -260,8 +254,6 @@ export default function AdminDashboardSection() {
       setProjectForm({
         title: '',
         category: 'fullstack react',
-        projectType: 'Web',
-        tags: 'Web, Full-Stack',
         pill: 'Full Stack Web App',
         description: '',
         liveDemoUrl: '',
@@ -286,14 +278,8 @@ export default function AdminDashboardSection() {
       ? projectForm.technologies.split(',').map(t => t.trim()).filter(Boolean)
       : projectForm.technologies;
 
-    const tagsArray = typeof projectForm.tags === 'string'
-      ? projectForm.tags.split(',').map(t => t.trim()).filter(Boolean)
-      : (Array.isArray(projectForm.tags) ? projectForm.tags : []);
-
     const payload = {
       ...projectForm,
-      projectType: projectForm.projectType || 'Web',
-      tags: tagsArray,
       technologies: techArray
     };
 
@@ -845,7 +831,7 @@ export default function AdminDashboardSection() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'transparent', color: '#f3f4f6', fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0e0c0b', color: '#f3f4f6', fontFamily: 'var(--font-sans, "Plus Jakarta Sans", sans-serif)' }}>
       {/* Toast Notification */}
       {toast.show && (
         <div style={{
@@ -955,27 +941,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>Overview & Stats</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('analytics'); setSearchQuery(''); setFilterCategory('all'); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'analytics' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'analytics' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>Engagement Analytics (Recharts CTR)</span>
+            <span>📊 Overview & Stats</span>
           </button>
 
           <button
@@ -995,7 +961,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>Projects ({projects.length})</span>
+            <span>🚀 Projects ({projects.length})</span>
           </button>
 
           <button
@@ -1015,7 +981,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>Digital Store ({products.length})</span>
+            <span>🛍 Digital Store ({products.length})</span>
           </button>
 
           <button
@@ -1035,7 +1001,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>Inbound Inquiries</span>
+            <span>📬 Inbound Inquiries</span>
             {stats.unreadInquiries > 0 && (
               <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 700 }}>
                 {stats.unreadInquiries} new
@@ -1060,7 +1026,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>Testimonials ({reviews.length})</span>
+            <span>⭐ Testimonials ({reviews.length})</span>
           </button>
 
           <button
@@ -1080,7 +1046,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>Services Offered ({services.length})</span>
+            <span>🛠 Services Offered ({services.length})</span>
           </button>
 
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '20px', marginBottom: '8px', paddingLeft: '12px' }}>
@@ -1104,7 +1070,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>About Us</span>
+            <span>📖 About Us</span>
           </button>
 
           <button
@@ -1124,7 +1090,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>Profile & Availability</span>
+            <span>⚙ Profile & Availability</span>
           </button>
         </aside>
 
@@ -1211,11 +1177,6 @@ export default function AdminDashboardSection() {
                   </div>
                   <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '6px' }}>★★★★★ 5.0 Average Rating</div>
                 </div>
-              </div>
-
-              {/* Project Engagement & Click-Through Rates (Recharts) */}
-              <div style={{ marginBottom: '32px' }}>
-                <ProjectEngagementCharts projects={projects} stats={stats} />
               </div>
 
               {/* Quick Split: Recent Inquiries + Recent Projects */}
@@ -1311,43 +1272,6 @@ export default function AdminDashboardSection() {
             </div>
           )}
 
-          {/* TAB: ENGAGEMENT & RECHARTS CTR ANALYTICS */}
-          {activeTab === 'analytics' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Project Engagement Analytics</h1>
-                  <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
-                    Interactive Recharts charts displaying click-through rates (CTR) and user interaction volume from MongoDB.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    onClick={() => fetchAllData()}
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      color: '#ffffff',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Refresh MongoDB Metrics
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '32px' }}>
-                <AudienceGrowthAnalytics />
-              </div>
-
-              <ProjectEngagementCharts projects={projects} stats={stats} />
-            </div>
-          )}
-
           {/* TAB 2: PROJECTS */}
           {activeTab === 'projects' && (
             <div>
@@ -1418,8 +1342,8 @@ export default function AdminDashboardSection() {
                   <thead>
                     <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#94a3b8' }}>
                       <th style={{ padding: '14px 20px', fontWeight: 600 }}>Project</th>
-                      <th style={{ padding: '14px 20px', fontWeight: 600 }}>Type / Tags</th>
                       <th style={{ padding: '14px 20px', fontWeight: 600 }}>Category</th>
+                      <th style={{ padding: '14px 20px', fontWeight: 600 }}>Pill / Tag</th>
                       <th style={{ padding: '14px 20px', fontWeight: 600 }}>Live Link</th>
                       <th style={{ padding: '14px 20px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
                     </tr>
@@ -1438,17 +1362,8 @@ export default function AdminDashboardSection() {
                             <span style={{ color: '#64748b', fontSize: '12px' }}>{Array.isArray(p.technologies) ? p.technologies.slice(0, 3).join(', ') : p.technologies}</span>
                           </div>
                         </td>
-                        <td style={{ padding: '14px 20px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginBottom: '4px' }}>
-                            {p.projectType || 'Web'}
-                          </span>
-                          {p.tags && (
-                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                              {Array.isArray(p.tags) ? p.tags.slice(0, 2).join(', ') : p.tags}
-                            </div>
-                          )}
-                        </td>
                         <td style={{ padding: '14px 20px', color: '#cbd5e1' }}>{p.category}</td>
+                        <td style={{ padding: '14px 20px', color: '#ff7700' }}>{p.pill}</td>
                         <td style={{ padding: '14px 20px' }}>
                           {p.liveDemoUrl && p.liveDemoUrl !== '#' ? (
                             <a href={p.liveDemoUrl} target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'none' }}>
@@ -1581,10 +1496,16 @@ export default function AdminDashboardSection() {
 
           {/* TAB 4: INQUIRIES */}
           {activeTab === 'inquiries' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{
+              backgroundColor: '#12100e',
+              border: '1px solid rgba(255, 119, 0, 0.25)',
+              borderRadius: '16px',
+              padding: '28px',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Client Inquiries & Proposals</h1>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>Client Inquiries and Proposals</h1>
                   <p style={{ fontSize: '14px', color: '#94a3b8', margin: '4px 0 0 0' }}>
                     Real-time inbound inquiries submitted through the public contact form (Zero dummy data).
                   </p>
@@ -1599,17 +1520,18 @@ export default function AdminDashboardSection() {
                     });
                   }}
                   style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    backgroundColor: '#ff7700',
                     color: '#ffffff',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    padding: '8px 16px',
+                    border: 'none',
+                    padding: '10px 18px',
                     borderRadius: '8px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     fontSize: '13px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '8px',
+                    boxShadow: '0 4px 14px rgba(255, 119, 0, 0.35)'
                   }}
                 >
                   <span>⟳ Refresh Live Inquiries</span>
@@ -1617,10 +1539,11 @@ export default function AdminDashboardSection() {
               </div>
 
               {/* Inquiries List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {filteredInquiries.length === 0 ? (
-                  <div style={{ padding: '60px', backgroundColor: '#131110', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', textAlign: 'center' }}>
-                    <div style={{ color: '#fff', fontSize: '16px', fontWeight: 700, marginBottom: '6px' }}>Inbox is Clean - 0 Dummy Inquiries</div>
+                  <div style={{ padding: '60px', backgroundColor: '#181512', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '10px' }}>📬</div>
+                    <div style={{ color: '#fff', fontSize: '16px', fontWeight: 700, marginBottom: '6px' }}>Inbox is Clean | 0 Dummy Inquiries</div>
                     <div style={{ color: '#64748b', fontSize: '13px', maxWidth: '420px', margin: '0 auto' }}>
                       Real client proposals and inquiries submitted via the live website contact form will appear here in real time.
                     </div>
@@ -1630,14 +1553,15 @@ export default function AdminDashboardSection() {
                     <div
                       key={inq.id || inq._id}
                       style={{
-                        backgroundColor: inq.status === 'new' ? 'rgba(255, 119, 0, 0.04)' : '#131110',
-                        border: inq.status === 'new' ? '1px solid rgba(255, 119, 0, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
-                        borderRadius: '10px',
-                        padding: '18px 22px',
+                        backgroundColor: inq.status === 'new' ? '#1c1713' : '#181512',
+                        border: inq.status === 'new' ? '1px solid rgba(255, 119, 0, 0.45)' : '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
+                        padding: '20px 24px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        gap: '16px'
+                        gap: '16px',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
@@ -2041,7 +1965,7 @@ export default function AdminDashboardSection() {
               {/* SECTION A: ABOUT HEADLINE & BIO */}
               <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  About Headline and Biography
+                  <span>👤</span> About Headline & Biography
                 </h2>
                 <form
                   onSubmit={(e) => {
@@ -2104,7 +2028,7 @@ export default function AdminDashboardSection() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
                     <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      Work Experience ({about.experience?.length || 0})
+                      <span>💼</span> Work Experience ({about.experience?.length || 0})
                     </h2>
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>Professional engineering background & roles</span>
                   </div>
@@ -2187,7 +2111,7 @@ export default function AdminDashboardSection() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
                     <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      Education ({about.education?.length || 0})
+                      <span>🎓</span> Education ({about.education?.length || 0})
                     </h2>
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>Academic degrees and programs</span>
                   </div>
@@ -2270,7 +2194,7 @@ export default function AdminDashboardSection() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
                   <div>
                     <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      Professional Certifications ({about.certifications?.length || 0})
+                      <span>📜</span> Professional Certifications ({about.certifications?.length || 0})
                     </h2>
                     <span style={{ fontSize: '12px', color: '#94a3b8' }}>Licenses, badges, and verified credentials</span>
                   </div>
@@ -2316,7 +2240,7 @@ export default function AdminDashboardSection() {
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase' }}>
-                              {cert.issuer}
+                              ✦ {cert.issuer}
                             </span>
                             <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>
                               {cert.date}
@@ -2374,34 +2298,6 @@ export default function AdminDashboardSection() {
                   onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
                   style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
                 />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Project Type / Architecture *</label>
-                  <select
-                    value={projectForm.projectType || 'Web'}
-                    onChange={(e) => setProjectForm({ ...projectForm, projectType: e.target.value })}
-                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff', cursor: 'pointer' }}
-                  >
-                    <option value="SaaS">SaaS Platform</option>
-                    <option value="Web">Web Application</option>
-                    <option value="Mobile">Mobile / Responsive App</option>
-                    <option value="Full-Stack">Full-Stack Architecture</option>
-                    <option value="E-Commerce">E-Commerce &amp; Store</option>
-                    <option value="AI / ML">AI / ML &amp; Automation</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '4px' }}>Category Labels / Filter Tags (comma separated)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. SaaS, Dashboard, Next.js, Stripe"
-                    value={projectForm.tags || ''}
-                    onChange={(e) => setProjectForm({ ...projectForm, tags: e.target.value })}
-                    style={{ width: '100%', backgroundColor: '#070605', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '8px 12px', color: '#fff' }}
-                  />
-                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -2659,6 +2555,7 @@ export default function AdminDashboardSection() {
       {deleteConfirm.isOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ backgroundColor: '#131110', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', width: '100%', maxWidth: '440px', padding: '24px', textAlign: 'center' }}>
+            <div style={{ fontSize: '36px', marginBottom: '12px' }}>⚠️</div>
             <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', margin: '0 0 8px 0' }}>Confirm Permanent Deletion</h3>
             <p style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.5, margin: '0 0 20px 0' }}>
               Are you sure you want to permanently delete <strong>"{deleteConfirm.title}"</strong> from MongoDB and disk storage? This action cannot be undone.
