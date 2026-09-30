@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+    <msapplication>
+        <tightlanding>
+            <TileColor>#ff7700</TileColor>
+            <TileImage src="/apple-touch-icon-152x152.png"/>
+        </tightlanding>
+    </msapplication>
+</browserconfig>

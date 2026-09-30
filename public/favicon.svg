@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="ihasil-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff7700" />
+      <stop offset="50%" stop-color="#ff9900" />
+      <stop offset="100%" stop-color="#ff4400" />
+    </linearGradient>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181512" />
+      <stop offset="100%" stop-color="#0a0807" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <!-- Background rounded squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bg-grad)" stroke="#ff7700" stroke-width="8" stroke-opacity="0.4" />
+  
+  <!-- Subtle glowing core circle -->
+  <circle cx="256" cy="256" r="180" fill="#ff7700" fill-opacity="0.08" />
+
+  <!-- Monogram / Typography "iH" -->
+  <g fill="url(#ihasil-grad)" filter="url(#glow)">
+    <!-- Lowercase "i" with stylish dot -->
+    <circle cx="168" cy="160" r="28" />
+    <rect x="144" y="210" width="48" height="150" rx="24" />
+
+    <!-- Uppercase "H" -->
+    <rect x="236" y="152" width="48" height="208" rx="24" />
+    <rect x="332" y="152" width="48" height="208" rx="24" />
+    <rect x="236" y="232" width="144" height="46" rx="23" />
+  </g>
+</svg>

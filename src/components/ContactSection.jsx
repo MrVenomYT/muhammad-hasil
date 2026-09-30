@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import emailjs from '@emailjs/browser';
 import { motion } from 'framer-motion';
 import { contactFormSchema } from '../lib/validations';
 
@@ -55,9 +54,14 @@ export default function ContactSection() {
         throw new Error(apiJson.error || 'Server validation failed');
       }
 
-      // 2. Also send via EmailJS
+      // 2. Also send via EmailJS if configured
       if (serviceID && templateID && publicKey) {
-        await emailjs.send(serviceID, templateID, validated, publicKey).catch((e) => console.warn('EmailJS note:', e));
+        try {
+          const emailjs = await import('@emailjs/browser');
+          await emailjs.default.send(serviceID, templateID, validated, publicKey);
+        } catch (e) {
+          console.warn('EmailJS note:', e);
+        }
       }
 
       setStatus({ type: 'success', text: '✓ Thank you! Your inquiry has been sent to esp.hasil.insight@gmail.com and permanently logged.' });

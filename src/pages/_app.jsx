@@ -1,3 +1,22 @@
+// Guard against environments where window.fetch has only a getter
+if (typeof window !== 'undefined') {
+  try {
+    const proto = Object.getPrototypeOf(window) || window;
+    const desc = Object.getOwnPropertyDescriptor(window, 'fetch') || Object.getOwnPropertyDescriptor(proto, 'fetch');
+    if (desc && !desc.set && !desc.writable) {
+      let _currentFetch = window.fetch ? window.fetch.bind(window) : null;
+      Object.defineProperty(window, 'fetch', {
+        get() { return _currentFetch; },
+        set(fn) { _currentFetch = fn; },
+        configurable: true,
+        enumerable: true,
+      });
+    }
+  } catch (e) {
+    // Ignore descriptor errors
+  }
+}
+
 import React, { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
