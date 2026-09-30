@@ -3,7 +3,9 @@ import {
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
   signOut,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 import { auth } from '../../firebase';
 
@@ -25,29 +27,48 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    try {
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
-        setLoading(false);
+    let unsubscribe = () => {};
+
+    // Explicitly enforce browserLocalPersistence so sessions persist across page reloads and refreshes
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          if (currentUser && typeof window !== 'undefined') {
+            localStorage.setItem('firebase_auth_active', 'true');
+          } else if (typeof window !== 'undefined') {
+            localStorage.removeItem('firebase_auth_active');
+          }
+          setLoading(false);
+        });
+      })
+      .catch((err) => {
+        console.warn('Firebase setPersistence note:', err?.message);
+        unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          setLoading(false);
+        });
       });
-      return () => unsubscribe();
-    } catch (err) {
-      console.warn('Firebase auth listener note:', err?.message);
-      setLoading(false);
-    }
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (email, password) => {
     if (!auth) throw new Error('Firebase Auth is not initialized. Please ensure credentials are provided.');
+    await setPersistence(auth, browserLocalPersistence).catch(() => {});
     return signInWithEmailAndPassword(auth, email, password);
   };
 
   const signup = async (email, password) => {
     if (!auth) throw new Error('Firebase Auth is not initialized. Please ensure credentials are provided.');
+    await setPersistence(auth, browserLocalPersistence).catch(() => {});
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('firebase_auth_active');
+    }
     if (!auth) return;
     return signOut(auth);
   };

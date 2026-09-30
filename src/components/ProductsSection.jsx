@@ -11,8 +11,8 @@ export function formatImageUrl(url) {
   return encodeURI('/' + url);
 }
 
-export default function ProductsSection() {
-  const { products: swrProducts, isLoading, isValidating } = useProducts();
+export default function ProductsSection({ initialProducts = [] }) {
+  const { products: swrProducts, isLoading, isValidating } = useProducts(initialProducts);
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);

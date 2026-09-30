@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { mutate as globalSWRMutate } from 'swr';
 import Link from 'next/link';
 
 export default function AdminDashboardSection() {
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Navigation State
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'projects' | 'products' | 'inquiries' | 'reviews' | 'services' | 'profile'
@@ -293,6 +296,8 @@ export default function AdminDashboardSection() {
       const data = await res.json();
 
       if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        globalSWRMutate('/api/projects');
         showToast(isEdit ? 'Project updated permanently in MongoDB!' : 'New project created permanently in MongoDB!');
         setProjectModal({ isOpen: false, mode: 'create', data: null });
         fetchAllData();
@@ -772,6 +777,10 @@ export default function AdminDashboardSection() {
       const res = await fetch(endpoint, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
+        if (type === 'project') {
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+          globalSWRMutate('/api/projects');
+        }
         showToast(`Item permanently deleted from MongoDB and storage.`);
         setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
         fetchAllData();

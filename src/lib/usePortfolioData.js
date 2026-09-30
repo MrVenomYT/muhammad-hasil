@@ -1,5 +1,8 @@
-import useSWR from 'swr';
+import useSWR, { mutate as globalSWRMutate } from 'swr';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { initialSeedProjects, seedProductsList } from './storage';
+
+export const PROJECTS_QUERY_KEY = ['projects'];
 
 // Helper to get cached data synchronously from localStorage on client side
 const getLocalStorageCache = (key, fallback) => {
@@ -48,9 +51,83 @@ export const fetcher = async (url) => {
   return resultData;
 };
 
+// React Query Custom Hook for Fetching Projects
+export function useProjectsQuery() {
+  return useQuery({
+    queryKey: PROJECTS_QUERY_KEY,
+    queryFn: () => fetcher('/api/projects'),
+    initialData: () => getLocalStorageCache('swr_cached_projects', initialSeedProjects),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+// React Query Custom Mutation Hook for Adding/Updating Projects with explicit cache invalidation
+export function useSaveProjectMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ payload, isEdit }) => {
+      const url = isEdit ? `/api/projects/${payload.id || payload._id}` : '/api/projects';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to save project');
+      }
+      return data.data;
+    },
+    onSuccess: (savedProject) => {
+      // Explicitly invalidate the 'projects' query key so UI immediately refetches and updates server state
+      queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+      // Also revalidate SWR cache
+      globalSWRMutate('/api/projects');
+
+      if (typeof window !== 'undefined') {
+        const current = getLocalStorageCache('swr_cached_projects', []);
+        const filtered = current.filter(p => p.id !== savedProject.id && p._id !== savedProject._id && p.title?.toLowerCase() !== savedProject.title?.toLowerCase());
+        const updatedList = [savedProject, ...filtered];
+        setLocalStorageCache('swr_cached_projects', updatedList);
+      }
+    }
+  });
+}
+
+// React Query Custom Mutation Hook for Deleting Projects with explicit cache invalidation
+export function useDeleteProjectMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id) => {
+      const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to delete project');
+      }
+      return id;
+    },
+    onSuccess: (deletedId) => {
+      // Explicitly invalidate the 'projects' query key
+      queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+      globalSWRMutate('/api/projects');
+
+      if (typeof window !== 'undefined') {
+        const current = getLocalStorageCache('swr_cached_projects', []);
+        const updatedList = current.filter(p => p.id !== deletedId && p._id !== deletedId);
+        setLocalStorageCache('swr_cached_projects', updatedList);
+      }
+    }
+  });
+}
+
 // SWR Custom Hook for Projects
-export function useProjects() {
-  const initialCache = getLocalStorageCache('swr_cached_projects', initialSeedProjects);
+export function useProjects(fallbackProjects = null) {
+  const initialCache = (Array.isArray(fallbackProjects) && fallbackProjects.length > 0)
+    ? fallbackProjects
+    : getLocalStorageCache('swr_cached_projects', initialSeedProjects);
 
   const { data, error, isLoading, isValidating, mutate } = useSWR('/api/projects', fetcher, {
     fallbackData: initialCache,
@@ -78,8 +155,10 @@ export function useProjects() {
 }
 
 // SWR Custom Hook for About Section (skills, education, experience, certs)
-export function useAbout(fallbackAbout) {
-  const initialCache = getLocalStorageCache('swr_cached_about', fallbackAbout);
+export function useAbout(fallbackAbout = null) {
+  const initialCache = (fallbackAbout && Object.keys(fallbackAbout).length > 0)
+    ? fallbackAbout
+    : getLocalStorageCache('swr_cached_about', fallbackAbout);
 
   const { data, error, isLoading, isValidating, mutate } = useSWR('/api/about', fetcher, {
     fallbackData: initialCache,
@@ -107,8 +186,10 @@ export function useAbout(fallbackAbout) {
 }
 
 // SWR Custom Hook for Products
-export function useProducts() {
-  const initialCache = getLocalStorageCache('swr_cached_products', seedProductsList);
+export function useProducts(fallbackProducts = null) {
+  const initialCache = (Array.isArray(fallbackProducts) && fallbackProducts.length > 0)
+    ? fallbackProducts
+    : getLocalStorageCache('swr_cached_products', seedProductsList);
 
   const { data, error, isLoading, isValidating, mutate } = useSWR('/api/products', fetcher, {
     fallbackData: initialCache,

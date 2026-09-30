@@ -1,4 +1,5 @@
 import { getProjects, saveProject, deleteProject } from '../../../lib/server-store';
+import { projectSchema } from '../../../lib/validations';
 
 export default async function handler(req, res) {
   const { method, query } = req;
@@ -19,7 +20,13 @@ export default async function handler(req, res) {
 
     case 'PUT':
       try {
-        const saved = await saveProject({ ...req.body, id });
+        const parseResult = projectSchema.safeParse({ ...req.body, id });
+        if (!parseResult.success) {
+          const errorMessage = parseResult.error.errors.map(err => err.message).join(', ');
+          return res.status(400).json({ success: false, error: errorMessage });
+        }
+        const validatedData = parseResult.data;
+        const saved = await saveProject(validatedData);
         return res.status(200).json({ success: true, data: saved });
       } catch (error) {
         return res.status(500).json({ success: false, error: error.message });

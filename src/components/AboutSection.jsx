@@ -137,9 +137,10 @@ const defaultAboutData = {
   ]
 };
 
-export default function AboutSection() {
-  const { about, isValidating, isLoading } = useAbout(defaultAboutData);
-  const aboutData = about || defaultAboutData;
+export default function AboutSection({ initialAbout = null }) {
+  const fallback = initialAbout || defaultAboutData;
+  const { about, isValidating, isLoading } = useAbout(fallback);
+  const aboutData = about || fallback;
 
   // Format headline gracefully if user supplied multiple piped titles
   const headlineText = aboutData.headline || defaultAboutData.headline;

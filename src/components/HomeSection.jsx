@@ -48,12 +48,14 @@ const reviewsData = [
   }
 ];
 
-export default function HomeSection() {
+export default function HomeSection({ initialReviews = [] }) {
   const [typedText, setTypedText] = useState('MUHAMMAD HASIL');
   const textToType = "MUHAMMAD HASIL";
 
+  const fallbackRev = (Array.isArray(initialReviews) && initialReviews.length > 0) ? initialReviews : reviewsData;
+
   // SWR caching hooks for instant cached display & background revalidation
-  const { reviews: swrReviews, isValidating: reviewsValidating } = useReviews(reviewsData);
+  const { reviews: swrReviews, isValidating: reviewsValidating } = useReviews(fallbackRev);
   const { stats: portfolioStats, isValidating: statsValidating } = useStats();
 
   const reviewsList = Array.isArray(swrReviews) && swrReviews.length > 0

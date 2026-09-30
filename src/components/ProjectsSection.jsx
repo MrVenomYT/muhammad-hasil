@@ -13,14 +13,14 @@ export function formatImageUrl(url) {
   return encodeURI('/' + url);
 }
 
-export default function ProjectsSection() {
+export default function ProjectsSection({ initialProjects = [] }) {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [firestoreProjects, setFirestoreProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
   // SWR caching layer: instant cached display + background revalidation
-  const { projects: swrProjects, isLoading, isValidating } = useProjects();
+  const { projects: swrProjects, isLoading, isValidating } = useProjects(initialProjects);
 
   useEffect(() => {
     // Optional Firestore sync
