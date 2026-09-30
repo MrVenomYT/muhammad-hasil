@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { motion, AnimatePresence } from 'framer-motion';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getCombinedProjects, initialSeedProjects } from '../lib/storage';
 import { useProjects } from '../lib/usePortfolioData';
 import { ProjectsGridSkeleton, GlobalLoadingBar } from './SkeletonLoader';
-import GlobalSearchBar from './GlobalSearchBar';
 
 export function formatImageUrl(url) {
   if (!url) return '/assets/muhammad-hasil.png';
@@ -16,20 +15,10 @@ export function formatImageUrl(url) {
 }
 
 export default function ProjectsSection({ initialProjects = [] }) {
-  const router = useRouter();
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [firestoreProjects, setFirestoreProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-
-  // Sync search query from URL params if provided
-  useEffect(() => {
-    if (router?.query?.search && typeof router.query.search === 'string') {
-      setSearchQuery(router.query.search);
-    } else if (router?.query?.tech && typeof router.query.tech === 'string') {
-      setSearchQuery(router.query.tech);
-    }
-  }, [router?.query]);
 
   // SWR caching layer: instant cached display + background revalidation
   const { projects: swrProjects, isLoading, isValidating } = useProjects(initialProjects);
@@ -77,28 +66,17 @@ export default function ProjectsSection({ initialProjects = [] }) {
     }
   });
 
-  // Filter counts by type and category
-  const countSaaS = mergedProjects.filter(p => (p.projectType || '').toLowerCase().includes('saas') || (p.tags || '').toString().toLowerCase().includes('saas') || (p.category || '').toLowerCase().includes('saas')).length;
-  const countMobile = mergedProjects.filter(p => (p.projectType || '').toLowerCase().includes('mobile') || (p.tags || '').toString().toLowerCase().includes('mobile') || (p.category || '').toLowerCase().includes('mobile')).length;
-  const countWeb = mergedProjects.filter(p => (p.projectType || '').toLowerCase().includes('web') || (p.tags || '').toString().toLowerCase().includes('web') || (p.category || '').toLowerCase().includes('web')).length;
-  const countFullstack = mergedProjects.filter(p => (p.category || '').toLowerCase().includes('fullstack') || (p.projectType || '').toLowerCase().includes('full-stack')).length;
+  // Filter counts
+  const countFullstack = mergedProjects.filter(p => (p.category || '').includes('fullstack')).length;
+  const countReact = mergedProjects.filter(p => (p.category || '').includes('react')).length;
+  const countDesign = mergedProjects.filter(p => (p.category || '').includes('design')).length;
 
   const filteredProjects = mergedProjects.filter(p => {
-    const pType = (p.projectType || '').toLowerCase();
-    const pCat = (p.category || '').toLowerCase();
-    const pTags = Array.isArray(p.tags) ? p.tags.join(' ').toLowerCase() : (p.tags || '').toString().toLowerCase();
-
-    const matchesFilter = filter === 'all' 
-      ? true 
-      : (pType.includes(filter) || pCat.includes(filter) || pTags.includes(filter));
-
+    const matchesFilter = filter === 'all' ? true : (p.category || '').includes(filter);
     const matchesSearch = searchQuery === '' ? true :
       (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (Array.isArray(p.technologies) ? p.technologies.join(' ') : (p.technologies || '')).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pType.includes(searchQuery.toLowerCase()) ||
-      pTags.includes(searchQuery.toLowerCase());
-
+      (Array.isArray(p.technologies) ? p.technologies.join(' ') : (p.technologies || '')).toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -192,7 +170,7 @@ export default function ProjectsSection({ initialProjects = [] }) {
                   </svg>
                 </div>
                 <span className="metric-trend-badge">
-                  5.0 / 5.0 Rating
+                  5.0 ★ Rating
                 </span>
               </div>
               <div>
@@ -214,18 +192,57 @@ export default function ProjectsSection({ initialProjects = [] }) {
             Explore custom full-stack solutions built with React, Next.js, Node.js, MongoDB & PostgreSQL database architecture.
           </p>
 
-          {/* Real-Time Search & Interactive Filter Wrapper with Google Grounding */}
-          <div style={{ marginBottom: '20px' }}>
-            <GlobalSearchBar
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              projects={mergedProjects}
-              resultCount={filteredProjects.length}
-              placeholder="Search projects by title, tech stack (React, Next.js, MongoDB), or tags..."
-            />
-          </div>
-
+          {/* Real-Time Search & Interactive Filter Wrapper */}
           <div className="search-filter-wrapper">
+            {/* Input Row */}
+            <div className="search-input-box">
+              <div className="search-icon-left">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search projects by title, tech stack (React, Next.js, MongoDB), or tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input-field"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="search-clear-btn"
+                  title="Clear search (Esc)"
+                  aria-label="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Quick Filter Tag Chips */}
+            <div className="search-tags-row">
+              <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: 600, marginRight: '6px' }}>
+                Filter by Tags:
+              </span>
+              {popularTags.map((tag, idx) => {
+                const isSelected = (tag === 'All' && !searchQuery && filter === 'all') ||
+                  (searchQuery.toLowerCase() === tag.toLowerCase());
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleTagClick(tag)}
+                    className={`search-tag-chip ${isSelected ? 'active' : ''}`}
+                  >
+                    {tag === 'All' ? '✦ All Tech' : `#${tag}`}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Category Tabs & Dynamic Counter Bar */}
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
               <div className="projects-tabs-row" id="projects-tabs" style={{ margin: 0 }}>
@@ -236,28 +253,22 @@ export default function ProjectsSection({ initialProjects = [] }) {
                   All Projects ({mergedProjects.length})
                 </button>
                 <button
-                  className={`project-tab-btn ${filter === 'saas' ? 'active' : ''}`}
-                  onClick={() => setFilter('saas')}
-                >
-                  SaaS Platforms ({countSaaS})
-                </button>
-                <button
-                  className={`project-tab-btn ${filter === 'mobile' ? 'active' : ''}`}
-                  onClick={() => setFilter('mobile')}
-                >
-                  Mobile ({countMobile})
-                </button>
-                <button
-                  className={`project-tab-btn ${filter === 'web' ? 'active' : ''}`}
-                  onClick={() => setFilter('web')}
-                >
-                  Web Apps ({countWeb})
-                </button>
-                <button
                   className={`project-tab-btn ${filter === 'fullstack' ? 'active' : ''}`}
                   onClick={() => setFilter('fullstack')}
                 >
                   Full Stack ({countFullstack})
+                </button>
+                <button
+                  className={`project-tab-btn ${filter === 'react' ? 'active' : ''}`}
+                  onClick={() => setFilter('react')}
+                >
+                  React & Next.js ({countReact})
+                </button>
+                <button
+                  className={`project-tab-btn ${filter === 'design' ? 'active' : ''}`}
+                  onClick={() => setFilter('design')}
+                >
+                  UI/UX & Design ({countDesign})
                 </button>
               </div>
 
@@ -280,11 +291,12 @@ export default function ProjectsSection({ initialProjects = [] }) {
           <div style={{
             textAlign: 'center',
             padding: '60px 20px',
-            backgroundColor: 'var(--bg-card)',
-            borderRadius: '16px',
-            border: '1px dashed var(--border-card)',
+            backgroundColor: 'rgba(16, 16, 22, 0.8)',
+            borderRadius: '20px',
+            border: '1px dashed rgba(255, 255, 255, 0.2)',
             margin: '20px 0'
           }}>
+            <div style={{ fontSize: '40px', marginBottom: '16px' }}>🔍</div>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', marginBottom: '8px' }}>
               No projects found matching &ldquo;{searchQuery}&rdquo;
             </h3>
@@ -298,14 +310,15 @@ export default function ProjectsSection({ initialProjects = [] }) {
                 setFilter('all');
               }}
               style={{
-                backgroundColor: 'var(--accent-primary)',
+                backgroundColor: '#ff7700',
                 color: '#ffffff',
                 border: 'none',
                 padding: '10px 24px',
-                borderRadius: '8px',
+                borderRadius: '999px',
                 fontWeight: 700,
                 fontSize: '13px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(255, 119, 0, 0.35)'
               }}
             >
               Reset Search & Show All Projects
@@ -313,13 +326,25 @@ export default function ProjectsSection({ initialProjects = [] }) {
           </div>
         ) : (
           <div className="projects-grid" id="projects-grid">
-          {filteredProjects.map((proj) => {
+          {filteredProjects.map((proj, index) => {
             const techList = Array.isArray(proj.technologies)
               ? proj.technologies
               : (proj.technologies ? proj.technologies.split(',').map(t => t.trim()) : ['React', 'Next.js']);
 
             return (
-              <article key={proj.id || proj._id} className="project-card" data-category={proj.category}>
+              <motion.article 
+                key={proj.id || proj._id} 
+                className="project-card" 
+                data-category={proj.category}
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{
+                  duration: 0.5,
+                  ease: [0.21, 0.47, 0.32, 0.98],
+                  delay: (index % 3) * 0.08
+                }}
+              >
                 <div>
                   <div className="project-image-box">
                     <img
@@ -450,7 +475,7 @@ export default function ProjectsSection({ initialProjects = [] }) {
                     </button>
                   </div>
                 </div>
-              </article>
+              </motion.article>
             );
           })}
         </div>
@@ -461,22 +486,22 @@ export default function ProjectsSection({ initialProjects = [] }) {
       <section className="tech-marquee-section">
         <div className="tech-marquee-track">
           <div className="tech-marquee-content">
-            <span className="tech-brand-item"><span className="tech-star">/</span> REACT.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> NEXT.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> MONGODB ATLAS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> NODE.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> FIREBASE AUTH</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> TAILWIND CSS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> RESTFUL APIS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> REACT.JS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> NEXT.JS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> MONGODB ATLAS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> NODE.JS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> FIREBASE AUTH</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> TAILWIND CSS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> RESTFUL APIS</span>
           </div>
           <div className="tech-marquee-content" aria-hidden="true">
-            <span className="tech-brand-item"><span className="tech-star">/</span> REACT.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> NEXT.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> MONGODB ATLAS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> NODE.JS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> FIREBASE AUTH</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> TAILWIND CSS</span>
-            <span className="tech-brand-item"><span className="tech-star">/</span> RESTFUL APIS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> REACT.JS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> NEXT.JS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> MONGODB ATLAS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> NODE.JS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> FIREBASE AUTH</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> TAILWIND CSS</span>
+            <span className="tech-brand-item"><span className="tech-star">✦</span> RESTFUL APIS</span>
           </div>
         </div>
       </section>
@@ -539,10 +564,10 @@ export default function ProjectsSection({ initialProjects = [] }) {
               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 119, 0, 0.3)'; e.currentTarget.style.borderColor = '#ff7700'; }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)'; }}
             >
-              Close
+              ✕
             </button>
 
-            <div style={{ borderRadius: '18px', overflow: 'hidden', marginBottom: '24px', border: '1px solid var(--border-card)', maxHeight: '340px' }}>
+            <div style={{ borderRadius: '18px', overflow: 'hidden', marginBottom: '24px', border: '1px solid rgba(255, 255, 255, 0.12)', boxShadow: '0 12px 30px rgba(0,0,0,0.6)', maxHeight: '340px' }}>
               <img
                 src={formatImageUrl(selectedProject.imageUrl)}
                 alt={selectedProject.title}
@@ -551,15 +576,15 @@ export default function ProjectsSection({ initialProjects = [] }) {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', backgroundColor: 'var(--accent-primary-light)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent-primary-border)' }}>
+              <span style={{ fontSize: '11px', color: '#ff7700', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', backgroundColor: 'rgba(255, 119, 0, 0.15)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(255, 119, 0, 0.3)' }}>
                 {selectedProject.category}
               </span>
               <span style={{ color: '#64748b' }}>·</span>
               <span style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 600 }}>
                 {selectedProject.pill || 'Full-Stack Web App'}
               </span>
-              <span style={{ color: 'var(--accent-primary)', fontSize: '12px', fontWeight: 700, marginLeft: 'auto' }}>
-                Live Production Architecture
+              <span style={{ color: '#10b981', fontSize: '12px', fontWeight: 700, marginLeft: 'auto' }}>
+                ● Live Production Architecture
               </span>
             </div>
 
@@ -593,7 +618,7 @@ export default function ProjectsSection({ initialProjects = [] }) {
                       fontWeight: 600
                     }}
                   >
-                    · {t}
+                    ✦ {t}
                   </span>
                 ))}
               </div>
@@ -607,7 +632,7 @@ export default function ProjectsSection({ initialProjects = [] }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    backgroundColor: 'var(--accent-primary)',
+                    backgroundColor: '#ff7700',
                     color: '#ffffff',
                     padding: '12px 26px',
                     borderRadius: '999px',
@@ -624,6 +649,28 @@ export default function ProjectsSection({ initialProjects = [] }) {
                   <span>Open Live Application</span> <span className="arrow">↗</span>
                 </a>
               )}
+              {selectedProject.githubUrl ? (
+                <a
+                  href={selectedProject.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: '#ffffff',
+                    padding: '12px 22px',
+                    borderRadius: '999px',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <span>GitHub Repository</span> <span className="arrow">↗</span>
+                </a>
+              ) : null}
               <Link
                 href="/contact"
                 onClick={() => setSelectedProject(null)}

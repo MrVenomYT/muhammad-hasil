@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { getCombinedProducts, seedProductsList } from '../lib/storage';
 import { useProducts } from '../lib/usePortfolioData';
 import { ProductCardSkeleton, GlobalLoadingBar } from './SkeletonLoader';
@@ -80,13 +81,16 @@ export default function ProductsSection({ initialProducts = [] }) {
                   backgroundColor: 'rgba(20, 18, 16, 0.7)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '999px',
-                  padding: '9px 18px',
+                  padding: '9px 18px 9px 36px',
                   fontSize: '13px',
                   color: '#ffffff',
                   outline: 'none',
                   transition: 'border-color 0.2s ease'
                 }}
               />
+              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '13px' }}>
+                🔍
+              </span>
             </div>
           </div>
         </div>
@@ -100,10 +104,18 @@ export default function ProductsSection({ initialProducts = [] }) {
           </div>
         ) : (
           <div className="products-grid">
-            {filteredProducts.map((prod) => (
-              <div
+            {filteredProducts.map((prod, index) => (
+              <motion.div
                 key={prod._id || prod.id || prod.title}
                 className="project-card"
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{
+                  duration: 0.5,
+                  ease: [0.21, 0.47, 0.32, 0.98],
+                  delay: (index % 3) * 0.08
+                }}
               >
               <div>
                 {/* Image Container with floating price & badge */}
@@ -149,7 +161,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                       borderRadius: '8px',
                       backdropFilter: 'blur(8px)'
                     }}>
-                      {prod.badge}
+                      ✦ {prod.badge}
                     </div>
                   )}
                   <div className="project-overlay-link">
@@ -201,7 +213,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                   <div className="project-tech-tags" style={{ marginBottom: '14px' }}>
                     {prod.features.slice(0, 3).map((ft, idx) => (
                       <span key={idx} className="project-tech-tag">
-                        · {ft}
+                        ✓ {ft}
                       </span>
                     ))}
                     {prod.features.length > 3 && (
@@ -243,7 +255,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
         )}
@@ -313,7 +325,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                 fontSize: '16px'
               }}
             >
-              Close
+              ✕
             </button>
 
             <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '24px', border: '1px solid rgba(255, 255, 255, 0.08)', position: 'relative' }}>
@@ -326,12 +338,13 @@ export default function ProductsSection({ initialProducts = [] }) {
                 position: 'absolute',
                 top: '16px',
                 right: '16px',
-                backgroundColor: 'var(--accent-primary)',
+                backgroundColor: '#ff7700',
                 color: '#ffffff',
                 fontWeight: '800',
                 fontSize: '16px',
                 padding: '6px 18px',
-                borderRadius: '8px',
+                borderRadius: '999px',
+                boxShadow: '0 4px 18px rgba(255, 119, 0, 0.5)',
                 fontFamily: 'monospace'
               }}>
                 {selectedProduct.price || '$29'}
@@ -339,14 +352,14 @@ export default function ProductsSection({ initialProducts = [] }) {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              <span style={{ fontSize: '11px', color: '#ff7700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                 {selectedProduct.category || 'Digital Asset'}
               </span>
               {selectedProduct.badge && (
                 <>
                   <span style={{ color: '#64748b' }}>·</span>
-                  <span style={{ fontSize: '12px', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                    {selectedProduct.badge}
+                  <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600 }}>
+                    ✦ {selectedProduct.badge}
                   </span>
                 </>
               )}
@@ -382,7 +395,7 @@ export default function ProductsSection({ initialProducts = [] }) {
                         gap: '8px'
                       }}
                     >
-                      <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>·</span>
+                      <span style={{ color: '#10b981', fontWeight: 800 }}>✓</span>
                       <span>{feat}</span>
                     </div>
                   ))}

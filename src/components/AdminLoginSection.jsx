@@ -14,10 +14,7 @@ export default function AdminLoginSection() {
 
   useEffect(() => {
     if (user) {
-      const target = (router.query.redirect && typeof router.query.redirect === 'string') 
-        ? router.query.redirect 
-        : '/admin/dashboard';
-      router.replace(target);
+      router.replace('/admin/dashboard');
     }
   }, [user, router]);
 
@@ -28,10 +25,7 @@ export default function AdminLoginSection() {
 
     try {
       await login(email, password);
-      const target = (router.query.redirect && typeof router.query.redirect === 'string') 
-        ? router.query.redirect 
-        : '/admin/dashboard';
-      router.replace(target);
+      router.replace('/admin/dashboard');
     } catch (err) {
       console.error('Firebase Auth Error:', err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
@@ -42,11 +36,6 @@ export default function AdminLoginSection() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFillDemo = () => {
-    setEmail('admin@muhammadhasil.com');
-    setPassword('admin123456');
   };
 
   return (
@@ -91,7 +80,7 @@ export default function AdminLoginSection() {
               type="email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
-              placeholder="admin@muhammadhasil.com" 
+              placeholder="Enter your admin email" 
               required 
               className="form-input" 
               style={{ width: '100%', padding: '13px 16px', borderRadius: '12px', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#fff', fontSize: '14px', boxSizing: 'border-box' }} 
@@ -133,25 +122,6 @@ export default function AdminLoginSection() {
             }}
           >
             <span>{loading ? 'Authenticating...' : 'Sign In To Dashboard'}</span> <span className="arrow">↗</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleFillDemo}
-            style={{
-              marginTop: '12px',
-              backgroundColor: 'transparent',
-              border: '1px dashed rgba(255, 119, 0, 0.35)',
-              borderRadius: '8px',
-              padding: '8px 12px',
-              color: '#ff7700',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              textAlign: 'center'
-            }}
-          >
-            Use Demo Admin Credentials (admin@muhammadhasil.com)
           </button>
         </form>
 
