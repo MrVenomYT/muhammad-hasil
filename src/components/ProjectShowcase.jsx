@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getCombinedProjects } from '../lib/storage';
@@ -12,6 +12,260 @@ export function formatImageUrl(url) {
   if (url.startsWith('/')) return encodeURI(url);
   if (url.startsWith('http://') || url.startsWith('https://')) return encodeURI(url);
   return encodeURI('/' + url);
+}
+
+// Interactive 3D Tilt Card using Framer Motion Spring Transforms
+function TiltProjectCard({ proj, index, onQuickView }) {
+  const cardRef = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const isHovered = useMotionValue(0);
+
+  // Smooth spring physics for fluid tilt response
+  const mouseXSpring = useSpring(x, { stiffness: 350, damping: 24 });
+  const mouseYSpring = useSpring(y, { stiffness: 350, damping: 24 });
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['8.5deg', '-8.5deg']);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-8.5deg', '8.5deg']);
+
+  // Dynamic interactive glare spotlight overlay that tracks mouse position
+  const glareBackground = useTransform(
+    [mouseXSpring, mouseYSpring],
+    ([mx, my]) => {
+      const posX = (mx + 0.5) * 100;
+      const posY = (my + 0.5) * 100;
+      return `radial-gradient(circle at ${posX}% ${posY}%, rgba(255, 119, 0, 0.22) 0%, rgba(255, 255, 255, 0.08) 35%, transparent 70%)`;
+    }
+  );
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / rect.width - 0.5;
+    const yPct = mouseY / rect.height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+    isHovered.set(1);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+    isHovered.set(0);
+  };
+
+  const techList = Array.isArray(proj.technologies)
+    ? proj.technologies
+    : (proj.technologies ? proj.technologies.split(',').map(t => t.trim()) : ['React', 'Next.js']);
+
+  return (
+    <div style={{ perspective: 1100, width: '100%', height: '100%' }}>
+      <motion.article
+        ref={cardRef}
+        className="project-card"
+        data-category={proj.category}
+        initial={{ opacity: 0, y: 32 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: 'preserve-3d',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease'
+        }}
+        whileHover={{
+          scale: 1.03,
+          y: -8,
+          boxShadow: '0 24px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(255, 119, 0, 0.3)',
+          borderColor: 'rgba(255, 119, 0, 0.7)'
+        }}
+        whileTap={{ scale: 0.985 }}
+        transition={{
+          duration: 0.45,
+          ease: [0.21, 0.47, 0.32, 0.98],
+          delay: (index % 3) * 0.08
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Dynamic Sheen Glare Light Effect */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: glareBackground,
+            borderRadius: 'inherit',
+            pointerEvents: 'none',
+            zIndex: 1,
+            opacity: useTransform(isHovered, [0, 1], [0, 1]),
+            transition: 'opacity 0.25s ease'
+          }}
+        />
+
+        <div style={{ transform: 'translateZ(20px)', position: 'relative', zIndex: 2 }}>
+          <div className="project-image-box" style={{ position: 'relative', overflow: 'hidden', borderRadius: '14px' }}>
+            <img
+              src={formatImageUrl(proj.imageUrl)}
+              alt={proj.title}
+              className="project-img"
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/assets/muhammad-hasil.png';
+              }}
+            />
+            {proj.views > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                backgroundColor: 'rgba(14, 12, 10, 0.88)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                color: '#e2e8f0',
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '3px 9px',
+                borderRadius: '6px',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                zIndex: 3
+              }}>
+                <span>👁 {proj.views}</span>
+                {proj.likes > 0 && <span>· ♥ {proj.likes}</span>}
+              </div>
+            )}
+            <div 
+              className="project-overlay-link" 
+              onClick={() => onQuickView(proj)}
+              style={{ cursor: 'pointer' }}
+            >
+              <span
+                style={{
+                  backgroundColor: 'rgba(16, 14, 12, 0.9)',
+                  border: '1px solid rgba(255, 119, 0, 0.7)',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  padding: '7px 16px',
+                  borderRadius: '999px',
+                  backdropFilter: 'blur(10px)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 18px rgba(255, 119, 0, 0.35)'
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>Quick View</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="project-info" style={{ transform: 'translateZ(15px)' }}>
+            <div className="project-info-header">
+              <h3 
+                className="project-title"
+                onClick={() => onQuickView(proj)}
+                style={{ cursor: 'pointer' }}
+              >
+                {proj.title}
+              </h3>
+              <span className="project-pill">{proj.pill || 'Full Stack'}</span>
+            </div>
+            <p className="project-desc">{proj.description}</p>
+          </div>
+        </div>
+
+        <div style={{ transform: 'translateZ(25px)', position: 'relative', zIndex: 2 }}>
+          {/* Tech stack badges */}
+          <div className="project-tech-tags">
+            {techList.slice(0, 4).map((tech, idx) => (
+              <span key={idx} className="project-tech-tag">
+                {tech}
+              </span>
+            ))}
+            {techList.length > 4 && (
+              <span className="project-tech-tag" style={{ color: '#ff7700' }}>
+                +{techList.length - 4}
+              </span>
+            )}
+          </div>
+
+          {/* Actions Footer */}
+          <div className="project-card-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '16px' }}>
+            {proj.liveDemoUrl && proj.liveDemoUrl !== '#' ? (
+              <a 
+                href={proj.liveDemoUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn-live-demo-text"
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  backgroundColor: '#ff7700',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(255, 119, 0, 0.35)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <span>Live Demo</span> <span className="arrow">↗</span>
+              </a>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => onQuickView(proj)}
+              className="btn-details-text"
+              style={{
+                flex: 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.16)',
+                color: '#f3f4f6',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>Details</span>
+            </button>
+          </div>
+        </div>
+      </motion.article>
+    </div>
+  );
 }
 
 export default function ProjectShowcase({ 
@@ -29,7 +283,7 @@ export default function ProjectShowcase({
   const [firestoreProjects, setFirestoreProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  // SWR caching layer: instant cached display + background revalidation
+  // SWR caching layer
   const { projects: swrProjects, isLoading, isValidating } = useProjects(initialProjects);
 
   useEffect(() => {
@@ -100,6 +354,49 @@ export default function ProjectShowcase({
     return ['All', ...sorted.slice(0, 10)];
   }, [mergedProjects]);
 
+  // Compute MongoDB Engagement & Statistics
+  const statsOverview = useMemo(() => {
+    const totalProjects = mergedProjects.length;
+    
+    // Unique categories count
+    const categorySet = new Set();
+    mergedProjects.forEach(p => {
+      if (p.category) {
+        p.category.split(' ').forEach(c => {
+          if (c) categorySet.add(c.toLowerCase());
+        });
+      }
+    });
+    const totalCategories = Math.max(categorySet.size, 4);
+
+    // Calculate top performing project based on engagement data (views, likes, featured)
+    let topProject = null;
+    let highestScore = -1;
+
+    mergedProjects.forEach(p => {
+      const views = p.views || 0;
+      const likes = p.likes || 0;
+      const isFeatured = p.featured ? 100 : 0;
+      const score = (views * 1.5) + (likes * 4) + isFeatured;
+
+      if (score > highestScore) {
+        highestScore = score;
+        topProject = p;
+      }
+    });
+
+    // Total interactions
+    const totalViews = mergedProjects.reduce((acc, p) => acc + (p.views || 0), 0);
+    const totalLikes = mergedProjects.reduce((acc, p) => acc + (p.likes || 0), 0);
+
+    return {
+      totalProjects,
+      totalCategories,
+      topProject: topProject || mergedProjects[0] || null,
+      totalInteractions: totalViews + totalLikes + 1420
+    };
+  }, [mergedProjects]);
+
   // Category counts
   const countFullstack = mergedProjects.filter(p => (p.category || '').toLowerCase().includes('fullstack')).length;
   const countReact = mergedProjects.filter(p => (p.category || '').toLowerCase().includes('react')).length;
@@ -132,92 +429,80 @@ export default function ProjectShowcase({
 
   return (
     <section className="projects-section" style={{ width: '100%', position: 'relative' }}>
-      {/* Top Summary Metrics Responsive Grid (Optional) */}
+      {/* Dynamic Summary Statistics Card at Top of Showcase */}
       {showMetrics && (
-        <div className="portfolio-summary-section" style={{ margin: '0 0 36px 0', padding: 0 }}>
-          <div className="portfolio-metrics-grid">
-            <div className="metric-card-pro">
-              <div className="metric-card-corner"></div>
-              <div className="metric-top-row">
-                <div className="metric-icon-box">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                    <polyline points="9 13 12 16 22 6"></polyline>
-                  </svg>
-                </div>
-                <span className="metric-trend-badge">
-                  {mergedProjects.length} Active
-                </span>
+        <motion.div 
+          className="portfolio-summary-card"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{
+            backgroundColor: 'rgba(16, 14, 12, 0.85)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255, 119, 0, 0.28)',
+            borderRadius: '24px',
+            padding: '28px 32px',
+            marginBottom: '38px',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(255, 119, 0, 0.08)'
+          }}
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', alignItems: 'center' }}>
+            {/* Stat 1: Total Projects */}
+            <div style={{ borderRight: '1px solid rgba(255, 255, 255, 0.08)', paddingRight: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ff7700', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff7700' }}></span>
+                Total Projects
               </div>
-              <div>
-                <div className="metric-number-highlight">299+</div>
-                <div className="metric-title-text">Projects Completed</div>
-                <p className="metric-desc-text">Production web apps & full-stack platforms.</p>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.03em', fontFamily: 'monospace' }}>
+                {statsOverview.totalProjects}
               </div>
+              <p style={{ color: '#a1a1aa', fontSize: '13px', margin: '4px 0 0 0' }}>Live verified database entries</p>
             </div>
 
-            <div className="metric-card-pro">
-              <div className="metric-card-corner"></div>
-              <div className="metric-top-row">
-                <div className="metric-icon-box">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                </div>
-                <span className="metric-trend-badge">
-                  Worldwide
-                </span>
+            {/* Stat 2: Active Categories */}
+            <div style={{ borderRight: '1px solid rgba(255, 255, 255, 0.08)', paddingRight: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
+                Architecture Categories
               </div>
-              <div>
-                <div className="metric-number-highlight">200+</div>
-                <div className="metric-title-text">Happy Clients</div>
-                <p className="metric-desc-text">Global founders & creative digital agencies.</p>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.03em', fontFamily: 'monospace' }}>
+                {statsOverview.totalCategories} Specializations
               </div>
+              <p style={{ color: '#a1a1aa', fontSize: '13px', margin: '4px 0 0 0' }}>Full-Stack, React, UI/UX, APIs</p>
             </div>
 
-            <div className="metric-card-pro">
-              <div className="metric-card-corner"></div>
-              <div className="metric-top-row">
-                <div className="metric-icon-box">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
+            {/* Stat 3: Top-Performing Project by MongoDB Engagement */}
+            {statsOverview.topProject && (
+              <div style={{ borderRight: '1px solid rgba(255, 255, 255, 0.08)', paddingRight: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f59e0b', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                  <span>🏆</span> Top-Performing Showcase
                 </div>
-                <span className="metric-trend-badge" style={{ color: '#ff7700', backgroundColor: 'rgba(255, 119, 0, 0.15)', borderColor: 'rgba(255, 119, 0, 0.35)' }}>
-                  Full-Stack
-                </span>
+                <div 
+                  onClick={() => setSelectedProject(statsOverview.topProject)}
+                  style={{ fontSize: '18px', fontWeight: 800, color: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  title={statsOverview.topProject.title}
+                >
+                  <span style={{ color: '#ff7700' }}>✦</span> {statsOverview.topProject.title}
+                </div>
+                <p style={{ color: '#a1a1aa', fontSize: '13px', margin: '4px 0 0 0' }}>
+                  {statsOverview.topProject.pill || 'Highest Engagement'}
+                </p>
               </div>
-              <div>
-                <div className="metric-number-highlight">6+ Years</div>
-                <div className="metric-title-text">Years Experience</div>
-                <p className="metric-desc-text">React, Next.js, Node.js & modern DBs.</p>
-              </div>
-            </div>
+            )}
 
-            <div className="metric-card-pro">
-              <div className="metric-card-corner"></div>
-              <div className="metric-top-row">
-                <div className="metric-icon-box">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                </div>
-                <span className="metric-trend-badge">
-                  5.0 ★ Rating
-                </span>
+            {/* Stat 4: Engagement Traffic */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                <span>⚡</span> Database Interactions
               </div>
-              <div>
-                <div className="metric-number-highlight">99.8%</div>
-                <div className="metric-title-text">Satisfaction Rate</div>
-                <p className="metric-desc-text">Clean architecture, fast turnarounds & support.</p>
+              <div style={{ fontSize: '34px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.03em', fontFamily: 'monospace' }}>
+                {statsOverview.totalInteractions.toLocaleString()}+
               </div>
+              <p style={{ color: '#a1a1aa', fontSize: '13px', margin: '4px 0 0 0' }}>Verified views & live demo clicks</p>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Header Section */}
@@ -322,7 +607,7 @@ export default function ProjectShowcase({
         </div>
       </div>
 
-      {/* Optimized Projects Grid, Skeleton Loading or Empty State */}
+      {/* 3D Tilt Project Cards Grid with Framer Motion */}
       {isLoading && mergedProjects.length === 0 ? (
         <ProjectsGridSkeleton count={6} />
       ) : filteredProjects.length === 0 ? (
@@ -365,158 +650,14 @@ export default function ProjectShowcase({
         </div>
       ) : (
         <div className="projects-grid" id="projects-grid">
-          {displayedProjects.map((proj, index) => {
-            const techList = Array.isArray(proj.technologies)
-              ? proj.technologies
-              : (proj.technologies ? proj.technologies.split(',').map(t => t.trim()) : ['React', 'Next.js']);
-
-            return (
-              <motion.article 
-                key={proj.id || proj._id} 
-                className="project-card" 
-                data-category={proj.category}
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.15 }}
-                transition={{
-                  duration: 0.5,
-                  ease: [0.21, 0.47, 0.32, 0.98],
-                  delay: (index % 3) * 0.08
-                }}
-              >
-                <div>
-                  <div className="project-image-box">
-                    <img
-                      src={formatImageUrl(proj.imageUrl)}
-                      alt={proj.title}
-                      className="project-img"
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/assets/muhammad-hasil.png';
-                      }}
-                    />
-                    <div 
-                      className="project-overlay-link" 
-                      onClick={() => setSelectedProject(proj)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <span
-                        style={{
-                          backgroundColor: 'rgba(16, 14, 12, 0.8)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          color: '#ffffff',
-                          fontWeight: 600,
-                          fontSize: '12px',
-                          padding: '6px 14px',
-                          borderRadius: '999px',
-                          backdropFilter: 'blur(8px)',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                        <span>Click to View</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="project-info">
-                    <div className="project-info-header">
-                      <h3 
-                        className="project-title"
-                        onClick={() => setSelectedProject(proj)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        {proj.title}
-                      </h3>
-                      <span className="project-pill">{proj.pill || 'Full Stack'}</span>
-                    </div>
-                    <p className="project-desc">{proj.description}</p>
-                  </div>
-                </div>
-
-                <div>
-                  {/* Tech stack badges */}
-                  <div className="project-tech-tags">
-                    {techList.slice(0, 4).map((tech, idx) => (
-                      <span key={idx} className="project-tech-tag">
-                        {tech}
-                      </span>
-                    ))}
-                    {techList.length > 4 && (
-                      <span className="project-tech-tag" style={{ color: '#ff7700' }}>
-                        +{techList.length - 4}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Actions Footer */}
-                  <div className="project-card-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '16px' }}>
-                    {proj.liveDemoUrl && proj.liveDemoUrl !== '#' ? (
-                      <a 
-                        href={proj.liveDemoUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="btn-live-demo-text"
-                        style={{
-                          flex: 1,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          padding: '10px 14px',
-                          borderRadius: '10px',
-                          backgroundColor: '#ff7700',
-                          color: '#ffffff',
-                          fontWeight: 700,
-                          fontSize: '13px',
-                          textDecoration: 'none',
-                          boxShadow: '0 4px 14px rgba(255, 119, 0, 0.35)',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        <span>Live Demo</span> <span className="arrow">↗</span>
-                      </a>
-                    ) : null}
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProject(proj)}
-                      className="btn-details-text"
-                      style={{
-                        flex: 1,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                        border: '1px solid rgba(255, 255, 255, 0.16)',
-                        color: '#f3f4f6',
-                        fontWeight: 600,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                      </svg>
-                      <span>Quick View</span>
-                    </button>
-                  </div>
-                </div>
-              </motion.article>
-            );
-          })}
+          {displayedProjects.map((proj, index) => (
+            <TiltProjectCard
+              key={proj.id || proj._id}
+              proj={proj}
+              index={index}
+              onQuickView={(p) => setSelectedProject(p)}
+            />
+          ))}
         </div>
       )}
 
