@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
-import PWAInstallButton from './PWAInstallButton';
 
 export default function Navbar() {
   const router = useRouter();
@@ -65,10 +64,8 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Primary Action Button & PWA Install */}
+        {/* Primary Action Button */}
         <div className="nav-actions-zone" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <PWAInstallButton compact={true} />
-
           {user ? (
             <Link href="/admin/dashboard" className="btn-secondary-nav" style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, color: '#ff7700', border: '1px solid rgba(255, 119, 0, 0.3)', textDecoration: 'none', background: 'rgba(255, 119, 0, 0.1)' }}>
               ⚡ Dashboard
@@ -145,13 +142,8 @@ export default function Navbar() {
               🔒 Admin Login
             </Link>
           )}
-
-          <div style={{ marginTop: '20px', padding: '0 8px' }}>
-            <PWAInstallButton compact={false} />
-          </div>
         </nav>
       </div>
     </>
   );
 }
-

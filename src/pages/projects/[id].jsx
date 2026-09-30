@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getProjects } from '../../lib/server-store';
 import { generateSEOMetadata } from '../../lib/seo';
 import SEOHead from '../../components/SEOHead';
-import { formatImageUrl } from '../../components/ProjectsSection';
+import { formatImageUrl } from '../../components/ProjectShowcase';
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
