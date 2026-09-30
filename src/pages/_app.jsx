@@ -8,6 +8,7 @@ import CanvasAnimation from '../components/CanvasAnimation';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { fetcher } from '../lib/usePortfolioData';
+import { getStructuredDataGraph } from '../lib/schema-org';
 
 import '../../style.css';
 
@@ -28,6 +29,8 @@ export default function App({ Component, pageProps }) {
   const globalDefaultDesc = "Explore production full-stack web applications, React & Next.js systems, digital store products, and engineering services by Muhammad Hasil (iHasil).";
   const globalDefaultImage = "https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app/assets/muhammad-hasil.png";
   const globalCurrentUrl = `https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app${router.asPath === '/' ? '' : router.asPath.split('?')[0]}`;
+
+  const globalJsonLdGraph = getStructuredDataGraph(globalCurrentUrl);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -68,28 +71,11 @@ export default function App({ Component, pageProps }) {
             <meta name="twitter:image" content={globalDefaultImage} />
             <meta name="twitter:image:alt" content="Muhammad Hasil (iHasil) - Full Stack Developer & UI/UX Designer" />
 
-            {/* Schema.org Person and WebSite JSON-LD */}
+            {/* Complete Schema.org JSON-LD Graph for Person, Organization & WebSite */}
             <script
               type="application/ld+json"
               dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "Person",
-                  "name": "Muhammad Hasil",
-                  "alternateName": "iHasil",
-                  "url": "https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app",
-                  "image": globalDefaultImage,
-                  "jobTitle": "Full Stack Developer & UI/UX Designer",
-                  "worksFor": {
-                    "@type": "Organization",
-                    "name": "iHasil Studio"
-                  },
-                  "sameAs": [
-                    "https://www.linkedin.com/in/muhammad-hasil/",
-                    "https://pro.fiverr.com/users/venomdesigne613/",
-                    "https://www.patreon.com/MrVenomYT"
-                  ]
-                })
+                __html: JSON.stringify(globalJsonLdGraph)
               }}
             />
           </Head>

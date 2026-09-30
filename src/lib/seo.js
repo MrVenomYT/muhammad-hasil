@@ -1,4 +1,5 @@
 // Dynamic Global SEO & OpenGraph Metadata Generator for iHasil Portfolio
+import { getStructuredDataGraph } from './schema-org';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ais-pre-bezdre5xkoaykqoxpsuxtr-268579460420.asia-southeast1.run.app';
 
@@ -27,8 +28,8 @@ export function generateSEOMetadata({
     'MongoDB',
     'Web Development Portfolio'
   ],
-  schemaType = 'ProfessionalService',
-  schemaData = {}
+  schemaType = null,
+  schemaData = null
 }) {
   const brandName = 'iHasil';
   const creatorName = 'Muhammad Hasil';
@@ -45,43 +46,20 @@ export function generateSEOMetadata({
   const pageImage = getFullImageUrl(imageUrl);
   const pageUrl = url || BASE_URL;
 
-  // Rich Schema.org JSON-LD Structured Data
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': schemaType,
-    name: brandName,
-    alternateName: creatorName,
-    description: pageDescription,
-    image: pageImage,
-    url: pageUrl,
-    logo: `${BASE_URL}/assets/muhammad-hasil.png`,
-    sameAs: [
-      'https://www.linkedin.com/in/muhammad-hasil/',
-      'https://pro.fiverr.com/users/venomdesigne613/',
-      'https://www.patreon.com/MrVenomYT'
-    ],
-    knowsAbout: [
-      'React.js',
-      'Next.js',
-      'Node.js',
-      'MongoDB',
-      'PostgreSQL',
-      'TypeScript',
-      'UI/UX Architecture',
-      'REST APIs'
-    ],
-    founder: {
-      '@type': 'Person',
-      name: creatorName,
-      jobTitle: 'Full Stack Developer & UI/UX Designer',
-      url: BASE_URL,
-      sameAs: [
-        'https://www.linkedin.com/in/muhammad-hasil/',
-        'https://pro.fiverr.com/users/venomdesigne613/'
-      ]
-    },
-    ...schemaData
-  };
+  // Build page-specific item if provided
+  let customItem = null;
+  if (schemaType && schemaData) {
+    customItem = {
+      '@type': schemaType,
+      name: title || brandName,
+      description: pageDescription,
+      url: pageUrl,
+      ...schemaData
+    };
+  }
+
+  // Get structured graph containing Person, Organization, and WebSite schemas
+  const jsonLd = getStructuredDataGraph(pageUrl, customItem);
 
   return {
     title: pageTitle,
