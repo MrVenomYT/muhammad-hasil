@@ -37,11 +37,30 @@ export default function AdminDashboardSection() {
     }
   };
 
+  // Check if a navigation menu item is active by checking activeTab, router.query.tab, and URL path
+  const isNavItemActive = (itemId, itemHref) => {
+    if (activeTab === itemId) return true;
+
+    if (router.isReady) {
+      const currentQueryTab = router.query?.tab 
+        ? String(router.query.tab).toLowerCase().trim() 
+        : (router.pathname === '/admin/dashboard' || router.asPath === '/admin/dashboard' ? 'overview' : null);
+      if (currentQueryTab === itemId) return true;
+
+      if (itemHref) {
+        const cleanAsPath = (router.asPath || '').split('#')[0];
+        const cleanHref = (itemHref || '').split('#')[0];
+        if (cleanAsPath === cleanHref || router.pathname === cleanHref) return true;
+      }
+    }
+    return false;
+  };
+
   // Sync activeTab with URL query parameter on load / browser history navigation
   useEffect(() => {
-    if (router.isReady && router.query.tab) {
+    if (router.isReady) {
       const validTabs = ['overview', 'projects', 'products', 'inquiries', 'reviews', 'services', 'about', 'profile'];
-      const queryTab = String(router.query.tab).toLowerCase().trim();
+      const queryTab = router.query.tab ? String(router.query.tab).toLowerCase().trim() : 'overview';
       if (validTabs.includes(queryTab) && queryTab !== activeTab) {
         setActiveTab(queryTab);
       }
@@ -1010,22 +1029,23 @@ export default function AdminDashboardSection() {
       {/* Mobile Horizontal Quick Navigation Bar */}
       <div className="flex md:hidden overflow-x-auto gap-2 p-2 border-b border-white/10 bg-[#0e0c0b] sticky top-[64px] z-50">
         {[
-          { id: 'overview', label: '📊 Overview' },
-          { id: 'projects', label: `🚀 Projects (${projects.length})` },
-          { id: 'products', label: `🛍 Store (${products.length})` },
-          { id: 'inquiries', label: `📬 Inquiries (${inquiries.length})`, unread: stats.unreadInquiries },
-          { id: 'reviews', label: `⭐ Reviews (${reviews.length})` },
-          { id: 'services', label: `🛠 Services (${services.length})` },
-          { id: 'about', label: '📖 About' },
-          { id: 'profile', label: '⚙ Profile' }
+          { id: 'overview', label: '📊 Overview', href: '/admin/dashboard?tab=overview' },
+          { id: 'projects', label: `🚀 Projects (${projects.length})`, href: '/admin/dashboard?tab=projects' },
+          { id: 'products', label: `🛍 Store (${products.length})`, href: '/admin/dashboard?tab=products' },
+          { id: 'inquiries', label: `📬 Inquiries (${inquiries.length})`, unread: stats.unreadInquiries, href: '/admin/dashboard?tab=inquiries' },
+          { id: 'reviews', label: `⭐ Reviews (${reviews.length})`, href: '/admin/dashboard?tab=reviews' },
+          { id: 'services', label: `🛠 Services (${services.length})`, href: '/admin/dashboard?tab=services' },
+          { id: 'about', label: '📖 About', href: '/admin/dashboard?tab=about' },
+          { id: 'profile', label: '⚙ Profile', href: '/admin/dashboard?tab=profile' }
         ].map(item => {
-          const isActive = activeTab === item.id;
+          const isActive = isNavItemActive(item.id, item.href);
           return (
             <button
               key={item.id}
               onClick={() => navigateToTab(item.id)}
               role="tab"
               aria-selected={isActive}
+              aria-current={isActive ? 'page' : undefined}
               style={{
                 whiteSpace: 'nowrap',
                 padding: '8px 14px',
@@ -1082,20 +1102,21 @@ export default function AdminDashboardSection() {
           </div>
 
           {[
-            { id: 'overview', label: 'Overview & Stats', icon: '📊' },
-            { id: 'projects', label: 'Projects', icon: '🚀', count: projects.length },
-            { id: 'products', label: 'Digital Store', icon: '🛍', count: products.length },
-            { id: 'inquiries', label: 'Inbound Inquiries', icon: '📬', count: inquiries.length, unread: stats.unreadInquiries },
-            { id: 'reviews', label: 'Testimonials', icon: '⭐', count: reviews.length },
-            { id: 'services', label: 'Services Offered', icon: '🛠', count: services.length },
+            { id: 'overview', label: 'Overview & Stats', icon: '📊', href: '/admin/dashboard?tab=overview' },
+            { id: 'projects', label: 'Projects', icon: '🚀', count: projects.length, href: '/admin/dashboard?tab=projects' },
+            { id: 'products', label: 'Digital Store', icon: '🛍', count: products.length, href: '/admin/dashboard?tab=products' },
+            { id: 'inquiries', label: 'Inbound Inquiries', icon: '📬', count: inquiries.length, unread: stats.unreadInquiries, href: '/admin/dashboard?tab=inquiries' },
+            { id: 'reviews', label: 'Testimonials', icon: '⭐', count: reviews.length, href: '/admin/dashboard?tab=reviews' },
+            { id: 'services', label: 'Services Offered', icon: '🛠', count: services.length, href: '/admin/dashboard?tab=services' },
           ].map(item => {
-            const isActive = activeTab === item.id;
+            const isActive = isNavItemActive(item.id, item.href);
             return (
               <button
                 key={item.id}
                 onClick={() => navigateToTab(item.id)}
                 role="tab"
                 aria-selected={isActive}
+                aria-current={isActive ? 'page' : undefined}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1139,16 +1160,17 @@ export default function AdminDashboardSection() {
           </div>
 
           {[
-            { id: 'about', label: 'About Us', icon: '📖' },
-            { id: 'profile', label: 'Profile & Availability', icon: '⚙' },
+            { id: 'about', label: 'About Us', icon: '📖', href: '/admin/dashboard?tab=about' },
+            { id: 'profile', label: 'Profile & Availability', icon: '⚙', href: '/admin/dashboard?tab=profile' },
           ].map(item => {
-            const isActive = activeTab === item.id;
+            const isActive = isNavItemActive(item.id, item.href);
             return (
               <button
                 key={item.id}
                 onClick={() => navigateToTab(item.id)}
                 role="tab"
                 aria-selected={isActive}
+                aria-current={isActive ? 'page' : undefined}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
