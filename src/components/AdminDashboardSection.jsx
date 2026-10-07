@@ -11,7 +11,8 @@ export default function AdminDashboardSection() {
   const queryClient = useQueryClient();
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'projects' | 'products' | 'inquiries' | 'reviews' | 'services' | 'profile'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'projects' | 'products' | 'inquiries' | 'reviews' | 'services' | 'profile' | 'about'
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
 
@@ -295,7 +296,14 @@ export default function AdminDashboardSection() {
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success && data.data) {
+        const savedItem = data.data;
+        if (isEdit) {
+          setProjects(prev => prev.map(p => (p.id === savedItem.id || p._id === savedItem._id || (projectForm.id && (p.id === projectForm.id || p._id === projectForm.id))) ? savedItem : p));
+        } else {
+          setProjects(prev => [savedItem, ...prev.filter(p => p.id !== savedItem.id && (p.title || '').toLowerCase() !== (savedItem.title || '').toLowerCase())]);
+          setStats(prev => ({ ...prev, totalProjects: prev.totalProjects + 1 }));
+        }
         queryClient.invalidateQueries({ queryKey: ['projects'] });
         globalSWRMutate('/api/projects');
         showToast(isEdit ? 'Project updated permanently in MongoDB!' : 'New project created permanently in MongoDB!');
@@ -378,7 +386,14 @@ export default function AdminDashboardSection() {
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success && data.data) {
+        const savedItem = data.data;
+        if (isEdit) {
+          setProducts(prev => prev.map(p => (p.id === savedItem.id || p._id === savedItem._id || (productForm.id && (p.id === productForm.id || p._id === productForm.id))) ? savedItem : p));
+        } else {
+          setProducts(prev => [savedItem, ...prev.filter(p => p.id !== savedItem.id && (p.title || '').toLowerCase() !== (savedItem.title || '').toLowerCase())]);
+          setStats(prev => ({ ...prev, totalProducts: prev.totalProducts + 1 }));
+        }
         showToast(isEdit ? 'Product updated permanently in MongoDB!' : 'New digital product created in MongoDB!');
         setProductModal({ isOpen: false, mode: 'create', data: null });
         fetchAllData();
@@ -444,7 +459,14 @@ export default function AdminDashboardSection() {
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success && data.data) {
+        const savedItem = data.data;
+        if (isEdit) {
+          setReviews(prev => prev.map(r => (r.id === savedItem.id || r._id === savedItem._id || (reviewForm.id && (r.id === reviewForm.id || r._id === reviewForm.id))) ? savedItem : r));
+        } else {
+          setReviews(prev => [savedItem, ...prev.filter(r => r.id !== savedItem.id)]);
+          setStats(prev => ({ ...prev, totalReviews: prev.totalReviews + 1 }));
+        }
         showToast(isEdit ? 'Review updated in MongoDB!' : 'New review added to MongoDB!');
         setReviewModal({ isOpen: false, mode: 'create', data: null });
         fetchAllData();
@@ -519,7 +541,14 @@ export default function AdminDashboardSection() {
       });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.success && data.data) {
+        const savedItem = data.data;
+        if (isEdit) {
+          setServices(prev => prev.map(s => (s.id === savedItem.id || s._id === savedItem._id || (serviceForm.id && (s.id === serviceForm.id || s._id === serviceForm.id))) ? savedItem : s));
+        } else {
+          setServices(prev => [savedItem, ...prev.filter(s => s.id !== savedItem.id)]);
+          setStats(prev => ({ ...prev, totalServices: prev.totalServices + 1 }));
+        }
         showToast(isEdit ? 'Service updated in MongoDB!' : 'New service created in MongoDB!');
         setServiceModal({ isOpen: false, mode: 'create', data: null });
         fetchAllData();
@@ -773,6 +802,24 @@ export default function AdminDashboardSection() {
     else if (type === 'review') endpoint = `/api/reviews/${id}`;
     else if (type === 'service') endpoint = `/api/services/${id}`;
 
+    // Optimistic UI state update
+    if (type === 'project') {
+      setProjects(prev => prev.filter(p => p.id !== id && p._id !== id));
+      setStats(prev => ({ ...prev, totalProjects: Math.max(0, prev.totalProjects - 1) }));
+    } else if (type === 'product') {
+      setProducts(prev => prev.filter(p => p.id !== id && p._id !== id));
+      setStats(prev => ({ ...prev, totalProducts: Math.max(0, prev.totalProducts - 1) }));
+    } else if (type === 'inquiry') {
+      setInquiries(prev => prev.filter(i => i.id !== id && i._id !== id));
+      setStats(prev => ({ ...prev, totalInquiries: Math.max(0, prev.totalInquiries - 1) }));
+    } else if (type === 'review') {
+      setReviews(prev => prev.filter(r => r.id !== id && r._id !== id));
+      setStats(prev => ({ ...prev, totalReviews: Math.max(0, prev.totalReviews - 1) }));
+    } else if (type === 'service') {
+      setServices(prev => prev.filter(s => s.id !== id && s._id !== id));
+      setStats(prev => ({ ...prev, totalServices: Math.max(0, prev.totalServices - 1) }));
+    }
+
     try {
       const res = await fetch(endpoint, { method: 'DELETE' });
       const data = await res.json();
@@ -786,9 +833,11 @@ export default function AdminDashboardSection() {
         fetchAllData();
       } else {
         showToast(data.error || 'Failed to delete item', 'error');
+        fetchAllData();
       }
     } catch (err) {
       showToast(err.message, 'error');
+      fetchAllData();
     } finally {
       setIsSubmitting(false);
     }
@@ -860,10 +909,10 @@ export default function AdminDashboardSection() {
       <header style={{
         height: '64px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        backgroundColor: 'rgba(14, 12, 11, 0.78)',
+        backgroundColor: 'rgba(14, 12, 11, 0.9)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        padding: '0 28px',
+        padding: '0 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -871,22 +920,39 @@ export default function AdminDashboardSection() {
         top: 0,
         zIndex: 100
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            className="md:hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#ffffff',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileNavOpen ? '✕' : '☰'}
+          </button>
+
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
             <img src="/assets/muhammad-hasil.png" alt="iHasil" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '1.5px solid #ff7700' }} />
-            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>iHasil</span>
+            <span style={{ fontWeight: 800, fontSize: '18px', color: '#ffffff', letterSpacing: '-0.5px' }}>iHasil Admin</span>
           </Link>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link href="/" style={{ fontSize: '13px', color: '#94a3b8', textDecoration: 'none', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            ↗ View Public Site
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Link href="/" style={{ fontSize: '12px', color: '#94a3b8', textDecoration: 'none', padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            ↗ Public Site
           </Link>
           <div style={{ fontSize: '13px', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: 'rgba(255, 119, 0, 0.2)', color: '#ff7700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px' }}>
               {user?.email ? user.email.charAt(0).toUpperCase() : 'A'}
             </span>
-            <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'Admin'}</span>
+            <span className="hidden sm:inline" style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'Admin'}</span>
           </div>
           <button
             onClick={() => logout()}
@@ -895,7 +961,7 @@ export default function AdminDashboardSection() {
               color: '#f87171',
               backgroundColor: 'transparent',
               border: '1px solid rgba(248, 113, 113, 0.2)',
-              padding: '6px 14px',
+              padding: '6px 12px',
               borderRadius: '6px',
               cursor: 'pointer'
             }}
@@ -905,27 +971,67 @@ export default function AdminDashboardSection() {
         </div>
       </header>
 
+      {/* Mobile Horizontal Quick Navigation Bar */}
+      <div className="flex md:hidden overflow-x-auto gap-2 p-2 border-b border-white/10 bg-[#0e0c0b] sticky top-[64px] z-50">
+        {[
+          { id: 'overview', label: '📊 Overview' },
+          { id: 'projects', label: `🚀 Projects (${projects.length})` },
+          { id: 'products', label: `🛍 Store (${products.length})` },
+          { id: 'inquiries', label: `📬 Inquiries (${inquiries.length})` },
+          { id: 'reviews', label: `⭐ Reviews (${reviews.length})` },
+          { id: 'services', label: `🛠 Services (${services.length})` },
+          { id: 'about', label: '📖 About' },
+          { id: 'profile', label: '⚙ Profile' }
+        ].map(item => (
+          <button
+            key={item.id}
+            onClick={() => { setActiveTab(item.id); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
+            style={{
+              whiteSpace: 'nowrap',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === item.id ? 'rgba(255, 119, 0, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+              color: activeTab === item.id ? '#ff7700' : '#94a3b8'
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       {/* Main Container: Sidebar + Content */}
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)' }}>
-        {/* Navigation Sidebar */}
-        <aside style={{
-          width: '260px',
-          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: 'rgba(16, 14, 12, 0.78)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          padding: '24px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-          flexShrink: 0
-        }}>
+      <div style={{ display: 'flex', minHeight: 'calc(100vh - 64px)', position: 'relative' }}>
+        {/* Navigation Sidebar (Desktop + Mobile Drawer) */}
+        <aside
+          className={`${mobileNavOpen ? 'block' : 'hidden'} md:flex`}
+          style={{
+            width: '260px',
+            borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+            backgroundColor: 'rgba(16, 14, 12, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            padding: '24px 16px',
+            flexDirection: 'column',
+            gap: '6px',
+            flexShrink: 0,
+            position: mobileNavOpen ? 'fixed' : 'relative',
+            top: mobileNavOpen ? '64px' : 'auto',
+            left: 0,
+            bottom: 0,
+            zIndex: 90,
+            overflowY: 'auto'
+          }}
+        >
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px', paddingLeft: '12px' }}>
             Management
           </div>
 
           <button
-            onClick={() => { setActiveTab('overview'); setSearchQuery(''); setFilterCategory('all'); }}
+            onClick={() => { setActiveTab('overview'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -945,7 +1051,7 @@ export default function AdminDashboardSection() {
           </button>
 
           <button
-            onClick={() => { setActiveTab('projects'); setSearchQuery(''); setFilterCategory('all'); }}
+            onClick={() => { setActiveTab('projects'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -965,7 +1071,7 @@ export default function AdminDashboardSection() {
           </button>
 
           <button
-            onClick={() => { setActiveTab('products'); setSearchQuery(''); setFilterCategory('all'); }}
+            onClick={() => { setActiveTab('products'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -985,7 +1091,7 @@ export default function AdminDashboardSection() {
           </button>
 
           <button
-            onClick={() => { setActiveTab('inquiries'); setSearchQuery(''); setFilterCategory('all'); }}
+            onClick={() => { setActiveTab('inquiries'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1001,7 +1107,7 @@ export default function AdminDashboardSection() {
               textAlign: 'left'
             }}
           >
-            <span>📬 Inbound Inquiries</span>
+            <span>📬 Inbound Inquiries ({inquiries.length})</span>
             {stats.unreadInquiries > 0 && (
               <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 700 }}>
                 {stats.unreadInquiries} new
@@ -1010,7 +1116,7 @@ export default function AdminDashboardSection() {
           </button>
 
           <button
-            onClick={() => { setActiveTab('reviews'); setSearchQuery(''); setFilterCategory('all'); }}
+            onClick={() => { setActiveTab('reviews'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1030,7 +1136,7 @@ export default function AdminDashboardSection() {
           </button>
 
           <button
-            onClick={() => { setActiveTab('services'); setSearchQuery(''); setFilterCategory('all'); }}
+            onClick={() => { setActiveTab('services'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1054,7 +1160,7 @@ export default function AdminDashboardSection() {
           </div>
 
           <button
-            onClick={() => { setActiveTab('about'); }}
+            onClick={() => { setActiveTab('about'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1074,7 +1180,7 @@ export default function AdminDashboardSection() {
           </button>
 
           <button
-            onClick={() => { setActiveTab('profile'); }}
+            onClick={() => { setActiveTab('profile'); setMobileNavOpen(false); }}
             style={{
               display: 'flex',
               alignItems: 'center',

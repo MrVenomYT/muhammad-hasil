@@ -470,6 +470,24 @@ export default function ProjectGrid({ initialProjects = [], limit, showFilters =
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <Link
+                href={`/projects/${selectedProject.id || selectedProject._id || (selectedProject.title || '').toLowerCase().replace(/\s+/g, '-')}`}
+                style={{
+                  backgroundColor: 'rgba(255, 119, 0, 0.15)',
+                  color: '#ff7700',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  padding: '12px 20px',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  border: '1px solid rgba(255, 119, 0, 0.4)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                Full Case Study & Tech Stack <span>→</span>
+              </Link>
               {selectedProject.liveDemoUrl && selectedProject.liveDemoUrl !== '#' && (
                 <a 
                   href={selectedProject.liveDemoUrl} 

@@ -885,6 +885,26 @@ export default function ProjectShowcase({
                     <span>Open Live Application</span> <span className="arrow">↗</span>
                   </a>
                 )}
+                <Link
+                  href={`/projects/${selectedProject.id || selectedProject._id || (selectedProject.title || '').toLowerCase().replace(/\s+/g, '-')}`}
+                  onClick={() => setSelectedProject(null)}
+                  style={{
+                    backgroundColor: 'rgba(255, 119, 0, 0.15)',
+                    color: '#ff7700',
+                    padding: '12px 22px',
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    border: '1px solid rgba(255, 119, 0, 0.4)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <span>View Full Details & Tech Stack</span> <span className="arrow">→</span>
+                </Link>
                 {selectedProject.githubUrl ? (
                   <a
                     href={selectedProject.githubUrl}

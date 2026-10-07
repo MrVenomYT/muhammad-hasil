@@ -1,0 +1,52 @@
+[
+  {
+    "_id": "6abbe1dab095e8e372b6d5cf",
+    "question": "What core technologies do you specialize in?",
+    "answer": "I specialize in production-grade Full-Stack JavaScript & TypeScript development: React.js, Next.js, Node.js, Express, MongoDB Atlas, Firebase Firestore, and Tailwind CSS.",
+    "category": "Technical",
+    "order": 1,
+    "createdAt": "2026-09-29T16:05:46.467Z",
+    "__v": 0,
+    "id": "6abbe1dab095e8e372b6d5cf"
+  },
+  {
+    "_id": "6abbe1dab095e8e372b6d5d0",
+    "question": "How do project pricing, milestones, and hiring work?",
+    "answer": "Projects are structured with clear deliverables, fixed prices, and milestones. You can hire me securely through Fiverr Pro or via custom contract agreements with initial milestone deposits.",
+    "category": "Pricing",
+    "order": 2,
+    "createdAt": "2026-09-29T16:05:46.470Z",
+    "__v": 0,
+    "id": "6abbe1dab095e8e372b6d5d0"
+  },
+  {
+    "_id": "6abbe1dab095e8e372b6d5d1",
+    "question": "Do I get full commercial rights and source code?",
+    "answer": "Yes! All client projects and purchased digital templates include 100% full source code ownership, documentation, and perpetual commercial rights with zero recurring licensing fees.",
+    "category": "Licensing",
+    "order": 3,
+    "createdAt": "2026-09-29T16:05:46.471Z",
+    "__v": 0,
+    "id": "6abbe1dab095e8e372b6d5d1"
+  },
+  {
+    "_id": "6abbe1dab095e8e372b6d5d2",
+    "question": "Can you deploy and configure the database for me?",
+    "answer": "Absolutely. Every production delivery includes full deployment on Vercel, AWS, Google Cloud, or DigitalOcean with custom SSL domains, environment variables, and MongoDB Atlas provisioning.",
+    "category": "Deployment",
+    "order": 4,
+    "createdAt": "2026-09-29T16:05:46.471Z",
+    "__v": 0,
+    "id": "6abbe1dab095e8e372b6d5d2"
+  },
+  {
+    "_id": "6abbe1dab095e8e372b6d5d3",
+    "question": "What is your typical project delivery timeline?",
+    "answer": "Landing pages and interactive UI kits typically deliver in 3–5 business days. Complex full-stack web applications with authentication, databases, and admin dashboards take 7–14 business days.",
+    "category": "Turnaround",
+    "order": 5,
+    "createdAt": "2026-09-29T16:05:46.472Z",
+    "__v": 0,
+    "id": "6abbe1dab095e8e372b6d5d3"
+  }
+]

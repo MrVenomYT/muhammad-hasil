@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import mongoose from 'mongoose';
 import { connectToDatabase } from './mongodb';
 import Project from '../models/Project';
 import Product from '../models/Product';
@@ -578,22 +579,37 @@ const initialAbout = {
   ]
 };
 
+// Helper to construct a safe Mongo search/delete query that never throws CastError on custom IDs
+function toMongoIdQuery(id) {
+  const strId = String(id || '').trim();
+  const isObjId = mongoose.Types.ObjectId.isValid(strId) && String(new mongoose.Types.ObjectId(strId)) === strId;
+  const or = [
+    { slug: strId },
+    { title: strId },
+    { id: strId }
+  ];
+  if (isObjId) {
+    or.unshift({ _id: new mongoose.Types.ObjectId(strId) });
+  }
+  return { $or: or };
+}
+
 // Seed/Sync helper for MongoDB
 async function syncCollectionWithSeed(Model, seedItems, filename) {
   try {
     if (Model.db && Model.db.readyState === 1) {
       const count = await Model.countDocuments();
-      if (count === 0 && seedItems.length > 0) {
-        // Seed MongoDB from existing disk items or defaults
+      if (count === 0 && Array.isArray(seedItems) && seedItems.length > 0) {
         const diskItems = readJsonFile(filename, seedItems);
-        const docsToInsert = diskItems.map(item => {
-          const doc = { ...item };
-          if (doc.id && !doc._id) {
-            delete doc.id;
+        if (Array.isArray(diskItems) && diskItems.length > 0) {
+          for (const item of diskItems) {
+            const doc = { ...item };
+            if (doc.id && !doc._id && !mongoose.Types.ObjectId.isValid(doc.id)) {
+              delete doc.id;
+            }
+            await Model.create(doc).catch(() => {});
           }
-          return doc;
-        });
-        await Model.insertMany(docsToInsert);
+        }
       }
     }
   } catch (err) {
@@ -602,55 +618,31 @@ async function syncCollectionWithSeed(Model, seedItems, filename) {
 }
 
 // -------------------------------------------------------------
-// -------------------------------------------------------------
 // PROJECTS REPOSITORY
 // -------------------------------------------------------------
 export async function getProjects() {
   await connectToDatabase().catch(() => {});
   const disk = readJsonFile('projects.json', initialProjects);
 
-  let rawDocs = disk;
   try {
     if (Project.db && Project.db.readyState === 1) {
       await syncCollectionWithSeed(Project, disk, 'projects.json');
       const docs = await Project.find({}).sort({ order: 1, createdAt: -1 }).lean();
       if (docs && docs.length > 0) {
-        rawDocs = docs.map(d => ({
+        const normalized = docs.map(d => ({
           ...d,
           id: d._id ? d._id.toString() : d.id,
           _id: d._id ? d._id.toString() : undefined
         }));
+        writeJsonFile('projects.json', normalized);
+        return normalized;
       }
     }
   } catch (err) {
     console.warn('Projects Mongo read note:', err.message);
   }
 
-  // Combine disk & rawDocs with disk taking priority for matching titles
-  const combined = [...disk];
-  if (Array.isArray(rawDocs) && rawDocs !== disk) {
-    rawDocs.forEach(d => {
-      const titleKey = (d.title || '').toString().toLowerCase().trim();
-      const existingIdx = combined.findIndex(p => (p.title || '').toString().toLowerCase().trim() === titleKey || p.id === d.id || (p._id && p._id === d._id));
-      if (existingIdx < 0) {
-        combined.push(d);
-      }
-    });
-  }
-
-  // Deduplicate strictly by title (and fallback to unique id)
-  const seenTitles = new Set();
-  const deduped = [];
-  combined.forEach(p => {
-    const key = (p.title || p.id || p._id || '').toString().toLowerCase().trim();
-    if (key && !seenTitles.has(key)) {
-      seenTitles.add(key);
-      deduped.push(p);
-    }
-  });
-
-  writeJsonFile('projects.json', deduped);
-  return deduped;
+  return Array.isArray(disk) ? disk : initialProjects;
 }
 
 export async function saveProject(projectData) {
@@ -664,8 +656,11 @@ export async function saveProject(projectData) {
     updatedAt: new Date().toISOString()
   };
 
-  // 1. Update persistent local storage first with deduplication
-  const existingIndex = disk.findIndex(p => p.id === id || p._id === id || (p.title && p.title.toLowerCase() === (itemToSave.title || '').toLowerCase()));
+  const existingIndex = disk.findIndex(p => 
+    (p.id && String(p.id) === String(id)) || 
+    (p._id && String(p._id) === String(id)) || 
+    (p.title && (p.title || '').toLowerCase().trim() === (itemToSave.title || '').toLowerCase().trim())
+  );
   const isNewProject = existingIndex < 0;
   if (existingIndex >= 0) {
     disk[existingIndex] = { ...disk[existingIndex], ...itemToSave };
@@ -673,33 +668,37 @@ export async function saveProject(projectData) {
     disk.unshift(itemToSave);
   }
 
-  const seen = new Set();
-  const deduped = [];
-  disk.forEach(p => {
-    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
-    if (key && !seen.has(key)) {
-      seen.add(key);
-      deduped.push(p);
-    }
-  });
-  writeJsonFile('projects.json', deduped);
+  writeJsonFile('projects.json', disk);
 
-  // 2. Update MongoDB if connected
   try {
     if (Project.db && Project.db.readyState === 1) {
-      if (projectData._id) {
-        await Project.findByIdAndUpdate(projectData._id, itemToSave, { upsert: true });
+      const isObjId = mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
+      let existing = null;
+      if (isObjId) {
+        existing = await Project.findById(id);
+      }
+      if (!existing && itemToSave.title) {
+        existing = await Project.findOne({ title: itemToSave.title });
+      }
+
+      if (existing) {
+        const updated = await Project.findByIdAndUpdate(existing._id, itemToSave, { new: true });
+        if (updated) {
+          itemToSave._id = updated._id.toString();
+          itemToSave.id = updated._id.toString();
+        }
       } else {
-        const existing = await Project.findOne({ 
-          $or: [
-            { id: itemToSave.id },
-            { title: itemToSave.title }
-          ]
-        });
-        if (existing) {
-          await Project.findByIdAndUpdate(existing._id, itemToSave);
-        } else {
-          await Project.create(itemToSave);
+        const docToCreate = { ...itemToSave };
+        if (!isObjId) delete docToCreate._id;
+        const created = await Project.create(docToCreate);
+        if (created) {
+          itemToSave._id = created._id.toString();
+          itemToSave.id = created._id.toString();
+          const idx = disk.findIndex(p => p.id === id || p.title === itemToSave.title);
+          if (idx >= 0) {
+            disk[idx] = { ...disk[idx], id: itemToSave.id, _id: itemToSave._id };
+            writeJsonFile('projects.json', disk);
+          }
         }
       }
     }
@@ -707,7 +706,7 @@ export async function saveProject(projectData) {
     console.warn('Projects Mongo save note:', err.message);
   }
 
-  // 3. User Requirement: "if a project is added from dashboard a product will be also uploaded auto on the behalf of that xyz project"
+  // Create companion product
   try {
     const companionProductId = 'prod-' + String(itemToSave.id || itemToSave.title).toLowerCase().replace(/[^a-z0-9_-]/g, '-');
     const companionProduct = {
@@ -735,20 +734,27 @@ export async function saveProject(projectData) {
 
 export async function deleteProject(id) {
   await connectToDatabase().catch(() => {});
+  const strId = String(id || '').trim();
   const disk = readJsonFile('projects.json', initialProjects);
-  const filtered = disk.filter(p => p.id !== id && p._id !== id);
+  const filtered = disk.filter(p => {
+    const pId = String(p.id || '').trim();
+    const pMongoId = String(p._id || '').trim();
+    const pTitle = String(p.title || '').trim().toLowerCase();
+    const target = strId.toLowerCase();
+    return pId !== strId && pMongoId !== strId && pTitle !== target;
+  });
   writeJsonFile('projects.json', filtered);
 
   try {
     if (Project.db && Project.db.readyState === 1) {
-      await Project.deleteOne({ $or: [{ _id: id }, { slug: id }, { title: id }, { id: id }] });
+      await Project.deleteMany(toMongoIdQuery(strId));
     }
   } catch (err) {
     console.warn('Projects Mongo delete note:', err.message);
   }
 
   try {
-    const companionProductId = 'prod-' + String(id).toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+    const companionProductId = 'prod-' + strId.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
     await deleteProduct(companionProductId);
   } catch (err) {}
 
@@ -762,36 +768,25 @@ export async function getProducts() {
   await connectToDatabase().catch(() => {});
   const disk = readJsonFile('products.json', initialProducts);
 
-  let rawDocs = disk;
   try {
     if (Product.db && Product.db.readyState === 1) {
       await syncCollectionWithSeed(Product, disk, 'products.json');
       const docs = await Product.find({}).sort({ order: 1, createdAt: -1 }).lean();
       if (docs && docs.length > 0) {
-        rawDocs = docs.map(d => ({
+        const normalized = docs.map(d => ({
           ...d,
           id: d._id ? d._id.toString() : d.id,
           _id: d._id ? d._id.toString() : undefined
         }));
+        writeJsonFile('products.json', normalized);
+        return normalized;
       }
     }
   } catch (err) {
     console.warn('Products Mongo read note:', err.message);
   }
 
-  // Deduplicate strictly by id and title
-  const seen = new Set();
-  const deduped = [];
-  rawDocs.forEach(p => {
-    const key = (p.id || p._id || p.title || '').toString().toLowerCase().trim();
-    if (key && !seen.has(key)) {
-      seen.add(key);
-      deduped.push(p);
-    }
-  });
-
-  writeJsonFile('products.json', deduped);
-  return deduped;
+  return Array.isArray(disk) ? disk : initialProducts;
 }
 
 export async function saveProduct(productData) {
@@ -805,7 +800,11 @@ export async function saveProduct(productData) {
     updatedAt: new Date().toISOString()
   };
 
-  const existingIndex = disk.findIndex(p => p.id === id || p._id === id);
+  const existingIndex = disk.findIndex(p => 
+    (p.id && String(p.id) === String(id)) || 
+    (p._id && String(p._id) === String(id)) || 
+    (p.title && (p.title || '').toLowerCase().trim() === (itemToSave.title || '').toLowerCase().trim())
+  );
   if (existingIndex >= 0) {
     disk[existingIndex] = { ...disk[existingIndex], ...itemToSave };
   } else {
@@ -815,15 +814,21 @@ export async function saveProduct(productData) {
 
   try {
     if (Product.db && Product.db.readyState === 1) {
-      if (productData._id) {
-        await Product.findByIdAndUpdate(productData._id, itemToSave, { upsert: true });
+      const isObjId = mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
+      let existing = null;
+      if (isObjId) {
+        existing = await Product.findById(id);
+      }
+      if (!existing && itemToSave.title) {
+        existing = await Product.findOne({ title: itemToSave.title });
+      }
+
+      if (existing) {
+        await Product.findByIdAndUpdate(existing._id, itemToSave, { new: true });
       } else {
-        const existing = await Product.findOne({ title: productData.title });
-        if (existing) {
-          await Product.findByIdAndUpdate(existing._id, itemToSave);
-        } else {
-          await Product.create(itemToSave);
-        }
+        const docToCreate = { ...itemToSave };
+        if (!isObjId) delete docToCreate._id;
+        await Product.create(docToCreate);
       }
     }
   } catch (err) {
@@ -835,13 +840,20 @@ export async function saveProduct(productData) {
 
 export async function deleteProduct(id) {
   await connectToDatabase().catch(() => {});
+  const strId = String(id || '').trim();
   const disk = readJsonFile('products.json', initialProducts);
-  const filtered = disk.filter(p => p.id !== id && p._id !== id);
+  const filtered = disk.filter(p => {
+    const pId = String(p.id || '').trim();
+    const pMongoId = String(p._id || '').trim();
+    const pTitle = String(p.title || '').trim().toLowerCase();
+    const target = strId.toLowerCase();
+    return pId !== strId && pMongoId !== strId && pTitle !== target;
+  });
   writeJsonFile('products.json', filtered);
 
   try {
     if (Product.db && Product.db.readyState === 1) {
-      await Product.deleteOne({ $or: [{ _id: id }, { slug: id }, { title: id }] });
+      await Product.deleteMany(toMongoIdQuery(strId));
     }
   } catch (err) {
     console.warn('Products Mongo delete note:', err.message);
@@ -861,14 +873,6 @@ export async function getInquiries() {
 
   try {
     if (Inquiry.db && Inquiry.db.readyState === 1) {
-      // Purge any legacy dummy seed inquiries from MongoDB
-      await Inquiry.deleteMany({
-        $or: [
-          { email: { $regex: /cyberdyne|apexventures/i } },
-          { name: { $in: ['Sarah Connor', 'Julian Sterling'] } }
-        ]
-      }).catch(() => {});
-
       const docs = await Inquiry.find({}).sort({ createdAt: -1 }).lean();
       if (docs) {
         const normalized = docs
@@ -911,8 +915,9 @@ export async function saveInquiry(inquiryData) {
 
   try {
     if (Inquiry.db && Inquiry.db.readyState === 1) {
-      if (inquiryData._id) {
-        await Inquiry.findByIdAndUpdate(inquiryData._id, itemToSave, { upsert: true });
+      const isObjId = mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
+      if (isObjId) {
+        await Inquiry.findByIdAndUpdate(id, itemToSave, { upsert: true });
       } else {
         await Inquiry.create(itemToSave);
       }
@@ -926,13 +931,18 @@ export async function saveInquiry(inquiryData) {
 
 export async function deleteInquiry(id) {
   await connectToDatabase().catch(() => {});
+  const strId = String(id || '').trim();
   const disk = readJsonFile('inquiries.json', initialInquiries);
-  const filtered = disk.filter(i => i.id !== id && i._id !== id);
+  const filtered = disk.filter(i => {
+    const iId = String(i.id || '').trim();
+    const iMongoId = String(i._id || '').trim();
+    return iId !== strId && iMongoId !== strId;
+  });
   writeJsonFile('inquiries.json', filtered);
 
   try {
     if (Inquiry.db && Inquiry.db.readyState === 1) {
-      await Inquiry.deleteOne({ $or: [{ _id: id }, { id }] });
+      await Inquiry.deleteMany(toMongoIdQuery(strId));
     }
   } catch (err) {
     console.warn('Inquiry Mongo delete note:', err.message);
@@ -966,7 +976,7 @@ export async function getReviews() {
     console.warn('Reviews Mongo read note:', err.message);
   }
 
-  return disk;
+  return Array.isArray(disk) ? disk : initialReviews;
 }
 
 export async function saveReview(reviewData) {
@@ -989,8 +999,9 @@ export async function saveReview(reviewData) {
 
   try {
     if (Review.db && Review.db.readyState === 1) {
-      if (reviewData._id) {
-        await Review.findByIdAndUpdate(reviewData._id, itemToSave, { upsert: true });
+      const isObjId = mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
+      if (isObjId) {
+        await Review.findByIdAndUpdate(id, itemToSave, { upsert: true });
       } else {
         await Review.create(itemToSave);
       }
@@ -1004,13 +1015,23 @@ export async function saveReview(reviewData) {
 
 export async function deleteReview(id) {
   await connectToDatabase().catch(() => {});
+  const strId = String(id || '').trim();
   const disk = readJsonFile('reviews.json', initialReviews);
-  const filtered = disk.filter(r => r.id !== id && r._id !== id);
+  const filtered = disk.filter(r => {
+    const rId = String(r.id || '').trim();
+    const rMongoId = String(r._id || '').trim();
+    const rAuthor = String(r.authorName || '').trim().toLowerCase();
+    const target = strId.toLowerCase();
+    return rId !== strId && rMongoId !== strId && rAuthor !== target;
+  });
   writeJsonFile('reviews.json', filtered);
 
   try {
     if (Review.db && Review.db.readyState === 1) {
-      await Review.deleteOne({ $or: [{ _id: id }, { id }] });
+      const isObjId = mongoose.Types.ObjectId.isValid(strId) && String(new mongoose.Types.ObjectId(strId)) === strId;
+      const or = [{ authorName: strId }, { id: strId }];
+      if (isObjId) or.unshift({ _id: new mongoose.Types.ObjectId(strId) });
+      await Review.deleteMany({ $or: or });
     }
   } catch (err) {
     console.warn('Review Mongo delete note:', err.message);
@@ -1044,7 +1065,7 @@ export async function getServices() {
     console.warn('Services Mongo read note:', err.message);
   }
 
-  return disk;
+  return Array.isArray(disk) ? disk : initialServices;
 }
 
 export async function saveService(serviceData) {
@@ -1067,8 +1088,9 @@ export async function saveService(serviceData) {
 
   try {
     if (Service.db && Service.db.readyState === 1) {
-      if (serviceData._id) {
-        await Service.findByIdAndUpdate(serviceData._id, itemToSave, { upsert: true });
+      const isObjId = mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
+      if (isObjId) {
+        await Service.findByIdAndUpdate(id, itemToSave, { upsert: true });
       } else {
         await Service.create(itemToSave);
       }
@@ -1082,13 +1104,23 @@ export async function saveService(serviceData) {
 
 export async function deleteService(id) {
   await connectToDatabase().catch(() => {});
+  const strId = String(id || '').trim();
   const disk = readJsonFile('services.json', initialServices);
-  const filtered = disk.filter(s => s.id !== id && s._id !== id);
+  const filtered = disk.filter(s => {
+    const sId = String(s.id || '').trim();
+    const sMongoId = String(s._id || '').trim();
+    const sTitle = String(s.title || '').trim().toLowerCase();
+    const target = strId.toLowerCase();
+    return sId !== strId && sMongoId !== strId && sTitle !== target;
+  });
   writeJsonFile('services.json', filtered);
 
   try {
     if (Service.db && Service.db.readyState === 1) {
-      await Service.deleteOne({ $or: [{ _id: id }, { id }] });
+      const isObjId = mongoose.Types.ObjectId.isValid(strId) && String(new mongoose.Types.ObjectId(strId)) === strId;
+      const or = [{ title: strId }, { id: strId }];
+      if (isObjId) or.unshift({ _id: new mongoose.Types.ObjectId(strId) });
+      await Service.deleteMany({ $or: or });
     }
   } catch (err) {
     console.warn('Service Mongo delete note:', err.message);
@@ -1315,13 +1347,20 @@ export async function saveFaq(faqData) {
 
 export async function deleteFaq(id) {
   await connectToDatabase().catch(() => {});
+  const strId = String(id || '').trim();
   const disk = readJsonFile('faqs.json', initialFaqs);
-  const filtered = disk.filter(f => f.id !== id && f._id !== id);
+  const filtered = disk.filter(f => {
+    const fId = String(f.id || '').trim();
+    const fMongoId = String(f._id || '').trim();
+    const fQ = String(f.question || '').trim().toLowerCase();
+    const target = strId.toLowerCase();
+    return fId !== strId && fMongoId !== strId && fQ !== target;
+  });
   writeJsonFile('faqs.json', filtered);
 
   try {
     if (Faq.db && Faq.db.readyState === 1) {
-      await Faq.deleteOne({ $or: [{ _id: id }, { id }] });
+      await Faq.deleteMany(toMongoIdQuery(strId));
     }
   } catch (err) {
     console.warn('FAQ Mongo delete note:', err.message);

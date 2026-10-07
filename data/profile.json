@@ -3,9 +3,9 @@
   "fullName": "Muhammad Hasil",
   "tagline": "Full Stack Developer & UI/UX Designer",
   "bio": "Specializing in high-performance web applications, modern responsive UI/UX, MongoDB database architecture, and production Next.js engineering.",
-  "yearsExperience": 4,
-  "projectsCompleted": 35,
-  "happyClients": 28,
+  "yearsExperience": 6,
+  "projectsCompleted": 270,
+  "happyClients": 256,
   "hoursCoded": 3400,
   "availableForHire": true,
   "availabilityText": "Available for freelance client work & full-stack contract roles",
@@ -55,7 +55,7 @@
     "email": "esp.hasil.insight@gmail.com",
     "twitter": ""
   },
-  "updatedAt": "2026-09-29T15:26:52.622Z",
+  "updatedAt": "2026-10-07T15:43:24.285Z",
   "__v": 0,
   "id": "6abbd8bc57df84cc42addda2"
 }
