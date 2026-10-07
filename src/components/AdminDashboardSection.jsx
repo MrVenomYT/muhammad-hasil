@@ -294,9 +294,9 @@ export default function AdminDashboardSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid response from server' }));
 
-      if (data.success && data.data) {
+      if (res.ok && data.success && data.data) {
         const savedItem = data.data;
         if (isEdit) {
           setProjects(prev => prev.map(p => (p.id === savedItem.id || p._id === savedItem._id || (projectForm.id && (p.id === projectForm.id || p._id === projectForm.id))) ? savedItem : p));
@@ -306,14 +306,15 @@ export default function AdminDashboardSection() {
         }
         queryClient.invalidateQueries({ queryKey: ['projects'] });
         globalSWRMutate('/api/projects');
-        showToast(isEdit ? 'Project updated permanently in MongoDB!' : 'New project created permanently in MongoDB!');
+        showToast(isEdit ? 'Project updated successfully!' : 'New project created successfully!');
         setProjectModal({ isOpen: false, mode: 'create', data: null });
         fetchAllData();
       } else {
-        showToast(data.error || 'Failed to save project', 'error');
+        const errorMsg = data.error || `Failed to save project (HTTP ${res.status})`;
+        showToast(errorMsg, 'error');
       }
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Network error while saving project', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -822,21 +823,23 @@ export default function AdminDashboardSection() {
 
     try {
       const res = await fetch(endpoint, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid response from server' }));
+
+      if (res.ok && data.success) {
         if (type === 'project') {
           queryClient.invalidateQueries({ queryKey: ['projects'] });
           globalSWRMutate('/api/projects');
         }
-        showToast(`Item permanently deleted from MongoDB and storage.`);
+        showToast(data.message || `Item permanently deleted from database and storage.`);
         setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
         fetchAllData();
       } else {
-        showToast(data.error || 'Failed to delete item', 'error');
-        fetchAllData();
+        const errorMsg = data.error || `Failed to delete item (HTTP ${res.status})`;
+        showToast(errorMsg, 'error');
+        fetchAllData(); // Refresh to restore real state
       }
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Network error while deleting item', 'error');
       fetchAllData();
     } finally {
       setIsSubmitting(false);

@@ -669,6 +669,7 @@ export async function saveProject(projectData) {
   }
 
   writeJsonFile('projects.json', disk);
+  console.log(`[ServerStore] Saved project "${itemToSave.title}" to disk (isNew: ${isNewProject}, total: ${disk.length})`);
 
   try {
     if (Project.db && Project.db.readyState === 1) {
@@ -686,6 +687,7 @@ export async function saveProject(projectData) {
         if (updated) {
           itemToSave._id = updated._id.toString();
           itemToSave.id = updated._id.toString();
+          console.log(`[ServerStore] Updated project in MongoDB (ID: ${itemToSave.id})`);
         }
       } else {
         const docToCreate = { ...itemToSave };
@@ -694,6 +696,7 @@ export async function saveProject(projectData) {
         if (created) {
           itemToSave._id = created._id.toString();
           itemToSave.id = created._id.toString();
+          console.log(`[ServerStore] Created new project in MongoDB (ID: ${itemToSave.id})`);
           const idx = disk.findIndex(p => p.id === id || p.title === itemToSave.title);
           if (idx >= 0) {
             disk[idx] = { ...disk[idx], id: itemToSave.id, _id: itemToSave._id };
@@ -703,7 +706,7 @@ export async function saveProject(projectData) {
       }
     }
   } catch (err) {
-    console.warn('Projects Mongo save note:', err.message);
+    console.warn('[ServerStore] Projects Mongo save warning:', err.message);
   }
 
   // Create companion product
@@ -726,7 +729,7 @@ export async function saveProject(projectData) {
     };
     await saveProduct(companionProduct);
   } catch (prodErr) {
-    console.warn('Auto companion product creation notice:', prodErr.message);
+    console.warn('[ServerStore] Auto companion product creation notice:', prodErr.message);
   }
 
   return itemToSave;
@@ -736,6 +739,7 @@ export async function deleteProject(id) {
   await connectToDatabase().catch(() => {});
   const strId = String(id || '').trim();
   const disk = readJsonFile('projects.json', initialProjects);
+  const initialCount = disk.length;
   const filtered = disk.filter(p => {
     const pId = String(p.id || '').trim();
     const pMongoId = String(p._id || '').trim();
@@ -743,14 +747,19 @@ export async function deleteProject(id) {
     const target = strId.toLowerCase();
     return pId !== strId && pMongoId !== strId && pTitle !== target;
   });
+  
+  const removedFromDisk = initialCount - filtered.length;
   writeJsonFile('projects.json', filtered);
+  console.log(`[ServerStore] Deleted project "${strId}" from disk. Removed ${removedFromDisk} record(s). Remaining: ${filtered.length}`);
 
+  let mongoDeleteResult = null;
   try {
     if (Project.db && Project.db.readyState === 1) {
-      await Project.deleteMany(toMongoIdQuery(strId));
+      mongoDeleteResult = await Project.deleteMany(toMongoIdQuery(strId));
+      console.log(`[ServerStore] Deleted from MongoDB: deletedCount = ${mongoDeleteResult?.deletedCount}`);
     }
   } catch (err) {
-    console.warn('Projects Mongo delete note:', err.message);
+    console.warn('[ServerStore] Projects Mongo delete note:', err.message);
   }
 
   try {
@@ -758,7 +767,12 @@ export async function deleteProject(id) {
     await deleteProduct(companionProductId);
   } catch (err) {}
 
-  return { success: true };
+  return { 
+    success: true, 
+    id: strId, 
+    removedFromDisk, 
+    mongoDeletedCount: mongoDeleteResult?.deletedCount || 0 
+  };
 }
 
 // -------------------------------------------------------------
