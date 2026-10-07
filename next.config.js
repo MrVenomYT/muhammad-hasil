@@ -1,15 +1,13 @@
 const path = require('path');
 
+const isVercel = process.env.VERCEL === '1';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  ...(isVercel ? {} : { output: 'standalone' }),
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
-  outputFileTracingRoot: path.join(__dirname),
-  outputFileTracingIncludes: {
-    '/api/**/*': ['./node_modules/**/*'],
-  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' }
