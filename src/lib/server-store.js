@@ -582,15 +582,22 @@ const initialAbout = {
 // Helper to construct a safe Mongo search/delete query that never throws CastError on custom IDs
 function toMongoIdQuery(id) {
   const strId = String(id || '').trim();
+  const slugified = strId.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const isObjId = mongoose.Types.ObjectId.isValid(strId) && String(new mongoose.Types.ObjectId(strId)) === strId;
+
   const or = [
+    { id: strId },
+    { customId: strId },
     { slug: strId },
+    { slug: slugified },
     { title: strId },
-    { id: strId }
+    { title: new RegExp(`^${strId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
   ];
+
   if (isObjId) {
     or.unshift({ _id: new mongoose.Types.ObjectId(strId) });
   }
+
   return { $or: or };
 }
 
@@ -604,6 +611,12 @@ async function syncCollectionWithSeed(Model, seedItems, filename) {
         if (Array.isArray(diskItems) && diskItems.length > 0) {
           for (const item of diskItems) {
             const doc = { ...item };
+            if (!doc.slug && doc.title) {
+              doc.slug = String(doc.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            }
+            if (!doc.customId && doc.id) {
+              doc.customId = String(doc.id);
+            }
             if (doc.id && !doc._id && !mongoose.Types.ObjectId.isValid(doc.id)) {
               delete doc.id;
             }
@@ -629,11 +642,18 @@ export async function getProjects() {
       await syncCollectionWithSeed(Project, disk, 'projects.json');
       const docs = await Project.find({}).sort({ order: 1, createdAt: -1 }).lean();
       if (docs && docs.length > 0) {
-        const normalized = docs.map(d => ({
-          ...d,
-          id: d._id ? d._id.toString() : d.id,
-          _id: d._id ? d._id.toString() : undefined
-        }));
+        const normalized = docs.map(d => {
+          const originalCustomId = d.customId || (d.id && !mongoose.Types.ObjectId.isValid(d.id) ? d.id : null);
+          const finalId = originalCustomId || (d._id ? d._id.toString() : (d.id || 'proj-' + Date.now()));
+          const finalSlug = d.slug || (d.title ? String(d.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : finalId);
+          return {
+            ...d,
+            id: finalId,
+            customId: originalCustomId || finalId,
+            _id: d._id ? d._id.toString() : finalId,
+            slug: finalSlug
+          };
+        });
         writeJsonFile('projects.json', normalized);
         return normalized;
       }
@@ -642,23 +662,31 @@ export async function getProjects() {
     console.warn('Projects Mongo read note:', err.message);
   }
 
-  return Array.isArray(disk) ? disk : initialProjects;
+  return (Array.isArray(disk) ? disk : initialProjects).map(p => ({
+    ...p,
+    id: p.id || (p._id ? String(p._id) : 'proj-' + Date.now()),
+    slug: p.slug || (p.title ? String(p.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : (p.id || 'project'))
+  }));
 }
 
 export async function saveProject(projectData) {
   await connectToDatabase().catch(() => {});
   const disk = readJsonFile('projects.json', initialProjects);
   const id = projectData.id || projectData._id || 'proj-' + Date.now();
+  const slug = projectData.slug || (projectData.title ? String(projectData.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : String(id));
 
   const itemToSave = {
     ...projectData,
     id,
+    customId: projectData.customId || id,
+    slug,
     updatedAt: new Date().toISOString()
   };
 
   const existingIndex = disk.findIndex(p => 
-    (p.id && String(p.id) === String(id)) || 
-    (p._id && String(p._id) === String(id)) || 
+    (p.id && String(p.id).toLowerCase().trim() === String(id).toLowerCase().trim()) || 
+    (p._id && String(p._id).toLowerCase().trim() === String(id).toLowerCase().trim()) || 
+    (p.slug && String(p.slug).toLowerCase().trim() === String(slug).toLowerCase().trim()) ||
     (p.title && (p.title || '').toLowerCase().trim() === (itemToSave.title || '').toLowerCase().trim())
   );
   const isNewProject = existingIndex < 0;
@@ -673,33 +701,31 @@ export async function saveProject(projectData) {
 
   try {
     if (Project.db && Project.db.readyState === 1) {
-      const isObjId = mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
-      let existing = null;
-      if (isObjId) {
-        existing = await Project.findById(id);
-      }
-      if (!existing && itemToSave.title) {
-        existing = await Project.findOne({ title: itemToSave.title });
-      }
+      const existing = await Project.findOne(toMongoIdQuery(id));
 
       if (existing) {
         const updated = await Project.findByIdAndUpdate(existing._id, itemToSave, { new: true });
         if (updated) {
           itemToSave._id = updated._id.toString();
-          itemToSave.id = updated._id.toString();
+          itemToSave.id = itemToSave.id || updated._id.toString();
           console.log(`[ServerStore] Updated project in MongoDB (ID: ${itemToSave.id})`);
         }
       } else {
         const docToCreate = { ...itemToSave };
-        if (!isObjId) delete docToCreate._id;
+        if (!mongoose.Types.ObjectId.isValid(docToCreate.id)) {
+          docToCreate.customId = docToCreate.id;
+          delete docToCreate._id;
+        }
         const created = await Project.create(docToCreate);
         if (created) {
           itemToSave._id = created._id.toString();
-          itemToSave.id = created._id.toString();
+          if (!itemToSave.id || mongoose.Types.ObjectId.isValid(itemToSave.id)) {
+            itemToSave.id = created._id.toString();
+          }
           console.log(`[ServerStore] Created new project in MongoDB (ID: ${itemToSave.id})`);
           const idx = disk.findIndex(p => p.id === id || p.title === itemToSave.title);
           if (idx >= 0) {
-            disk[idx] = { ...disk[idx], id: itemToSave.id, _id: itemToSave._id };
+            disk[idx] = { ...disk[idx], id: itemToSave.id, _id: itemToSave._id, slug: itemToSave.slug };
             writeJsonFile('projects.json', disk);
           }
         }
@@ -787,11 +813,18 @@ export async function getProducts() {
       await syncCollectionWithSeed(Product, disk, 'products.json');
       const docs = await Product.find({}).sort({ order: 1, createdAt: -1 }).lean();
       if (docs && docs.length > 0) {
-        const normalized = docs.map(d => ({
-          ...d,
-          id: d._id ? d._id.toString() : d.id,
-          _id: d._id ? d._id.toString() : undefined
-        }));
+        const normalized = docs.map(d => {
+          const originalCustomId = d.customId || (d.id && !mongoose.Types.ObjectId.isValid(d.id) ? d.id : null);
+          const finalId = originalCustomId || (d._id ? d._id.toString() : (d.id || 'prod-' + Date.now()));
+          const finalSlug = d.slug || (d.title ? String(d.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : finalId);
+          return {
+            ...d,
+            id: finalId,
+            customId: originalCustomId || finalId,
+            _id: d._id ? d._id.toString() : finalId,
+            slug: finalSlug
+          };
+        });
         writeJsonFile('products.json', normalized);
         return normalized;
       }
@@ -800,23 +833,31 @@ export async function getProducts() {
     console.warn('Products Mongo read note:', err.message);
   }
 
-  return Array.isArray(disk) ? disk : initialProducts;
+  return (Array.isArray(disk) ? disk : initialProducts).map(p => ({
+    ...p,
+    id: p.id || (p._id ? String(p._id) : 'prod-' + Date.now()),
+    slug: p.slug || (p.title ? String(p.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : (p.id || 'product'))
+  }));
 }
 
 export async function saveProduct(productData) {
   await connectToDatabase().catch(() => {});
   const disk = readJsonFile('products.json', initialProducts);
   const id = productData.id || productData._id || 'prod-' + Date.now();
+  const slug = productData.slug || (productData.title ? String(productData.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : String(id));
 
   const itemToSave = {
     ...productData,
     id,
+    customId: productData.customId || id,
+    slug,
     updatedAt: new Date().toISOString()
   };
 
   const existingIndex = disk.findIndex(p => 
-    (p.id && String(p.id) === String(id)) || 
-    (p._id && String(p._id) === String(id)) || 
+    (p.id && String(p.id).toLowerCase().trim() === String(id).toLowerCase().trim()) || 
+    (p._id && String(p._id).toLowerCase().trim() === String(id).toLowerCase().trim()) || 
+    (p.slug && String(p.slug).toLowerCase().trim() === String(slug).toLowerCase().trim()) ||
     (p.title && (p.title || '').toLowerCase().trim() === (itemToSave.title || '').toLowerCase().trim())
   );
   if (existingIndex >= 0) {
@@ -828,21 +869,32 @@ export async function saveProduct(productData) {
 
   try {
     if (Product.db && Product.db.readyState === 1) {
-      const isObjId = mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id);
-      let existing = null;
-      if (isObjId) {
-        existing = await Product.findById(id);
-      }
-      if (!existing && itemToSave.title) {
-        existing = await Product.findOne({ title: itemToSave.title });
-      }
+      const existing = await Product.findOne(toMongoIdQuery(id));
 
       if (existing) {
-        await Product.findByIdAndUpdate(existing._id, itemToSave, { new: true });
+        const updated = await Product.findByIdAndUpdate(existing._id, itemToSave, { new: true });
+        if (updated) {
+          itemToSave._id = updated._id.toString();
+          itemToSave.id = itemToSave.id || updated._id.toString();
+        }
       } else {
         const docToCreate = { ...itemToSave };
-        if (!isObjId) delete docToCreate._id;
-        await Product.create(docToCreate);
+        if (!mongoose.Types.ObjectId.isValid(docToCreate.id)) {
+          docToCreate.customId = docToCreate.id;
+          delete docToCreate._id;
+        }
+        const created = await Product.create(docToCreate);
+        if (created) {
+          itemToSave._id = created._id.toString();
+          if (!itemToSave.id || mongoose.Types.ObjectId.isValid(itemToSave.id)) {
+            itemToSave.id = created._id.toString();
+          }
+          const idx = disk.findIndex(p => p.id === id || p.title === itemToSave.title);
+          if (idx >= 0) {
+            disk[idx] = { ...disk[idx], id: itemToSave.id, _id: itemToSave._id, slug: itemToSave.slug };
+            writeJsonFile('products.json', disk);
+          }
+        }
       }
     }
   } catch (err) {

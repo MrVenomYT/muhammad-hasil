@@ -60,12 +60,15 @@ export async function getServerSideProps(context) {
     // 1. Primary matching criteria
     let project = projects.find((p) => {
       if (!p) return false;
-      const pId = String(p.id || p._id || '');
+      const pId = String(p.id || p._id || p.customId || '');
+      const pSlug = String(p.slug || slugify(p.title || ''));
       const pTitle = p.title || '';
 
       return (
         pId === decodedId ||
         pId.toLowerCase() === decodedId.toLowerCase() ||
+        pSlug === targetSlug ||
+        pSlug === decodedId.toLowerCase() ||
         clean(pId) === targetClean ||
         slugify(pTitle) === targetSlug ||
         clean(pTitle) === targetClean ||

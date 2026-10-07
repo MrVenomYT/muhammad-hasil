@@ -1,10 +1,21 @@
 import mongoose from 'mongoose';
 
 const ProjectSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    trim: true,
+    index: true,
+  },
+  customId: {
+    type: String,
+    trim: true,
+    index: true,
+  },
   title: {
     type: String,
     required: true,
     trim: true,
+    index: true,
   },
   slug: {
     type: String,
@@ -66,6 +77,10 @@ const ProjectSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  clicks: {
+    type: Number,
+    default: 0,
+  },
   likes: {
     type: Number,
     default: 0,
@@ -79,8 +94,12 @@ const ProjectSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+}, {
+  strict: false,
+  timestamps: true
 });
 
 ProjectSchema.index({ createdAt: -1 });
+ProjectSchema.index({ slug: 1, id: 1 });
 
 export default mongoose.models.Project || mongoose.model('Project', ProjectSchema);

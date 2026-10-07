@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { mutate as globalSWRMutate } from 'swr';
 import Link from 'next/link';
+import AdminProjectMetrics from './AdminProjectMetrics';
 
 export default function AdminDashboardSection() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -1427,6 +1428,9 @@ export default function AdminDashboardSection() {
                   </button>
                 </div>
               </div>
+
+              {/* Project Metrics & Click-Through Rates Dashboard (Recharts) */}
+              <AdminProjectMetrics projects={projects} />
             </div>
           )}
 
