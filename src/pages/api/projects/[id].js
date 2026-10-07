@@ -3,15 +3,34 @@ import { projectSchema } from '../../../lib/validations';
 import { db } from '../../../../firebase';
 import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 
+const FIRESTORE_TIMEOUT_MS = 5000;
+
+/**
+ * Timeout wrapper for Firestore operations
+ */
+function withTimeout(promise, ms, operationName = 'Firestore operation') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${operationName} timed out after ${ms}ms`)), ms)
+    )
+  ]);
+}
+
 /**
  * Persists an updated project document to Firestore with strict error trapping
  */
 async function syncProjectUpdateToFirestore(id, projectData) {
+  const timestamp = new Date().toISOString();
   if (!db) {
+    console.log(`[${timestamp}] [Firestore Sync Update] Skipped: Firestore instance is null or offline`);
     return { synced: false, reason: 'Firestore DB not initialized or offline' };
   }
+
+  const docId = String(id).trim();
+  const startTime = Date.now();
+
   try {
-    const docId = String(id).trim();
     const docRef = doc(db, 'projects', docId);
     
     const cleanPayload = Object.entries(projectData).reduce((acc, [key, val]) => {
@@ -19,34 +38,86 @@ async function syncProjectUpdateToFirestore(id, projectData) {
       return acc;
     }, {});
 
-    await setDoc(docRef, {
-      ...cleanPayload,
-      id: docId,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+    console.log(`[${timestamp}] [Firestore Sync Update] Writing update for project ID: "${docId}" with timeout ${FIRESTORE_TIMEOUT_MS}ms...`);
 
-    return { synced: true, docId };
+    await withTimeout(
+      setDoc(docRef, {
+        ...cleanPayload,
+        id: docId,
+        updatedAt: new Date().toISOString()
+      }, { merge: true }),
+      FIRESTORE_TIMEOUT_MS,
+      `Project Firestore update setDoc (${docId})`
+    );
+
+    const durationMs = Date.now() - startTime;
+    console.log(`[${timestamp}] [Firestore Sync Update] [SUCCESS] Project "${docId}" updated in Firestore in ${durationMs}ms`);
+    return { synced: true, docId, durationMs };
   } catch (err) {
-    console.warn(`[Firestore] Project ${id} update warning:`, err.message);
-    return { synced: false, error: err.message };
+    const durationMs = Date.now() - startTime;
+    const isTimeout = err.message && err.message.includes('timed out');
+    const errorOrigin = isTimeout ? 'FIRESTORE_TIMEOUT' : 'FIRESTORE_ERROR';
+
+    console.warn(`[${timestamp}] [Firestore Sync Update] [ERROR_ORIGIN: ${errorOrigin}] Failed after ${durationMs}ms:`, {
+      docId,
+      error: err.message,
+      code: err.code || 'UNKNOWN'
+    });
+
+    return { 
+      synced: false, 
+      error: err.message, 
+      errorOrigin,
+      isTimeout,
+      code: err.code || null 
+    };
   }
 }
 
 /**
- * Deletes a project document from Firestore with strict error trapping
+ * Deletes a project document from Firestore with strict error trapping and timeout protection
  */
 async function deleteProjectFromFirestore(id) {
+  const timestamp = new Date().toISOString();
   if (!db) {
+    console.log(`[${timestamp}] [Firestore Sync Delete] Skipped: Firestore instance is null or offline`);
     return { deleted: false, reason: 'Firestore DB not initialized or offline' };
   }
+
+  const docId = String(id).trim();
+  const startTime = Date.now();
+
   try {
-    const docId = String(id).trim();
     const docRef = doc(db, 'projects', docId);
-    await deleteDoc(docRef);
-    return { deleted: true, docId };
+    console.log(`[${timestamp}] [Firestore Sync Delete] Deleting project document "${docId}" from Firestore with timeout ${FIRESTORE_TIMEOUT_MS}ms...`);
+
+    await withTimeout(
+      deleteDoc(docRef),
+      FIRESTORE_TIMEOUT_MS,
+      `Project Firestore deleteDoc (${docId})`
+    );
+
+    const durationMs = Date.now() - startTime;
+    console.log(`[${timestamp}] [Firestore Sync Delete] [SUCCESS] Project "${docId}" deleted from Firestore in ${durationMs}ms`);
+    return { deleted: true, docId, durationMs };
   } catch (err) {
-    console.warn(`[Firestore] Project ${id} delete warning:`, err.message);
-    return { deleted: false, error: err.message };
+    const durationMs = Date.now() - startTime;
+    const isTimeout = err.message && err.message.includes('timed out');
+    const errorOrigin = isTimeout ? 'FIRESTORE_TIMEOUT' : 'FIRESTORE_ERROR';
+
+    console.warn(`[${timestamp}] [Firestore Sync Delete] [ERROR_ORIGIN: ${errorOrigin}] Failed after ${durationMs}ms:`, {
+      docId,
+      error: err.message,
+      code: err.code || 'UNKNOWN'
+    });
+
+    return { 
+      deleted: false, 
+      error: err.message, 
+      errorOrigin,
+      isTimeout,
+      code: err.code || null 
+    };
   }
 }
 
@@ -59,10 +130,11 @@ export default async function handler(req, res) {
   console.log(`[${timestamp}] [API /api/projects/${id || 'unknown'}] [${method}] Request received from IP: ${clientIp}`);
 
   if (!id || typeof id !== 'string' || id.trim() === '') {
-    console.warn(`[${timestamp}] [API /api/projects/[id]] [${method}] 400 Bad Request: Missing or empty project id parameter.`);
+    console.warn(`[${timestamp}] [API /api/projects/[id]] [${method}] [ERROR_ORIGIN: MALFORMED_PAYLOAD] 400 Bad Request: Missing or empty project id parameter.`);
     return res.status(400).json({ 
       success: false, 
-      error: 'Project ID parameter is required in the URL route.' 
+      error: 'Project ID parameter is required in the URL route.',
+      errorOrigin: 'MALFORMED_PAYLOAD'
     });
   }
 
@@ -73,13 +145,18 @@ export default async function handler(req, res) {
       try {
         console.log(`[${timestamp}] [API /api/projects/${strId}] [GET] Querying project by identifier...`);
         const projects = await getProjects();
-        const found = projects.find(p => String(p.id || '').trim() === strId || String(p._id || '').trim() === strId);
+        const found = projects.find(p => 
+          String(p.id || '').trim().toLowerCase() === strId.toLowerCase() || 
+          String(p._id || '').trim().toLowerCase() === strId.toLowerCase() ||
+          String(p.slug || '').trim().toLowerCase() === strId.toLowerCase()
+        );
         
         if (!found) {
-          console.warn(`[${timestamp}] [API /api/projects/${strId}] [GET] 404 Not Found: No matching project.`);
+          console.warn(`[${timestamp}] [API /api/projects/${strId}] [GET] [ERROR_ORIGIN: NOT_FOUND] 404 Not Found: No matching project.`);
           return res.status(404).json({ 
             success: false, 
-            error: `Project with ID "${strId}" was not found in storage or database` 
+            error: `Project with ID "${strId}" was not found in storage or database`,
+            errorOrigin: 'NOT_FOUND'
           });
         }
 
@@ -89,10 +166,11 @@ export default async function handler(req, res) {
           data: found 
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/projects/${strId}] [GET] 500 Error:`, error);
+        console.error(`[${timestamp}] [API /api/projects/${strId}] [GET] [ERROR_ORIGIN: STORE_FETCH_ERROR] 500 Error:`, error);
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Failed to retrieve project record' 
+          error: error.message || 'Failed to retrieve project record',
+          errorOrigin: 'STORE_FETCH_ERROR'
         });
       }
 
@@ -105,29 +183,36 @@ export default async function handler(req, res) {
         });
 
         if (!req.body || typeof req.body !== 'object') {
-          console.warn(`[${timestamp}] [API /api/projects/${strId}] [PUT] 400 Bad Request: Empty body.`);
+          console.warn(`[${timestamp}] [API /api/projects/${strId}] [PUT] [ERROR_ORIGIN: MALFORMED_PAYLOAD] 400 Bad Request: Empty body.`);
           return res.status(400).json({ 
             success: false, 
-            error: 'Request body must be a valid JSON object with updated project fields.' 
+            error: 'Request body must be a valid JSON object containing updated project fields.',
+            errorOrigin: 'MALFORMED_PAYLOAD'
           });
         }
 
         const parseResult = projectSchema.safeParse({ ...req.body, id: strId });
         if (!parseResult.success) {
-          const formattedErrors = parseResult.error.errors.map(err => `${err.path.join('.') || 'field'}: ${err.message}`).join(', ');
-          console.warn(`[${timestamp}] [API /api/projects/${strId}] [PUT] 400 Validation failed: ${formattedErrors}`);
+          const validationIssues = parseResult.error.errors.map(err => ({
+            field: err.path.join('.') || 'field',
+            message: err.message
+          }));
+          const formattedErrors = validationIssues.map(i => `${i.field}: ${i.message}`).join(', ');
+          console.warn(`[${timestamp}] [API /api/projects/${strId}] [PUT] [ERROR_ORIGIN: MALFORMED_PAYLOAD] 400 Validation failed: ${formattedErrors}`);
           return res.status(400).json({ 
             success: false, 
             error: `Validation error: ${formattedErrors}`,
+            errorOrigin: 'MALFORMED_PAYLOAD',
+            validationErrors: validationIssues,
             details: parseResult.error.flatten()
           });
         }
 
         const validatedData = parseResult.data;
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] Validated successfully. Updating project "${validatedData.title}" via Promise.all...`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] Validated successfully. Executing update for "${validatedData.title}"...`);
         const startTime = Date.now();
 
-        // Perform server store / MongoDB update and Firestore document update concurrently via Promise.all
+        // Perform server store / MongoDB update and Firestore document update concurrently
         const [saved, firestoreResult] = await Promise.all([
           saveProject(validatedData),
           syncProjectUpdateToFirestore(strId, validatedData)
@@ -136,10 +221,11 @@ export default async function handler(req, res) {
         const durationMs = Date.now() - startTime;
 
         if (!saved) {
-          console.error(`[${timestamp}] [API /api/projects/${strId}] [PUT] 500 Update returned null.`);
+          console.error(`[${timestamp}] [API /api/projects/${strId}] [PUT] [ERROR_ORIGIN: STORE_PERSISTENCE_ERROR] 500 Update returned null.`);
           return res.status(500).json({ 
             success: false, 
-            error: 'Failed to update project in store' 
+            error: 'Failed to persist project update in server storage',
+            errorOrigin: 'STORE_PERSISTENCE_ERROR'
           });
         }
 
@@ -148,19 +234,25 @@ export default async function handler(req, res) {
           success: true, 
           message: 'Project updated successfully', 
           data: saved,
-          firestoreSynced: firestoreResult?.synced || false
+          firestoreStatus: {
+            synced: firestoreResult?.synced || false,
+            error: firestoreResult?.error || null,
+            isTimeout: firestoreResult?.isTimeout || false,
+            durationMs: firestoreResult?.durationMs || null
+          }
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/projects/${strId}] [PUT] 500 Internal Server Error:`, error);
+        console.error(`[${timestamp}] [API /api/projects/${strId}] [PUT] [ERROR_ORIGIN: UNHANDLED_SERVER_ERROR] 500 Internal Server Error:`, error);
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Internal server error while updating project' 
+          error: error.message || 'Internal server error while updating project',
+          errorOrigin: 'UNHANDLED_SERVER_ERROR'
         });
       }
 
     case 'DELETE':
       try {
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] Initiating deletion of project with ID: "${strId}" across store and Firestore via Promise.all...`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] Initiating deletion of project with ID: "${strId}" across store and Firestore...`);
         const startTime = Date.now();
         
         // Concurrently execute deletion from local/MongoDB store and Firestore using Promise.all
@@ -186,18 +278,20 @@ export default async function handler(req, res) {
             removedFromDisk: deleteResult.removedFromDisk,
             mongoDeletedCount: deleteResult.mongoDeletedCount,
             firestoreDeleted: firestoreDeleteResult?.deleted || false,
+            firestoreError: firestoreDeleteResult?.error || null,
             durationMs
           }
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/projects/${strId}] [DELETE] 500 Internal Server Error:`, {
+        console.error(`[${timestamp}] [API /api/projects/${strId}] [DELETE] [ERROR_ORIGIN: UNHANDLED_SERVER_ERROR] 500 Internal Server Error:`, {
           id: strId,
           message: error.message,
           stack: error.stack
         });
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Internal server error while deleting project from database/storage' 
+          error: error.message || 'Internal server error while deleting project from database/storage',
+          errorOrigin: 'UNHANDLED_SERVER_ERROR'
         });
       }
 
@@ -210,5 +304,3 @@ export default async function handler(req, res) {
       });
   }
 }
-
-

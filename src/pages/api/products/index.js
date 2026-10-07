@@ -1,4 +1,79 @@
 import { getProducts, saveProduct } from '../../../lib/server-store';
+import { productSchema } from '../../../lib/validations';
+import { db } from '../../../../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+
+const FIRESTORE_TIMEOUT_MS = 5000;
+
+/**
+ * Timeout wrapper for Firestore operations
+ */
+function withTimeout(promise, ms, operationName = 'Firestore operation') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${operationName} timed out after ${ms}ms`)), ms)
+    )
+  ]);
+}
+
+/**
+ * Persists a product document to Firestore with timeout protection
+ */
+async function syncProductToFirestore(productData) {
+  const timestamp = new Date().toISOString();
+  if (!db) {
+    console.log(`[${timestamp}] [Firestore Sync Products] Skipped: Firestore instance is null or offline`);
+    return { synced: false, reason: 'Firestore DB not initialized or offline' };
+  }
+
+  const docId = String(productData.id || productData._id || Date.now());
+  const startTime = Date.now();
+
+  try {
+    const docRef = doc(db, 'products', docId);
+    
+    // Sanitize payload
+    const cleanPayload = Object.entries(productData).reduce((acc, [key, val]) => {
+      if (val !== undefined) acc[key] = val;
+      return acc;
+    }, {});
+
+    console.log(`[${timestamp}] [Firestore Sync Products] Writing product "${docId}" with timeout ${FIRESTORE_TIMEOUT_MS}ms...`);
+
+    await withTimeout(
+      setDoc(docRef, {
+        ...cleanPayload,
+        id: docId,
+        updatedAt: new Date().toISOString()
+      }, { merge: true }),
+      FIRESTORE_TIMEOUT_MS,
+      `Product Firestore setDoc (${docId})`
+    );
+
+    const durationMs = Date.now() - startTime;
+    console.log(`[${timestamp}] [Firestore Sync Products] [SUCCESS] Product "${docId}" synced in ${durationMs}ms`);
+    return { synced: true, docId, durationMs };
+  } catch (err) {
+    const durationMs = Date.now() - startTime;
+    const isTimeout = err.message && err.message.includes('timed out');
+    const errorOrigin = isTimeout ? 'FIRESTORE_TIMEOUT' : 'FIRESTORE_ERROR';
+
+    console.warn(`[${timestamp}] [Firestore Sync Products] [ERROR_ORIGIN: ${errorOrigin}] Failed after ${durationMs}ms:`, {
+      docId,
+      error: err.message,
+      code: err.code || 'UNKNOWN'
+    });
+
+    return { 
+      synced: false, 
+      error: err.message, 
+      errorOrigin,
+      isTimeout,
+      code: err.code || null 
+    };
+  }
+}
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -10,19 +85,26 @@ export default async function handler(req, res) {
   switch (method) {
     case 'GET':
       try {
-        console.log(`[${timestamp}] [API /api/products] [GET] Querying all products from server store...`);
+        console.log(`[${timestamp}] [API /api/products] [GET] Querying all products from server repository...`);
+        const fetchStartTime = Date.now();
         const products = await getProducts();
-        console.log(`[${timestamp}] [API /api/products] [GET] Found ${products?.length || 0} product records.`);
+        const fetchDuration = Date.now() - fetchStartTime;
+
+        console.log(`[${timestamp}] [API /api/products] [GET] 200 OK: Found ${products?.length || 0} products in ${fetchDuration}ms`);
         return res.status(200).json({ 
           success: true, 
           count: products?.length || 0,
           data: products 
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/products] [GET] 500 Internal Server Error:`, error);
+        console.error(`[${timestamp}] [API /api/products] [GET] [ERROR_ORIGIN: STORE_FETCH_ERROR] 500 Internal Error:`, {
+          message: error.message,
+          stack: error.stack
+        });
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Failed to fetch products from server' 
+          error: error.message || 'Failed to fetch products from server repository',
+          errorOrigin: 'STORE_FETCH_ERROR'
         });
       }
 
@@ -35,53 +117,75 @@ export default async function handler(req, res) {
           badge: req.body?.badge
         });
 
+        // 1. Guard against empty payload
         if (!req.body || typeof req.body !== 'object' || Object.keys(req.body).length === 0) {
-          console.warn(`[${timestamp}] [API /api/products] [POST] 400 Bad Request: Missing request body.`);
+          console.warn(`[${timestamp}] [API /api/products] [POST] [ERROR_ORIGIN: MALFORMED_PAYLOAD] 400 Bad Request: Missing request body.`);
           return res.status(400).json({ 
             success: false, 
-            error: 'Request body must be a non-empty JSON object with product details.' 
+            error: 'Request body must be a non-empty JSON object with product details.',
+            errorOrigin: 'MALFORMED_PAYLOAD'
           });
         }
 
-        if (!req.body.title || !String(req.body.title).trim()) {
-          console.warn(`[${timestamp}] [API /api/products] [POST] 400 Bad Request: Missing product title.`);
+        // 2. Validate with Zod product schema
+        const parseResult = productSchema.safeParse(req.body);
+        if (!parseResult.success) {
+          const validationIssues = parseResult.error.errors.map(err => ({
+            field: err.path.join('.') || 'root',
+            message: err.message
+          }));
+          const formattedSummary = validationIssues.map(i => `${i.field}: ${i.message}`).join(', ');
+          console.warn(`[${timestamp}] [API /api/products] [POST] [ERROR_ORIGIN: MALFORMED_PAYLOAD] 400 Validation failed: ${formattedSummary}`);
           return res.status(400).json({ 
             success: false, 
-            error: 'Product title is required.' 
+            error: `Validation error: ${formattedSummary}`,
+            errorOrigin: 'MALFORMED_PAYLOAD',
+            validationErrors: validationIssues,
+            details: parseResult.error.flatten()
           });
         }
 
-        if (!req.body.description || !String(req.body.description).trim()) {
-          console.warn(`[${timestamp}] [API /api/products] [POST] 400 Bad Request: Missing product description.`);
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Product description is required.' 
-          });
-        }
-
+        const validatedData = parseResult.data;
         const startTime = Date.now();
-        const savedProduct = await saveProduct(req.body);
+
+        // 3. Persist concurrently to Server Store / MongoDB and Firestore
+        const [savedProduct, firestoreResult] = await Promise.all([
+          saveProduct(validatedData),
+          syncProductToFirestore(validatedData)
+        ]);
+
         const durationMs = Date.now() - startTime;
 
         if (!savedProduct || (!savedProduct.id && !savedProduct._id)) {
-          console.error(`[${timestamp}] [API /api/products] [POST] 500 Store returned invalid product object.`);
+          console.error(`[${timestamp}] [API /api/products] [POST] [ERROR_ORIGIN: STORE_PERSISTENCE_ERROR] 500 Store returned invalid product object.`);
           return res.status(500).json({ 
             success: false, 
-            error: 'Database persistence failed: Unable to save product record.' 
+            error: 'Database persistence failed: Unable to save product record to primary storage.',
+            errorOrigin: 'STORE_PERSISTENCE_ERROR'
           });
         }
 
-        console.log(`[${timestamp}] [API /api/products] [POST] 201 Created: Product "${savedProduct.title}" persisted successfully in ${durationMs}ms with ID: ${savedProduct.id || savedProduct._id}`);
+        console.log(`[${timestamp}] [API /api/products] [POST] 201 Created: Product "${savedProduct.title}" persisted in ${durationMs}ms with ID: ${savedProduct.id || savedProduct._id}. Firestore sync:`, firestoreResult);
         return res.status(201).json({ 
           success: true, 
           message: 'Product created successfully', 
-          data: savedProduct 
+          data: savedProduct,
+          firestoreStatus: {
+            synced: firestoreResult?.synced || false,
+            error: firestoreResult?.error || null,
+            isTimeout: firestoreResult?.isTimeout || false,
+            durationMs: firestoreResult?.durationMs || null
+          }
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/products] [POST] 500 Internal Error:`, error);
+        console.error(`[${timestamp}] [API /api/products] [POST] [ERROR_ORIGIN: UNHANDLED_SERVER_ERROR] 500 Internal Error:`, {
+          message: error.message,
+          stack: error.stack
+        });
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Internal server error while creating product' 
+          error: error.message || 'Internal server error while creating product',
+          errorOrigin: 'UNHANDLED_SERVER_ERROR'
         });
       }
 

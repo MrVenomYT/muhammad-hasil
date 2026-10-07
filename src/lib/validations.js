@@ -20,6 +20,24 @@ export const projectSchema = z.object({
   likes: z.number().optional().default(0)
 });
 
+export const productSchema = z.object({
+  id: z.string().optional(),
+  _id: z.string().optional(),
+  title: z.string().min(1, 'Title is required').max(120, 'Title must be 120 characters or less'),
+  category: z.string().optional().default('Web Apps'),
+  price: z.string().optional().default('$29'),
+  badge: z.string().optional().default('Featured'),
+  description: z.string().min(1, 'Description is required').max(1000, 'Description must be 1000 characters or less'),
+  imageUrl: z.string().optional().default('/assets/StayPilot.png'),
+  buyUrl: z.string().optional().default('https://pro.fiverr.com/users/venomdesigne613/'),
+  demoUrl: z.string().optional().default('#'),
+  features: z.union([z.array(z.string()), z.string()]).optional().default(['Production Ready', 'Clean Code']),
+  salesCount: z.number().optional().default(0),
+  rating: z.number().optional().default(5.0),
+  isPublished: z.boolean().optional().default(true),
+  linkedProjectId: z.string().optional()
+});
+
 export const contactFormSchema = z.object({
   from_name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name cannot exceed 100 characters'),
   from_email: z.string().trim().min(1, 'Email is required').email('Please enter a valid email address (e.g. name@domain.com)'),
