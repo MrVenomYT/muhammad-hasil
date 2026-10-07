@@ -5,122 +5,32 @@ import { useQueryClient } from '@tanstack/react-query';
 import { mutate as globalSWRMutate } from 'swr';
 import Link from 'next/link';
 import AdminProjectMetrics from './AdminProjectMetrics';
+import { useAdminSidebarNavigation } from '../hooks/useActiveRoute';
+import { 
+  saveLocalProject, 
+  deleteLocalProject, 
+  saveLocalProduct, 
+  deleteLocalProduct 
+} from '../lib/storage';
 
 export default function AdminDashboardSection() {
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Navigation State
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'projects' | 'products' | 'inquiries' | 'reviews' | 'services' | 'profile' | 'about'
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
-
-  // Navigation Synchronization Helper
-  const navigateToTab = (tabId) => {
-    const validTabs = ['overview', 'projects', 'products', 'inquiries', 'reviews', 'services', 'about', 'profile'];
-    if (!validTabs.includes(tabId)) return;
-    setActiveTab(tabId);
-    setMobileNavOpen(false);
-    setSearchQuery('');
-    setFilterCategory('all');
-
-    if (router.isReady) {
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, tab: tabId }
-        },
-        undefined,
-        { shallow: true }
-      ).catch(() => {});
-    }
-  };
-
-  // Check if a navigation menu item is active by checking activeTab, router.query.tab, router.asPath, router.pathname, and window.location
-  const isNavItemActive = (itemId, itemHref) => {
-    // 1. Direct activeTab state match
-    if (activeTab === itemId) return true;
-
-    // 2. Next.js router query parameter match
-    if (router.isReady) {
-      const currentQueryTab = router.query?.tab 
-        ? String(router.query.tab).toLowerCase().trim() 
-        : (router.pathname === '/admin/dashboard' || router.asPath === '/admin/dashboard' ? 'overview' : null);
-      if (currentQueryTab === itemId) return true;
-
-      if (itemHref) {
-        const cleanAsPath = (router.asPath || '').split('#')[0];
-        const cleanHref = (itemHref || '').split('#')[0];
-        if (cleanAsPath === cleanHref || router.pathname === cleanHref) return true;
-
-        // Parse search params if query exists in itemHref
-        if (cleanAsPath.includes('?') && cleanHref.includes('?')) {
-          const asPathParams = new URLSearchParams(cleanAsPath.split('?')[1]);
-          const hrefParams = new URLSearchParams(cleanHref.split('?')[1]);
-          if (asPathParams.get('tab') && asPathParams.get('tab') === hrefParams.get('tab')) {
-            return true;
-          }
-        }
-      }
-    }
-
-    // 3. Robust fallback to window.location (handles direct window path, popstate, SSR hydration)
-    if (typeof window !== 'undefined') {
-      const windowPath = window.location.pathname;
-      const windowSearch = window.location.search;
-      const windowFullPath = `${windowPath}${windowSearch}`.split('#')[0];
-
-      if (itemHref) {
-        const cleanHref = itemHref.split('#')[0];
-        if (windowFullPath === cleanHref || windowPath === cleanHref) return true;
-
-        if (windowSearch) {
-          const urlParams = new URLSearchParams(windowSearch);
-          const tabParam = urlParams.get('tab');
-          if (tabParam && tabParam.toLowerCase().trim() === itemId) return true;
-        } else if ((windowPath === '/admin/dashboard' || windowPath === '/admin') && itemId === 'overview') {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  };
-
-  // Sync activeTab with URL query parameter on load, browser history navigation, and route transitions
-  useEffect(() => {
-    const handleUrlSync = () => {
-      const validTabs = ['overview', 'projects', 'products', 'inquiries', 'reviews', 'services', 'about', 'profile'];
-      let currentTab = 'overview';
-
-      if (router.isReady && router.query?.tab) {
-        currentTab = String(router.query.tab).toLowerCase().trim();
-      } else if (typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get('tab');
-        if (tabParam) {
-          currentTab = tabParam.toLowerCase().trim();
-        }
-      }
-
-      if (validTabs.includes(currentTab) && currentTab !== activeTab) {
-        setActiveTab(currentTab);
-      }
-    };
-
-    handleUrlSync();
-
-    if (router.events) {
-      router.events.on('routeChangeComplete', handleUrlSync);
-      router.events.on('hashChangeComplete', handleUrlSync);
-      return () => {
-        router.events.off('routeChangeComplete', handleUrlSync);
-        router.events.off('hashChangeComplete', handleUrlSync);
-      };
-    }
-  }, [router.isReady, router.query?.tab, router.asPath]);
+  // Navigation State managed by useAdminSidebarNavigation hook observing router.pathname & query
+  const {
+    activeTab,
+    setActiveTab,
+    navigateToTab,
+    isNavItemActive,
+    mobileNavOpen,
+    setMobileNavOpen,
+    searchQuery,
+    setSearchQuery,
+    filterCategory,
+    setFilterCategory
+  } = useAdminSidebarNavigation('overview');
 
 
   // Data States
@@ -405,6 +315,7 @@ export default function AdminDashboardSection() {
 
       if (res.ok && data.success && data.data) {
         const savedItem = data.data;
+        saveLocalProject(savedItem);
         if (isEdit) {
           setProjects(prev => prev.map(p => (p.id === savedItem.id || p._id === savedItem._id || (projectForm.id && (p.id === projectForm.id || p._id === projectForm.id))) ? savedItem : p));
         } else {
@@ -412,10 +323,10 @@ export default function AdminDashboardSection() {
           setStats(prev => ({ ...prev, totalProjects: prev.totalProjects + 1 }));
         }
         queryClient.invalidateQueries({ queryKey: ['projects'] });
-        globalSWRMutate('/api/projects');
+        await globalSWRMutate('/api/projects');
         showToast(isEdit ? 'Project updated successfully!' : 'New project created successfully!');
         setProjectModal({ isOpen: false, mode: 'create', data: null });
-        fetchAllData();
+        await fetchAllData();
       } else {
         const errorMsg = data.error || `Failed to save project (HTTP ${res.status})`;
         showToast(errorMsg, 'error');
@@ -492,24 +403,27 @@ export default function AdminDashboardSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid response from server' }));
 
-      if (data.success && data.data) {
+      if (res.ok && data.success && data.data) {
         const savedItem = data.data;
+        saveLocalProduct(savedItem);
         if (isEdit) {
           setProducts(prev => prev.map(p => (p.id === savedItem.id || p._id === savedItem._id || (productForm.id && (p.id === productForm.id || p._id === productForm.id))) ? savedItem : p));
         } else {
           setProducts(prev => [savedItem, ...prev.filter(p => p.id !== savedItem.id && (p.title || '').toLowerCase() !== (savedItem.title || '').toLowerCase())]);
           setStats(prev => ({ ...prev, totalProducts: prev.totalProducts + 1 }));
         }
-        showToast(isEdit ? 'Product updated permanently in MongoDB!' : 'New digital product created in MongoDB!');
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        await globalSWRMutate('/api/products');
+        showToast(isEdit ? 'Product updated permanently in database!' : 'New digital product created in database!');
         setProductModal({ isOpen: false, mode: 'create', data: null });
-        fetchAllData();
+        await fetchAllData();
       } else {
-        showToast(data.error || 'Failed to save product', 'error');
+        showToast(data.error || `Failed to save product (HTTP ${res.status})`, 'error');
       }
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Network error while saving product', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -565,9 +479,9 @@ export default function AdminDashboardSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewForm)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid response from server' }));
 
-      if (data.success && data.data) {
+      if (res.ok && data.success && data.data) {
         const savedItem = data.data;
         if (isEdit) {
           setReviews(prev => prev.map(r => (r.id === savedItem.id || r._id === savedItem._id || (reviewForm.id && (r.id === reviewForm.id || r._id === reviewForm.id))) ? savedItem : r));
@@ -575,14 +489,16 @@ export default function AdminDashboardSection() {
           setReviews(prev => [savedItem, ...prev.filter(r => r.id !== savedItem.id)]);
           setStats(prev => ({ ...prev, totalReviews: prev.totalReviews + 1 }));
         }
-        showToast(isEdit ? 'Review updated in MongoDB!' : 'New review added to MongoDB!');
+        queryClient.invalidateQueries({ queryKey: ['reviews'] });
+        await globalSWRMutate('/api/reviews');
+        showToast(isEdit ? 'Review updated in database!' : 'New review added to database!');
         setReviewModal({ isOpen: false, mode: 'create', data: null });
-        fetchAllData();
+        await fetchAllData();
       } else {
         showToast(data.error || 'Failed to save review', 'error');
       }
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Network error while saving review', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -647,9 +563,9 @@ export default function AdminDashboardSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid response from server' }));
 
-      if (data.success && data.data) {
+      if (res.ok && data.success && data.data) {
         const savedItem = data.data;
         if (isEdit) {
           setServices(prev => prev.map(s => (s.id === savedItem.id || s._id === savedItem._id || (serviceForm.id && (s.id === serviceForm.id || s._id === serviceForm.id))) ? savedItem : s));
@@ -657,14 +573,16 @@ export default function AdminDashboardSection() {
           setServices(prev => [savedItem, ...prev.filter(s => s.id !== savedItem.id)]);
           setStats(prev => ({ ...prev, totalServices: prev.totalServices + 1 }));
         }
-        showToast(isEdit ? 'Service updated in MongoDB!' : 'New service created in MongoDB!');
+        queryClient.invalidateQueries({ queryKey: ['services'] });
+        await globalSWRMutate('/api/services');
+        showToast(isEdit ? 'Service updated in database!' : 'New service created in database!');
         setServiceModal({ isOpen: false, mode: 'create', data: null });
-        fetchAllData();
+        await fetchAllData();
       } else {
         showToast(data.error || 'Failed to save service', 'error');
       }
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Network error while saving service', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -682,7 +600,7 @@ export default function AdminDashboardSection() {
       });
       if (res.ok) {
         showToast(`Inquiry marked as ${newStatus}`);
-        fetchAllData();
+        await fetchAllData();
       }
     } catch (err) {
       showToast('Failed to update status', 'error');
@@ -697,7 +615,7 @@ export default function AdminDashboardSection() {
         body: JSON.stringify({ ...inq, starred: !inq.starred })
       });
       if (res.ok) {
-        fetchAllData();
+        await fetchAllData();
       }
     } catch (err) {
       showToast('Failed to star inquiry', 'error');
@@ -716,22 +634,22 @@ export default function AdminDashboardSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile)
       });
-      const data = await res.json();
-      if (data.success) {
-        showToast('Profile and live metrics saved permanently in MongoDB!');
-        fetchAllData();
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid response from server' }));
+      if (res.ok && data.success) {
+        showToast('Profile and live metrics saved permanently in database!');
+        await fetchAllData();
       } else {
         showToast(data.error || 'Failed to save profile', 'error');
       }
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Network error while saving profile', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // -------------------------------------------------------------
-  // ABOUT SECTION & CREDENTIALS ACTIONS (PERMANENT MONGODB)
+  // ABOUT SECTION & CREDENTIALS ACTIONS (PERMANENT STORAGE)
   // -------------------------------------------------------------
   const handleSaveAbout = async (updatedAbout) => {
     setIsSubmitting(true);
@@ -742,15 +660,17 @@ export default function AdminDashboardSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSave)
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await res.json().catch(() => ({ success: false, error: 'Invalid response from server' }));
+      if (res.ok && data.success) {
         setAbout(data.data);
-        showToast('About section, experience, & education saved permanently in MongoDB!');
+        await globalSWRMutate('/api/about');
+        showToast('About section, experience, & education saved permanently!');
+        await fetchAllData();
       } else {
         showToast(data.error || 'Failed to save about section', 'error');
       }
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Network error while saving about section', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -934,20 +854,35 @@ export default function AdminDashboardSection() {
 
       if (res.ok && data.success) {
         if (type === 'project') {
+          deleteLocalProject(id, deleteConfirm.title);
           queryClient.invalidateQueries({ queryKey: ['projects'] });
-          globalSWRMutate('/api/projects');
+          await globalSWRMutate('/api/projects');
+        } else if (type === 'product') {
+          deleteLocalProduct(id, deleteConfirm.title);
+          queryClient.invalidateQueries({ queryKey: ['products'] });
+          await globalSWRMutate('/api/products');
+        } else if (type === 'review') {
+          queryClient.invalidateQueries({ queryKey: ['reviews'] });
+          await globalSWRMutate('/api/reviews');
+        } else if (type === 'service') {
+          queryClient.invalidateQueries({ queryKey: ['services'] });
+          await globalSWRMutate('/api/services');
+        } else if (type === 'inquiry') {
+          queryClient.invalidateQueries({ queryKey: ['inquiries'] });
+          await globalSWRMutate('/api/inquiries');
         }
+
         showToast(data.message || `Item permanently deleted from database and storage.`);
         setDeleteConfirm({ isOpen: false, type: '', id: null, title: '' });
-        fetchAllData();
+        await fetchAllData();
       } else {
         const errorMsg = data.error || `Failed to delete item (HTTP ${res.status})`;
         showToast(errorMsg, 'error');
-        fetchAllData(); // Refresh to restore real state
+        await fetchAllData(); // Refresh to restore real state
       }
     } catch (err) {
       showToast(err.message || 'Network error while deleting item', 'error');
-      fetchAllData();
+      await fetchAllData();
     } finally {
       setIsSubmitting(false);
     }
