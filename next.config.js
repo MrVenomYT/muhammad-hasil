@@ -1,8 +1,14 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
+  outputFileTracingRoot: path.join(__dirname),
+  outputFileTracingIncludes: {
+    '/api/**/*': ['./node_modules/**/*'],
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' }
