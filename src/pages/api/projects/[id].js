@@ -1,5 +1,54 @@
 import { getProjects, saveProject, deleteProject } from '../../../lib/server-store';
 import { projectSchema } from '../../../lib/validations';
+import { db } from '../../../../firebase';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+
+/**
+ * Persists an updated project document to Firestore with strict error trapping
+ */
+async function syncProjectUpdateToFirestore(id, projectData) {
+  if (!db) {
+    return { synced: false, reason: 'Firestore DB not initialized or offline' };
+  }
+  try {
+    const docId = String(id).trim();
+    const docRef = doc(db, 'projects', docId);
+    
+    const cleanPayload = Object.entries(projectData).reduce((acc, [key, val]) => {
+      if (val !== undefined) acc[key] = val;
+      return acc;
+    }, {});
+
+    await setDoc(docRef, {
+      ...cleanPayload,
+      id: docId,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    return { synced: true, docId };
+  } catch (err) {
+    console.warn(`[Firestore] Project ${id} update warning:`, err.message);
+    return { synced: false, error: err.message };
+  }
+}
+
+/**
+ * Deletes a project document from Firestore with strict error trapping
+ */
+async function deleteProjectFromFirestore(id) {
+  if (!db) {
+    return { deleted: false, reason: 'Firestore DB not initialized or offline' };
+  }
+  try {
+    const docId = String(id).trim();
+    const docRef = doc(db, 'projects', docId);
+    await deleteDoc(docRef);
+    return { deleted: true, docId };
+  } catch (err) {
+    console.warn(`[Firestore] Project ${id} delete warning:`, err.message);
+    return { deleted: false, error: err.message };
+  }
+}
 
 export default async function handler(req, res) {
   const { method, query } = req;
@@ -75,9 +124,17 @@ export default async function handler(req, res) {
         }
 
         const validatedData = parseResult.data;
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] Validated successfully. Updating project "${validatedData.title}"...`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] Validated successfully. Updating project "${validatedData.title}" via Promise.all...`);
+        const startTime = Date.now();
 
-        const saved = await saveProject(validatedData);
+        // Perform server store / MongoDB update and Firestore document update concurrently via Promise.all
+        const [saved, firestoreResult] = await Promise.all([
+          saveProject(validatedData),
+          syncProjectUpdateToFirestore(strId, validatedData)
+        ]);
+
+        const durationMs = Date.now() - startTime;
+
         if (!saved) {
           console.error(`[${timestamp}] [API /api/projects/${strId}] [PUT] 500 Update returned null.`);
           return res.status(500).json({ 
@@ -86,11 +143,12 @@ export default async function handler(req, res) {
           });
         }
 
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] 200 OK: Project successfully updated.`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] 200 OK: Project successfully updated in ${durationMs}ms. Firestore sync status:`, firestoreResult);
         return res.status(200).json({ 
           success: true, 
           message: 'Project updated successfully', 
-          data: saved 
+          data: saved,
+          firestoreSynced: firestoreResult?.synced || false
         });
       } catch (error) {
         console.error(`[${timestamp}] [API /api/projects/${strId}] [PUT] 500 Internal Server Error:`, error);
@@ -102,25 +160,32 @@ export default async function handler(req, res) {
 
     case 'DELETE':
       try {
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] Initiating deletion of project with ID: "${strId}"...`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] Initiating deletion of project with ID: "${strId}" across store and Firestore via Promise.all...`);
         const startTime = Date.now();
         
-        const deleteResult = await deleteProject(strId);
+        // Concurrently execute deletion from local/MongoDB store and Firestore using Promise.all
+        const [deleteResult, firestoreDeleteResult] = await Promise.all([
+          deleteProject(strId),
+          deleteProjectFromFirestore(strId)
+        ]);
+
         const durationMs = Date.now() - startTime;
         
         console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] 200 OK: Deletion completed in ${durationMs}ms:`, {
           id: strId,
           removedFromDisk: deleteResult.removedFromDisk,
-          mongoDeletedCount: deleteResult.mongoDeletedCount
+          mongoDeletedCount: deleteResult.mongoDeletedCount,
+          firestoreDeleted: firestoreDeleteResult?.deleted || false
         });
 
         return res.status(200).json({ 
           success: true, 
-          message: `Project "${strId}" permanently deleted from MongoDB and storage`,
+          message: `Project "${strId}" permanently deleted from database and storage`,
           id: strId,
           details: {
             removedFromDisk: deleteResult.removedFromDisk,
             mongoDeletedCount: deleteResult.mongoDeletedCount,
+            firestoreDeleted: firestoreDeleteResult?.deleted || false,
             durationMs
           }
         });
@@ -145,4 +210,5 @@ export default async function handler(req, res) {
       });
   }
 }
+
 

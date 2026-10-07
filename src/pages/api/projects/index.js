@@ -1,5 +1,37 @@
 import { getProjects, saveProject } from '../../../lib/server-store';
 import { projectSchema } from '../../../lib/validations';
+import { db } from '../../../../firebase';
+import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
+
+/**
+ * Persists a project document to Firestore with strict error trapping
+ */
+async function syncProjectToFirestore(projectData) {
+  if (!db) {
+    return { synced: false, reason: 'Firestore DB not initialized or offline' };
+  }
+  try {
+    const docId = String(projectData.id || projectData._id || Date.now());
+    const docRef = doc(db, 'projects', docId);
+    
+    // Clean data for Firestore (remove undefined values)
+    const cleanPayload = Object.entries(projectData).reduce((acc, [key, val]) => {
+      if (val !== undefined) acc[key] = val;
+      return acc;
+    }, {});
+
+    await setDoc(docRef, {
+      ...cleanPayload,
+      id: docId,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    return { synced: true, docId };
+  } catch (err) {
+    console.warn('[Firestore] Project save warning:', err.message);
+    return { synced: false, error: err.message };
+  }
+}
 
 export default async function handler(req, res) {
   const { method } = req;
@@ -66,10 +98,16 @@ export default async function handler(req, res) {
         }
 
         const validatedData = parseResult.data;
-        console.log(`[${timestamp}] [API /api/projects] [POST] Payload validated successfully for project: "${validatedData.title}". Writing to database & storage...`);
+        console.log(`[${timestamp}] [API /api/projects] [POST] Payload validated successfully for project: "${validatedData.title}". Writing to database & storage via Promise.all...`);
         
         const startTime = Date.now();
-        const savedProject = await saveProject(validatedData);
+        
+        // Execute server store persistence and Firestore synchronization concurrently using Promise.all
+        const [savedProject, firestoreResult] = await Promise.all([
+          saveProject(validatedData),
+          syncProjectToFirestore(validatedData)
+        ]);
+
         const durationMs = Date.now() - startTime;
 
         if (!savedProject || (!savedProject.id && !savedProject._id)) {
@@ -80,11 +118,13 @@ export default async function handler(req, res) {
           });
         }
 
-        console.log(`[${timestamp}] [API /api/projects] [POST] 201 Created: Project "${savedProject.title}" persisted successfully in ${durationMs}ms with ID: ${savedProject.id || savedProject._id}`);
+        console.log(`[${timestamp}] [API /api/projects] [POST] 201 Created: Project "${savedProject.title}" persisted successfully in ${durationMs}ms with ID: ${savedProject.id || savedProject._id}. Firestore sync status:`, firestoreResult);
+        
         return res.status(201).json({ 
           success: true, 
           message: 'Project created successfully', 
-          data: savedProject 
+          data: savedProject,
+          firestoreSynced: firestoreResult?.synced || false
         });
       } catch (error) {
         console.error(`[${timestamp}] [API /api/projects] [POST] 500 Unexpected Internal Error:`, {
@@ -106,4 +146,5 @@ export default async function handler(req, res) {
       });
   }
 }
+
 
