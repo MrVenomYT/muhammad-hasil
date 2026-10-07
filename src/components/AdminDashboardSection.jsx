@@ -37,10 +37,12 @@ export default function AdminDashboardSection() {
     }
   };
 
-  // Check if a navigation menu item is active by checking activeTab, router.query.tab, and URL path
+  // Check if a navigation menu item is active by checking activeTab, router.query.tab, router.asPath, router.pathname, and window.location
   const isNavItemActive = (itemId, itemHref) => {
+    // 1. Direct activeTab state match
     if (activeTab === itemId) return true;
 
+    // 2. Next.js router query parameter match
     if (router.isReady) {
       const currentQueryTab = router.query?.tab 
         ? String(router.query.tab).toLowerCase().trim() 
@@ -51,21 +53,73 @@ export default function AdminDashboardSection() {
         const cleanAsPath = (router.asPath || '').split('#')[0];
         const cleanHref = (itemHref || '').split('#')[0];
         if (cleanAsPath === cleanHref || router.pathname === cleanHref) return true;
+
+        // Parse search params if query exists in itemHref
+        if (cleanAsPath.includes('?') && cleanHref.includes('?')) {
+          const asPathParams = new URLSearchParams(cleanAsPath.split('?')[1]);
+          const hrefParams = new URLSearchParams(cleanHref.split('?')[1]);
+          if (asPathParams.get('tab') && asPathParams.get('tab') === hrefParams.get('tab')) {
+            return true;
+          }
+        }
       }
     }
+
+    // 3. Robust fallback to window.location (handles direct window path, popstate, SSR hydration)
+    if (typeof window !== 'undefined') {
+      const windowPath = window.location.pathname;
+      const windowSearch = window.location.search;
+      const windowFullPath = `${windowPath}${windowSearch}`.split('#')[0];
+
+      if (itemHref) {
+        const cleanHref = itemHref.split('#')[0];
+        if (windowFullPath === cleanHref || windowPath === cleanHref) return true;
+
+        if (windowSearch) {
+          const urlParams = new URLSearchParams(windowSearch);
+          const tabParam = urlParams.get('tab');
+          if (tabParam && tabParam.toLowerCase().trim() === itemId) return true;
+        } else if ((windowPath === '/admin/dashboard' || windowPath === '/admin') && itemId === 'overview') {
+          return true;
+        }
+      }
+    }
+
     return false;
   };
 
-  // Sync activeTab with URL query parameter on load / browser history navigation
+  // Sync activeTab with URL query parameter on load, browser history navigation, and route transitions
   useEffect(() => {
-    if (router.isReady) {
+    const handleUrlSync = () => {
       const validTabs = ['overview', 'projects', 'products', 'inquiries', 'reviews', 'services', 'about', 'profile'];
-      const queryTab = router.query.tab ? String(router.query.tab).toLowerCase().trim() : 'overview';
-      if (validTabs.includes(queryTab) && queryTab !== activeTab) {
-        setActiveTab(queryTab);
+      let currentTab = 'overview';
+
+      if (router.isReady && router.query?.tab) {
+        currentTab = String(router.query.tab).toLowerCase().trim();
+      } else if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam) {
+          currentTab = tabParam.toLowerCase().trim();
+        }
       }
+
+      if (validTabs.includes(currentTab) && currentTab !== activeTab) {
+        setActiveTab(currentTab);
+      }
+    };
+
+    handleUrlSync();
+
+    if (router.events) {
+      router.events.on('routeChangeComplete', handleUrlSync);
+      router.events.on('hashChangeComplete', handleUrlSync);
+      return () => {
+        router.events.off('routeChangeComplete', handleUrlSync);
+        router.events.off('hashChangeComplete', handleUrlSync);
+      };
     }
-  }, [router.isReady, router.query.tab]);
+  }, [router.isReady, router.query?.tab, router.asPath]);
 
 
   // Data States
