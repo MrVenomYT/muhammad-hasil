@@ -7,13 +7,13 @@ export default async function handler(req, res) {
   const timestamp = new Date().toISOString();
   const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
 
-  console.log(`[${timestamp}] [API /api/projects/${id || 'unknown'}] [${method}] Request received from ${clientIp}`);
+  console.log(`[${timestamp}] [API /api/projects/${id || 'unknown'}] [${method}] Request received from IP: ${clientIp}`);
 
   if (!id || typeof id !== 'string' || id.trim() === '') {
-    console.warn(`[${timestamp}] [API /api/projects/[id]] [${method}] 400 Bad Request: Missing or empty project id in URL.`);
+    console.warn(`[${timestamp}] [API /api/projects/[id]] [${method}] 400 Bad Request: Missing or empty project id parameter.`);
     return res.status(400).json({ 
       success: false, 
-      error: 'Project ID parameter is required in the URL' 
+      error: 'Project ID parameter is required in the URL route.' 
     });
   }
 
@@ -22,19 +22,19 @@ export default async function handler(req, res) {
   switch (method) {
     case 'GET':
       try {
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [GET] Querying project by ID...`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [GET] Querying project by identifier...`);
         const projects = await getProjects();
         const found = projects.find(p => String(p.id || '').trim() === strId || String(p._id || '').trim() === strId);
         
         if (!found) {
-          console.warn(`[${timestamp}] [API /api/projects/${strId}] [GET] 404 Not Found`);
+          console.warn(`[${timestamp}] [API /api/projects/${strId}] [GET] 404 Not Found: No matching project.`);
           return res.status(404).json({ 
             success: false, 
             error: `Project with ID "${strId}" was not found in storage or database` 
           });
         }
 
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [GET] 200 OK: Found project "${found.title}"`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [GET] 200 OK: Retrieved project "${found.title}"`);
         return res.status(200).json({ 
           success: true, 
           data: found 
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         console.error(`[${timestamp}] [API /api/projects/${strId}] [GET] 500 Error:`, error);
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Failed to retrieve project' 
+          error: error.message || 'Failed to retrieve project record' 
         });
       }
 
@@ -52,14 +52,14 @@ export default async function handler(req, res) {
         console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] Project update payload received:`, {
           title: req.body?.title,
           category: req.body?.category,
-          technologiesCount: Array.isArray(req.body?.technologies) ? req.body.technologies.length : typeof req.body?.technologies
+          technologies: req.body?.technologies
         });
 
         if (!req.body || typeof req.body !== 'object') {
           console.warn(`[${timestamp}] [API /api/projects/${strId}] [PUT] 400 Bad Request: Empty body.`);
           return res.status(400).json({ 
             success: false, 
-            error: 'Request body must be a valid JSON object' 
+            error: 'Request body must be a valid JSON object with updated project fields.' 
           });
         }
 
@@ -69,13 +69,13 @@ export default async function handler(req, res) {
           console.warn(`[${timestamp}] [API /api/projects/${strId}] [PUT] 400 Validation failed: ${formattedErrors}`);
           return res.status(400).json({ 
             success: false, 
-            error: formattedErrors,
+            error: `Validation error: ${formattedErrors}`,
             details: parseResult.error.flatten()
           });
         }
 
         const validatedData = parseResult.data;
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] Updating project "${validatedData.title}"...`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [PUT] Validated successfully. Updating project "${validatedData.title}"...`);
 
         const saved = await saveProject(validatedData);
         if (!saved) {
@@ -102,22 +102,37 @@ export default async function handler(req, res) {
 
     case 'DELETE':
       try {
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] Initiating deletion of project "${strId}"...`);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] Initiating deletion of project with ID: "${strId}"...`);
+        const startTime = Date.now();
         
         const deleteResult = await deleteProject(strId);
+        const durationMs = Date.now() - startTime;
         
-        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] 200 OK: Successfully processed deletion.`, deleteResult);
+        console.log(`[${timestamp}] [API /api/projects/${strId}] [DELETE] 200 OK: Deletion completed in ${durationMs}ms:`, {
+          id: strId,
+          removedFromDisk: deleteResult.removedFromDisk,
+          mongoDeletedCount: deleteResult.mongoDeletedCount
+        });
+
         return res.status(200).json({ 
           success: true, 
-          message: `Project with ID "${strId}" permanently deleted from MongoDB and storage`,
+          message: `Project "${strId}" permanently deleted from MongoDB and storage`,
           id: strId,
-          result: deleteResult
+          details: {
+            removedFromDisk: deleteResult.removedFromDisk,
+            mongoDeletedCount: deleteResult.mongoDeletedCount,
+            durationMs
+          }
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/projects/${strId}] [DELETE] 500 Internal Server Error:`, error);
+        console.error(`[${timestamp}] [API /api/projects/${strId}] [DELETE] 500 Internal Server Error:`, {
+          id: strId,
+          message: error.message,
+          stack: error.stack
+        });
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Internal server error while deleting project' 
+          error: error.message || 'Internal server error while deleting project from database/storage' 
         });
       }
 
@@ -126,7 +141,8 @@ export default async function handler(req, res) {
       res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
       return res.status(405).json({ 
         success: false, 
-        error: `Method ${method} Not Allowed. Supported methods: GET, PUT, DELETE.` 
+        error: `HTTP Method ${method} Not Allowed. Supported methods: GET, PUT, DELETE.` 
       });
   }
 }
+

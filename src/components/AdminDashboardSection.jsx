@@ -16,6 +16,39 @@ export default function AdminDashboardSection() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
 
+  // Navigation Synchronization Helper
+  const navigateToTab = (tabId) => {
+    const validTabs = ['overview', 'projects', 'products', 'inquiries', 'reviews', 'services', 'about', 'profile'];
+    if (!validTabs.includes(tabId)) return;
+    setActiveTab(tabId);
+    setMobileNavOpen(false);
+    setSearchQuery('');
+    setFilterCategory('all');
+
+    if (router.isReady) {
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { ...router.query, tab: tabId }
+        },
+        undefined,
+        { shallow: true }
+      ).catch(() => {});
+    }
+  };
+
+  // Sync activeTab with URL query parameter on load / browser history navigation
+  useEffect(() => {
+    if (router.isReady && router.query.tab) {
+      const validTabs = ['overview', 'projects', 'products', 'inquiries', 'reviews', 'services', 'about', 'profile'];
+      const queryTab = String(router.query.tab).toLowerCase().trim();
+      if (validTabs.includes(queryTab) && queryTab !== activeTab) {
+        setActiveTab(queryTab);
+      }
+    }
+  }, [router.isReady, router.query.tab]);
+
+
   // Data States
   const [stats, setStats] = useState({
     totalProjects: 0,
@@ -980,30 +1013,44 @@ export default function AdminDashboardSection() {
           { id: 'overview', label: '📊 Overview' },
           { id: 'projects', label: `🚀 Projects (${projects.length})` },
           { id: 'products', label: `🛍 Store (${products.length})` },
-          { id: 'inquiries', label: `📬 Inquiries (${inquiries.length})` },
+          { id: 'inquiries', label: `📬 Inquiries (${inquiries.length})`, unread: stats.unreadInquiries },
           { id: 'reviews', label: `⭐ Reviews (${reviews.length})` },
           { id: 'services', label: `🛠 Services (${services.length})` },
           { id: 'about', label: '📖 About' },
           { id: 'profile', label: '⚙ Profile' }
-        ].map(item => (
-          <button
-            key={item.id}
-            onClick={() => { setActiveTab(item.id); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
-            style={{
-              whiteSpace: 'nowrap',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === item.id ? 'rgba(255, 119, 0, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-              color: activeTab === item.id ? '#ff7700' : '#94a3b8'
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
+        ].map(item => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => navigateToTab(item.id)}
+              role="tab"
+              aria-selected={isActive}
+              style={{
+                whiteSpace: 'nowrap',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: isActive ? 700 : 600,
+                border: isActive ? '1px solid #ff7700' : '1px solid rgba(255, 255, 255, 0.08)',
+                cursor: 'pointer',
+                backgroundColor: isActive ? 'rgba(255, 119, 0, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                color: isActive ? '#ff8811' : '#94a3b8',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span>{item.label}</span>
+              {item.unread > 0 && (
+                <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '10px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 800 }}>
+                  {item.unread}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Main Container: Sidebar + Content */}
@@ -1017,9 +1064,9 @@ export default function AdminDashboardSection() {
             backgroundColor: 'rgba(16, 14, 12, 0.95)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            padding: '24px 16px',
+            padding: '24px 14px',
             flexDirection: 'column',
-            gap: '6px',
+            gap: '4px',
             flexShrink: 0,
             position: mobileNavOpen ? 'fixed' : 'relative',
             top: mobileNavOpen ? '64px' : 'auto',
@@ -1029,179 +1076,105 @@ export default function AdminDashboardSection() {
             overflowY: 'auto'
           }}
         >
+          {/* Group 1: Management */}
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px', paddingLeft: '12px' }}>
             Management
           </div>
 
-          <button
-            onClick={() => { setActiveTab('overview'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'overview' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'overview' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>📊 Overview & Stats</span>
-          </button>
+          {[
+            { id: 'overview', label: 'Overview & Stats', icon: '📊' },
+            { id: 'projects', label: 'Projects', icon: '🚀', count: projects.length },
+            { id: 'products', label: 'Digital Store', icon: '🛍', count: products.length },
+            { id: 'inquiries', label: 'Inbound Inquiries', icon: '📬', count: inquiries.length, unread: stats.unreadInquiries },
+            { id: 'reviews', label: 'Testimonials', icon: '⭐', count: reviews.length },
+            { id: 'services', label: 'Services Offered', icon: '🛠', count: services.length },
+          ].map(item => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => navigateToTab(item.id)}
+                role="tab"
+                aria-selected={isActive}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 700 : 600,
+                  border: 'none',
+                  borderLeft: isActive ? '3px solid #ff7700' : '3px solid transparent',
+                  cursor: 'pointer',
+                  backgroundColor: isActive ? 'rgba(255, 119, 0, 0.16)' : 'transparent',
+                  color: isActive ? '#ff8811' : '#94a3b8',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{item.icon}</span>
+                  <span>{item.label}</span>
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {item.unread > 0 && (
+                    <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '12px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 700 }}>
+                      {item.unread} new
+                    </span>
+                  )}
+                  {item.count !== undefined && !item.unread && (
+                    <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '10px', backgroundColor: isActive ? 'rgba(255, 119, 0, 0.25)' : 'rgba(255, 255, 255, 0.06)', color: isActive ? '#ff7700' : '#64748b', fontWeight: 600 }}>
+                      {item.count}
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
 
-          <button
-            onClick={() => { setActiveTab('projects'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'projects' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'projects' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>🚀 Projects ({projects.length})</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('products'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'products' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'products' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>🛍 Digital Store ({products.length})</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('inquiries'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'inquiries' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'inquiries' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>📬 Inbound Inquiries ({inquiries.length})</span>
-            {stats.unreadInquiries > 0 && (
-              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ef4444', color: '#fff', fontWeight: 700 }}>
-                {stats.unreadInquiries} new
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('reviews'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'reviews' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'reviews' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>⭐ Testimonials ({reviews.length})</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('services'); setSearchQuery(''); setFilterCategory('all'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'services' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'services' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>🛠 Services Offered ({services.length})</span>
-          </button>
-
+          {/* Group 2: Site Settings */}
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', letterSpacing: '1px', textTransform: 'uppercase', marginTop: '20px', marginBottom: '8px', paddingLeft: '12px' }}>
             Site Settings
           </div>
 
-          <button
-            onClick={() => { setActiveTab('about'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'about' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'about' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>📖 About Us</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('profile'); setMobileNavOpen(false); }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'profile' ? 'rgba(255, 119, 0, 0.15)' : 'transparent',
-              color: activeTab === 'profile' ? '#ff7700' : '#94a3b8',
-              textAlign: 'left'
-            }}
-          >
-            <span>⚙ Profile & Availability</span>
-          </button>
+          {[
+            { id: 'about', label: 'About Us', icon: '📖' },
+            { id: 'profile', label: 'Profile & Availability', icon: '⚙' },
+          ].map(item => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => navigateToTab(item.id)}
+                role="tab"
+                aria-selected={isActive}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 700 : 600,
+                  border: 'none',
+                  borderLeft: isActive ? '3px solid #ff7700' : '3px solid transparent',
+                  cursor: 'pointer',
+                  backgroundColor: isActive ? 'rgba(255, 119, 0, 0.16)' : 'transparent',
+                  color: isActive ? '#ff8811' : '#94a3b8',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{item.icon}</span>
+                  <span>{item.label}</span>
+                </span>
+              </button>
+            );
+          })}
         </aside>
+
 
         {/* Content Area */}
         <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
@@ -1294,7 +1267,7 @@ export default function AdminDashboardSection() {
                 <div style={{ backgroundColor: '#131110', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '24px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', margin: 0 }}>Recent Client Inquiries</h3>
-                    <button onClick={() => setActiveTab('inquiries')} style={{ fontSize: '12px', color: '#ff7700', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => navigateToTab('inquiries')} style={{ fontSize: '12px', color: '#ff7700', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                       View all →
                     </button>
                   </div>
@@ -1360,7 +1333,7 @@ export default function AdminDashboardSection() {
                   </div>
 
                   <button
-                    onClick={() => setActiveTab('profile')}
+                    onClick={() => navigateToTab('profile')}
                     style={{
                       marginTop: '20px',
                       width: '100%',

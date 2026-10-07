@@ -6,21 +6,21 @@ export default async function handler(req, res) {
   const timestamp = new Date().toISOString();
   const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
 
-  console.log(`[${timestamp}] [API /api/projects] [${method}] Request received from ${clientIp}`);
+  console.log(`[${timestamp}] [API /api/projects] [${method}] Incoming request from IP: ${clientIp}`);
 
   switch (method) {
     case 'GET':
       try {
-        console.log(`[${timestamp}] [API /api/projects] [GET] Fetching all projects...`);
+        console.log(`[${timestamp}] [API /api/projects] [GET] Querying all projects from server store...`);
         const projects = await getProjects();
-        console.log(`[${timestamp}] [API /api/projects] [GET] Successfully retrieved ${projects?.length || 0} projects.`);
+        console.log(`[${timestamp}] [API /api/projects] [GET] Found ${projects?.length || 0} project records.`);
         return res.status(200).json({ 
           success: true, 
           count: projects?.length || 0,
           data: projects 
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/projects] [GET] Error fetching projects:`, error);
+        console.error(`[${timestamp}] [API /api/projects] [GET] 500 Internal Server Error:`, error);
         return res.status(500).json({ 
           success: false, 
           error: error.message || 'Failed to fetch projects from server' 
@@ -29,56 +29,71 @@ export default async function handler(req, res) {
 
     case 'POST':
       try {
-        console.log(`[${timestamp}] [API /api/projects] [POST] Project creation payload received:`, {
+        console.log(`[${timestamp}] [API /api/projects] [POST] Project creation started.`);
+        console.log(`[${timestamp}] [API /api/projects] [POST] Raw payload:`, {
           title: req.body?.title,
           category: req.body?.category,
-          technologiesCount: Array.isArray(req.body?.technologies) ? req.body.technologies.length : typeof req.body?.technologies,
-          hasLiveDemo: Boolean(req.body?.liveDemoUrl),
-          hasGithub: Boolean(req.body?.githubUrl)
+          pill: req.body?.pill,
+          featured: req.body?.featured,
+          technologies: req.body?.technologies,
+          liveDemoUrl: req.body?.liveDemoUrl,
+          githubUrl: req.body?.githubUrl,
+          imageUrl: req.body?.imageUrl
         });
 
-        if (!req.body || typeof req.body !== 'object') {
-          console.warn(`[${timestamp}] [API /api/projects] [POST] 400 Bad Request: Empty or invalid body.`);
+        if (!req.body || typeof req.body !== 'object' || Object.keys(req.body).length === 0) {
+          console.warn(`[${timestamp}] [API /api/projects] [POST] 400 Bad Request: Missing or empty request body.`);
           return res.status(400).json({ 
             success: false, 
-            error: 'Request body must be a valid JSON object' 
+            error: 'Request body must be a non-empty JSON object with project details.' 
           });
         }
 
         const parseResult = projectSchema.safeParse(req.body);
         if (!parseResult.success) {
-          const formattedErrors = parseResult.error.errors.map(err => `${err.path.join('.') || 'field'}: ${err.message}`).join(', ');
-          console.warn(`[${timestamp}] [API /api/projects] [POST] 400 Validation failed: ${formattedErrors}`);
+          const validationIssues = parseResult.error.errors.map(err => ({
+            field: err.path.join('.') || 'root',
+            message: err.message
+          }));
+          const formattedSummary = validationIssues.map(i => `${i.field}: ${i.message}`).join(', ');
+          console.warn(`[${timestamp}] [API /api/projects] [POST] 400 Validation Failed: ${formattedSummary}`, validationIssues);
           return res.status(400).json({ 
             success: false, 
-            error: formattedErrors,
+            error: `Validation error: ${formattedSummary}`,
+            validationErrors: validationIssues,
             details: parseResult.error.flatten()
           });
         }
 
         const validatedData = parseResult.data;
-        console.log(`[${timestamp}] [API /api/projects] [POST] Validated successfully. Saving project "${validatedData.title}"...`);
+        console.log(`[${timestamp}] [API /api/projects] [POST] Payload validated successfully for project: "${validatedData.title}". Writing to database & storage...`);
         
-        const saved = await saveProject(validatedData);
-        if (!saved || (!saved.id && !saved._id)) {
-          console.error(`[${timestamp}] [API /api/projects] [POST] 500 Save failed: Store returned invalid result`, saved);
+        const startTime = Date.now();
+        const savedProject = await saveProject(validatedData);
+        const durationMs = Date.now() - startTime;
+
+        if (!savedProject || (!savedProject.id && !savedProject._id)) {
+          console.error(`[${timestamp}] [API /api/projects] [POST] 500 Save failed: Store returned invalid result object`, savedProject);
           return res.status(500).json({ 
             success: false, 
-            error: 'Failed to persist project in database store' 
+            error: 'Database persistence failed: Unable to save project record.' 
           });
         }
 
-        console.log(`[${timestamp}] [API /api/projects] [POST] 201 Created: Project successfully saved with ID "${saved.id || saved._id}"`);
+        console.log(`[${timestamp}] [API /api/projects] [POST] 201 Created: Project "${savedProject.title}" persisted successfully in ${durationMs}ms with ID: ${savedProject.id || savedProject._id}`);
         return res.status(201).json({ 
           success: true, 
           message: 'Project created successfully', 
-          data: saved 
+          data: savedProject 
         });
       } catch (error) {
-        console.error(`[${timestamp}] [API /api/projects] [POST] 500 Internal Server Error:`, error);
+        console.error(`[${timestamp}] [API /api/projects] [POST] 500 Unexpected Internal Error:`, {
+          message: error.message,
+          stack: error.stack
+        });
         return res.status(500).json({ 
           success: false, 
-          error: error.message || 'Internal server error while saving project' 
+          error: error.message || 'Internal server error while processing project creation request' 
         });
       }
 
@@ -87,7 +102,8 @@ export default async function handler(req, res) {
       res.setHeader('Allow', ['GET', 'POST']);
       return res.status(405).json({ 
         success: false, 
-        error: `Method ${method} Not Allowed. Supported methods: GET, POST.` 
+        error: `HTTP Method ${method} Not Allowed. Supported methods: GET, POST.` 
       });
   }
 }
+
