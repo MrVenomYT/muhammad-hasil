@@ -1,8 +1,10 @@
 const path = require('path');
 
+const isVercel = process.env.VERCEL === '1';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  ...(isVercel ? {} : { output: 'standalone' }),
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
