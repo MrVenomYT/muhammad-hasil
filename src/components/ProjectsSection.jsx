@@ -1,7 +1,7 @@
 import React from 'react';
-import ProjectShowcase, { formatImageUrl } from './ProjectShowcase';
+import ProjectShowcase, { formatImageUrl, formatExternalUrl } from './ProjectShowcase';
 
-export { formatImageUrl };
+export { formatImageUrl, formatExternalUrl };
 
 export default function ProjectsSection({ initialProjects = [] }) {
   return (

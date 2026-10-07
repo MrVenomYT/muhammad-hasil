@@ -5,7 +5,7 @@ import { getProjects } from '../../lib/server-store';
 import { initialSeedProjects } from '../../lib/storage';
 import { generateSEOMetadata } from '../../lib/seo';
 import SEOHead from '../../components/SEOHead';
-import { formatImageUrl } from '../../components/ProjectsSection';
+import { formatImageUrl, formatExternalUrl } from '../../components/ProjectsSection';
 import TechStack from '../../components/TechStack';
 import ProjectMetrics from '../../components/ProjectMetrics';
 import { ArrowLeft, ExternalLink, Github, Mail } from 'lucide-react';
@@ -329,7 +329,7 @@ export default function ProjectDetailPage({ project, requestedId, suggestedProje
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 {project.liveDemoUrl && project.liveDemoUrl !== '#' && (
                   <a
-                    href={project.liveDemoUrl}
+                    href={formatExternalUrl(project.liveDemoUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary"
@@ -354,7 +354,7 @@ export default function ProjectDetailPage({ project, requestedId, suggestedProje
 
                 {project.githubUrl && project.githubUrl !== '#' && (
                   <a
-                    href={project.githubUrl}
+                    href={formatExternalUrl(project.githubUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{

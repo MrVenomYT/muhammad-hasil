@@ -20,10 +20,12 @@
     "order": 0,
     "views": 0,
     "likes": 0,
-    "updatedAt": "2026-10-07T15:56:51.514Z",
+    "updatedAt": "2026-10-07T16:32:20.708Z",
     "createdAt": "2026-10-07T15:56:06.815Z",
     "__v": 0,
-    "id": "6ac66b965c8a02a78db21492"
+    "id": "6ac66b965c8a02a78db21492",
+    "customId": "6ac66b965c8a02a78db21492",
+    "slug": "omnitravels"
   },
   {
     "_id": "6ac6612a8887e22ea1e6e012",
@@ -49,7 +51,9 @@
     "updatedAt": "2026-10-07T15:23:59.899Z",
     "createdAt": "2026-10-07T15:11:38.315Z",
     "__v": 0,
-    "id": "6ac6612a8887e22ea1e6e012"
+    "id": "6ac6612a8887e22ea1e6e012",
+    "customId": "6ac6612a8887e22ea1e6e012",
+    "slug": "adidas-eqt-gpr-shoes"
   },
   {
     "_id": "6ac00699eaa83b49ad7d9ba5",
@@ -75,7 +79,9 @@
     "updatedAt": "2026-10-02T19:31:36.186Z",
     "createdAt": "2026-10-02T19:31:37.460Z",
     "__v": 0,
-    "id": "6ac00699eaa83b49ad7d9ba5"
+    "id": "6ac00699eaa83b49ad7d9ba5",
+    "customId": "6ac00699eaa83b49ad7d9ba5",
+    "slug": "automotive-car-vault"
   },
   {
     "_id": "6abe825efb82e6fc7779f2a3",
@@ -101,7 +107,9 @@
     "updatedAt": "2026-10-01T15:55:10.013Z",
     "createdAt": "2026-10-01T15:55:10.207Z",
     "__v": 0,
-    "id": "6abe825efb82e6fc7779f2a3"
+    "id": "6abe825efb82e6fc7779f2a3",
+    "customId": "6abe825efb82e6fc7779f2a3",
+    "slug": "drivenest"
   },
   {
     "_id": "6abe726b42d35f780e2ffac3",
@@ -127,7 +135,9 @@
     "updatedAt": "2026-10-01T14:48:40.461Z",
     "createdAt": "2026-10-01T14:47:07.033Z",
     "__v": 0,
-    "id": "6abe726b42d35f780e2ffac3"
+    "id": "6abe726b42d35f780e2ffac3",
+    "customId": "6abe726b42d35f780e2ffac3",
+    "slug": "proshop"
   },
   {
     "_id": "6abc2297b173089d07a2d135",
@@ -151,7 +161,9 @@
     "updatedAt": "2026-09-30T15:31:29.140Z",
     "createdAt": "2026-09-29T20:41:59.052Z",
     "__v": 0,
-    "id": "6abc2297b173089d07a2d135"
+    "id": "6abc2297b173089d07a2d135",
+    "customId": "6abc2297b173089d07a2d135",
+    "slug": "eshop"
   },
   {
     "_id": "6abc1bb31f4649b944b2568a",
@@ -175,7 +187,9 @@
     "updatedAt": "2026-09-29T20:16:11.576Z",
     "createdAt": "2026-09-29T20:12:35.458Z",
     "__v": 0,
-    "id": "6abc1bb31f4649b944b2568a"
+    "id": "6abc1bb31f4649b944b2568a",
+    "customId": "6abc1bb31f4649b944b2568a",
+    "slug": "veloce"
   },
   {
     "_id": "6abbfcf5de05124ca18a5c7d",
@@ -185,7 +199,7 @@
     "description": "A car selling/buying or renting out web-app",
     "longDescription": "",
     "liveDemoUrl": "https://apex-motors-mu.vercel.app/",
-    "githubUrl": "",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/Apex-motors.jpg",
     "technologies": [
       "React",
@@ -199,7 +213,9 @@
     "updatedAt": "2026-09-29T18:36:54.137Z",
     "createdAt": "2026-09-29T18:01:25.899Z",
     "__v": 0,
-    "id": "6abbfcf5de05124ca18a5c7d"
+    "id": "6abbfcf5de05124ca18a5c7d",
+    "customId": "6abbfcf5de05124ca18a5c7d",
+    "slug": "apex-motors"
   },
   {
     "_id": "6abbdb3323131d20f5e719a8",
@@ -209,7 +225,7 @@
     "description": "A paper bank web app for the perp for students",
     "longDescription": "",
     "liveDemoUrl": "https://venom-papers.vercel.app/",
-    "githubUrl": "",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/papers-bank.jpg",
     "technologies": [
       "React",
@@ -223,7 +239,9 @@
     "updatedAt": "2026-09-29T15:43:01.329Z",
     "createdAt": "2026-09-29T15:37:23.299Z",
     "__v": 0,
-    "id": "6abbdb3323131d20f5e719a8"
+    "id": "6abbdb3323131d20f5e719a8",
+    "customId": "6abbdb3323131d20f5e719a8",
+    "slug": "papers-bank"
   },
   {
     "_id": "6abbd8bb57df84cc42addd92",
@@ -233,7 +251,7 @@
     "description": "Cutting-edge portfolio showcase for creative digital agency services, featuring glassmorphism UI and fluid animations.",
     "longDescription": "",
     "liveDemoUrl": "https://venomous-studio.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/Venomous Studio.png",
     "technologies": [
       "React",
@@ -247,7 +265,9 @@
     "createdAt": "2025-06-01T00:00:00.000Z",
     "updatedAt": "2026-09-29T15:26:51.908Z",
     "__v": 0,
-    "id": "6abbd8bb57df84cc42addd92"
+    "id": "6abbd8bb57df84cc42addd92",
+    "customId": "6abbd8bb57df84cc42addd92",
+    "slug": "venomous-studio"
   },
   {
     "_id": "6abbd8bb57df84cc42addd91",
@@ -257,7 +277,7 @@
     "description": "Comprehensive educational application designed to help students organize study sessions, resources, and progress tracking.",
     "longDescription": "",
     "liveDemoUrl": "https://study-app-steel.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/Study-hub.png",
     "technologies": [
       "React",
@@ -272,7 +292,9 @@
     "createdAt": "2025-05-12T00:00:00.000Z",
     "updatedAt": "2026-09-29T15:26:51.908Z",
     "__v": 0,
-    "id": "6abbd8bb57df84cc42addd91"
+    "id": "6abbd8bb57df84cc42addd91",
+    "customId": "6abbd8bb57df84cc42addd91",
+    "slug": "study-hub"
   },
   {
     "_id": "6abbd8bb57df84cc42addd90",
@@ -282,7 +304,7 @@
     "description": "Rich dark-themed website featuring artisanal coffee menus, online ordering, smooth scrolling, and brand aesthetics.",
     "longDescription": "",
     "liveDemoUrl": "https://coffee-theme.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/coffee.png",
     "technologies": [
       "React",
@@ -296,7 +318,9 @@
     "createdAt": "2025-04-05T00:00:00.000Z",
     "updatedAt": "2026-09-29T15:26:51.907Z",
     "__v": 0,
-    "id": "6abbd8bb57df84cc42addd90"
+    "id": "6abbd8bb57df84cc42addd90",
+    "customId": "6abbd8bb57df84cc42addd90",
+    "slug": "coffee-theme"
   },
   {
     "_id": "6abbd8bb57df84cc42addd8f",
@@ -306,7 +330,7 @@
     "description": "High-converting culinary website with authentic Japanese aesthetics, smooth scroll animations, and food ordering UI.",
     "longDescription": "",
     "liveDemoUrl": "https://vanilla-food-website.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/shushiman.png",
     "technologies": [
       "HTML5 Canvas",
@@ -320,7 +344,9 @@
     "createdAt": "2025-03-20T00:00:00.000Z",
     "updatedAt": "2026-09-29T15:26:51.907Z",
     "__v": 0,
-    "id": "6abbd8bb57df84cc42addd8f"
+    "id": "6abbd8bb57df84cc42addd8f",
+    "customId": "6abbd8bb57df84cc42addd8f",
+    "slug": "sushiman"
   },
   {
     "_id": "6abbd8bb57df84cc42addd8d",
@@ -330,7 +356,7 @@
     "description": "All-in-one web platform for hospitality & property management, booking reservations, guest scheduling, and analytics.",
     "longDescription": "",
     "liveDemoUrl": "https://stay-pilot-liard.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/StayPilot.png",
     "technologies": [
       "React",
@@ -346,7 +372,9 @@
     "createdAt": "2025-02-15T00:00:00.000Z",
     "updatedAt": "2026-09-29T15:26:51.906Z",
     "__v": 0,
-    "id": "6abbd8bb57df84cc42addd8d"
+    "id": "6abbd8bb57df84cc42addd8d",
+    "customId": "6abbd8bb57df84cc42addd8d",
+    "slug": "staypilot"
   },
   {
     "_id": "6abbd8bb57df84cc42addd8c",
@@ -356,7 +384,7 @@
     "description": "Authentic Japanese dining and sushi ordering web application featuring interactive menus, sleek dark aesthetic UI, and seamless food ordering experience.",
     "longDescription": "",
     "liveDemoUrl": "https://takumi-psi.vercel.app/",
-    "githubUrl": "https://github.com/venomous-studio",
+    "githubUrl": "https://github.com/MrVenomYT",
     "imageUrl": "/assets/thumbnail.png",
     "technologies": [
       "React",
@@ -371,6 +399,8 @@
     "createdAt": "2025-01-10T00:00:00.000Z",
     "updatedAt": "2026-09-29T15:26:51.903Z",
     "__v": 0,
-    "id": "6abbd8bb57df84cc42addd8c"
+    "id": "6abbd8bb57df84cc42addd8c",
+    "customId": "6abbd8bb57df84cc42addd8c",
+    "slug": "takumi-sushi"
   }
 ]

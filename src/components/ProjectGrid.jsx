@@ -11,6 +11,13 @@ export function formatImageUrl(url) {
   return encodeURI('/' + url);
 }
 
+export function formatExternalUrl(url) {
+  if (!url || url === '#' || !url.trim()) return '#';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export default function ProjectGrid({ initialProjects = [], limit, showFilters = true, title = "Featured Portfolio Projects", subtitle = "Handcrafted full-stack platforms and web systems fetched directly from the database." }) {
   const { projects: swrProjects, isLoading } = useProjects(initialProjects);
   const [filter, setFilter] = useState('all');
@@ -322,7 +329,7 @@ export default function ProjectGrid({ initialProjects = [], limit, showFilters =
                 <div style={{ padding: '0 24px 24px', display: 'flex', gap: '10px' }}>
                   {proj.liveDemoUrl && proj.liveDemoUrl !== '#' && (
                     <a 
-                      href={proj.liveDemoUrl} 
+                      href={formatExternalUrl(proj.liveDemoUrl)} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       onClick={() => handleProjectClick(proj, 'click')}

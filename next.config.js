@@ -1,17 +1,21 @@
 const path = require('path');
 
-const isVercel = process.env.VERCEL === '1';
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  ...(isVercel ? {} : { output: 'standalone' }),
+  output: 'standalone',
   reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'images.unsplash.com' }
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'raw.githubusercontent.com' },
+      { protocol: 'https', hostname: 'github.com' },
+      { protocol: 'https', hostname: 'user-images.githubusercontent.com' }
     ]
+  },
+  outputFileTracingIncludes: {
+    '/*': ['./data/**/*']
   },
   env: {
     FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,

@@ -9,6 +9,58 @@ export const DELETED_PRODUCTS_KEY = 'app_deleted_products_cache';
 
 export const initialSeedProjects = [
   {
+    id: '6ac66b965c8a02a78db21492',
+    _id: '6ac66b965c8a02a78db21492',
+    title: 'OmniTravels',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'A traveling webapp',
+    liveDemoUrl: 'https://omni-travels-teal.vercel.app/',
+    githubUrl: 'https://github.com/MrVenomYT',
+    imageUrl: '/assets/OmniTravels.png',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true
+  },
+  {
+    id: '6ac6612a8887e22ea1e6e012',
+    _id: '6ac6612a8887e22ea1e6e012',
+    title: 'Adidas EQT_GPR SHOES',
+    category: 'Vanila',
+    pill: 'Vanilla',
+    description: 'Simple Apparel website',
+    liveDemoUrl: 'https://adidas-plum.vercel.app/',
+    githubUrl: 'https://github.com/MrVenomYT',
+    imageUrl: '/assets/Apparel.png',
+    technologies: ['Html', 'css', 'javascript'],
+    featured: true
+  },
+  {
+    id: '6ac00699eaa83b49ad7d9ba5',
+    _id: '6ac00699eaa83b49ad7d9ba5',
+    title: 'Automotive car vault',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'An exclusive automotive showcase and car vault web platform featuring high-performance vehicle inventory, specifications, and reservation scheduling.',
+    liveDemoUrl: 'https://auto-vault-mu.vercel.app/',
+    githubUrl: 'https://github.com/MrVenomYT',
+    imageUrl: '/assets/github-banner-preview.png',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true
+  },
+  {
+    id: '6abe825efb82e6fc7779f2a3',
+    _id: '6abe825efb82e6fc7779f2a3',
+    title: 'DriveNest',
+    category: 'fullstack react',
+    pill: 'Full Stack Web App',
+    description: 'A car rental web app',
+    liveDemoUrl: 'https://drive-nest-six.vercel.app/',
+    githubUrl: 'https://github.com/MrVenomYT',
+    imageUrl: 'https://github.com/MrVenomYT/drive-nest/raw/main/site.jpg',
+    technologies: ['React', 'Next.js', 'Node.js'],
+    featured: true
+  },
+  {
     id: '6abc2297b173089d07a2d135',
     _id: '6abc2297b173089d07a2d135',
     title: 'Eshop',
@@ -16,6 +68,7 @@ export const initialSeedProjects = [
     pill: 'Full Stack Web App',
     description: 'A full stack webstore app',
     liveDemoUrl: 'https://eshop-pi-five.vercel.app/',
+    githubUrl: 'https://github.com/MrVenomYT',
     imageUrl: '/assets/eshop.png',
     technologies: ['React', 'Next.js', 'Node.js'],
     featured: true

@@ -15,6 +15,13 @@ export function formatImageUrl(url) {
   return encodeURI('/' + url);
 }
 
+export function formatExternalUrl(url) {
+  if (!url || url === '#' || !url.trim()) return '#';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return `https://${trimmed}`;
+}
+
 // Calculate estimated reading time for project card descriptions and architecture specifications
 export function calculateReadingTime(proj, wordsPerMinute = 200) {
   if (!proj) return '1 min read';
@@ -256,7 +263,7 @@ function TiltProjectCard({ proj, index, onQuickView }) {
           <div className="project-card-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '16px' }}>
             {proj.liveDemoUrl && proj.liveDemoUrl !== '#' ? (
               <a 
-                href={proj.liveDemoUrl} 
+                href={formatExternalUrl(proj.liveDemoUrl)} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="btn-live-demo-text"
@@ -864,7 +871,7 @@ export default function ProjectShowcase({
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '22px' }}>
                 {selectedProject.liveDemoUrl && selectedProject.liveDemoUrl !== '#' && (
                   <a
-                    href={selectedProject.liveDemoUrl}
+                    href={formatExternalUrl(selectedProject.liveDemoUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
@@ -907,7 +914,7 @@ export default function ProjectShowcase({
                 </Link>
                 {selectedProject.githubUrl ? (
                   <a
-                    href={selectedProject.githubUrl}
+                    href={formatExternalUrl(selectedProject.githubUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
